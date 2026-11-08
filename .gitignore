@@ -62,6 +62,7 @@ node_modules/
 !JMIX_GitVaa_Roadmap_v2.md
 !docs/architecture/
 !docs/architecture/**/*.md
+!docs/forms/item-form-layout.md
 
 # REST stage 3 SQL evidence accompanies the versioned completion report.
 !docs/architecture/evidence/rest-read-stage3-z0-sql-20261003.txt

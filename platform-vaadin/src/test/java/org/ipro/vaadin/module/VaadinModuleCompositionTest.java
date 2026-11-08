@@ -138,6 +138,8 @@ class VaadinModuleCompositionTest {
         "org.ipro.form.builder.layout.FieldNode",
         "org.ipro.form.builder.layout.ItemFormLayout",
         "org.ipro.form.builder.layout.LayoutNode",
+        "org.ipro.form.builder.layout.EmbeddedListNode",
+        "org.ipro.form.builtin.EmbeddedListHost",
         "org.ipro.form.builder.layout.PanelNode",
         "org.ipro.form.builder.layout.RemainingFieldsNode",
         "org.ipro.form.builder.layout.SectionNode",
@@ -182,6 +184,7 @@ class VaadinModuleCompositionTest {
         "org.ipro.form.link.OpenResult",
         "org.ipro.form.link.PublishedFormRoute",
         "org.ipro.form.registry.FormContext",
+        "org.ipro.form.registry.EmbeddedListFactory",
         "org.ipro.form.registry.FormFactory",
         "org.ipro.form.registry.FormKey",
         "org.ipro.form.registry.FormRegistry",
@@ -207,7 +210,20 @@ class VaadinModuleCompositionTest {
         "org.ipro.vaadin.search.config.GlobalSearchVaadinAutoConfiguration",
         "org.ipro.vaadin.telemetry.TelemetryErrorHandler",
         "org.ipro.vaadin.telemetry.TelemetryVaadinConfiguration",
-        "org.ipro.vaadin.telemetry.TelemetryVaadinInitListener");
+        "org.ipro.vaadin.telemetry.TelemetryVaadinInitListener",
+        "org.ipro.form.CommandBar",
+        "org.ipro.form.LookupSearchFunction",
+        "org.ipro.form.LookupSelectionFormFactory",
+        "org.ipro.form.RelatedFields",
+        "org.ipro.form.ValueChangeSource",
+        "org.ipro.form.action.CopyLinkAction",
+        "org.ipro.form.builder.FormParameter",
+        "org.ipro.form.builder.FormParameters",
+        "org.ipro.form.builder.ListCommandLayout",
+        "org.ipro.form.builder.ListUiCommand",
+        "org.ipro.form.builder.layout.FieldRelations",
+        "org.ipro.form.builder.layout.FormReadDependencies",
+        "org.ipro.form.builder.layout.SelectionValue");
 
     /**
      * Reviewed внешние корни импорта. {@code org.ipro} здесь означает «другой платформенный
@@ -325,7 +341,7 @@ class VaadinModuleCompositionTest {
                 + " E1.2b добавила порт права на операцию (`OperationPermissionSource`) — итого 138;"
                 + " ET2 добавила внутренний сборщик структурных фактов (`EntityStructureFactsAssembler`) — итого 139;"
                 + " Б1 добавила поиск автокомплита с отбором выбора (`FilterableSearchFunction`) — итого 141")
-            .hasSize(153); // AF5.5: declaration, adjustment, properties and behavior API.
+            .hasSize(169); // AF6 stage 2: per-opening embedded-list runtime host.
     }
 
     @Test

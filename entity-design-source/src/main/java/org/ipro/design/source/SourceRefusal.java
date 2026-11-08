@@ -5,6 +5,7 @@ import java.util.Objects;
 /** An addressed refusal: what went wrong, where, and why. Never a guess in place of a refusal. */
 public final class SourceRefusal extends RuntimeException {
     public enum Code {
+        FORM_COLUMNS_UNSUPPORTED, FORM_COLUMNS_CONFLICT,
         MISSING_JDK_COMPILER, SOURCE_ENCODING_INVALID, SOURCE_UNREADABLE, SOURCE_UNPARSABLE, NOT_AN_ENTITY_CLASS,
         /** The patch broke a guarantee: bytes outside the edits changed, or the result does not parse. */
         PATCH_SELF_CHECK_FAILED,

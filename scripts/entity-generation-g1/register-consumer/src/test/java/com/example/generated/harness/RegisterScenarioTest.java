@@ -36,6 +36,7 @@ class RegisterScenarioTest {
     @Autowired AccessGrantRepository grants;
     @Autowired EntityManagerFactory emf;
     @Autowired MetadataConsistencyStartupCheck startup;
+    @Autowired org.ipro.metadata.MetadataResolver metadata;
     Class type;
 
     @BeforeEach void setup() throws Exception {
@@ -70,6 +71,17 @@ class RegisterScenarioTest {
         assertThat(descriptor.keyWriteAllowed()).isEqualTo(ScenarioSpec.KEY_WRITE);
         assertThat(descriptor.keyChangeAllowed()).isEqualTo(ScenarioSpec.KEY_CHANGE);
         assertThat(descriptor.genericWritesAllowed()).isEqualTo(ScenarioSpec.GENERIC_WRITES);
+        if (((org.ipro.metadata.annotation.EntityMetadata) type.getAnnotation(org.ipro.metadata.annotation.EntityMetadata.class)).listColumns().length == 0) {
+            var info = metadata.resolve(type);
+            var expected = new ArrayList<String>();
+            if (ScenarioSpec.PERIODIC) expected.add("period");
+            expected.add(ScenarioSpec.DIMENSION); expected.addAll(List.of(ScenarioSpec.RESOURCES));
+            assertThat(info.hasExplicitListColumns()).isTrue();
+            assertThat(info.hasExplicitSelectColumns()).isTrue();
+            assertThat(info.getPropertySymbol("listColumns")).isEqualTo(type.getName() + "FormConfiguration");
+            assertThat(info.getListColumnPaths().stream().map(org.ipro.metadata.ColumnPath::getKey).toList()).containsExactlyElementsOf(expected);
+            assertThat(info.getSelectColumnPaths().stream().map(org.ipro.metadata.ColumnPath::getKey).toList()).containsExactlyElementsOf(expected);
+        }
     }
 
     @Test void mappingsMatchExactKeyColumnsAndRoles() throws Exception {

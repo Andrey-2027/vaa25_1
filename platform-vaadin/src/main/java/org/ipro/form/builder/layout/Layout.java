@@ -38,6 +38,16 @@ public final class Layout {
     }
     public Element remainingFields() { return new Element(Kind.REMAINING, "$remaining"); }
 
+    public Element list(Class<? extends IdentifiableEntity<Long>> entityClass) {
+        return list("$list:" + Objects.requireNonNull(entityClass).getName(), entityClass);
+    }
+    /** Explicit id permits several independently configured lists of the same entity. */
+    public Element list(String id, Class<? extends IdentifiableEntity<Long>> entityClass) {
+        var element = new Element(Kind.LIST, id);
+        element.listEntity = Objects.requireNonNull(entityClass);
+        return element;
+    }
+
     public ItemFormLayout of(Element... elements) {
         if (declared) throw new IllegalArgumentException("layout.of may be called only once");
         declared = true;
@@ -104,8 +114,16 @@ public final class Layout {
                 throw new IllegalArgumentException("Tab must belong to tabs: " + element.id);
             if (element.kind == Kind.TABS && element.children.stream().anyMatch(child -> child.kind != Kind.TAB))
                 throw new IllegalArgumentException("tabs accepts only tab elements: " + element.id);
-            if (element.kind != Kind.FIELD && (element.readOnly || element.selectionVariant != null))
+            if (element.kind != Kind.FIELD && element.kind != Kind.LIST && (element.readOnly || element.selectionVariant != null))
                 throw new IllegalArgumentException("readOnly/selectionVariant apply to fields: " + element.id);
+            if (element.kind == Kind.LIST) {
+                if (element.selectionVariant != null)
+                    throw new IllegalArgumentException("Use setVariant for embedded list: " + element.id);
+                try { embeddedList(element).filtersFor(metadata.getEntityClass()); }
+                catch (RuntimeException failure) {
+                    throw new IllegalArgumentException("Element '" + element.id + "': " + failure.getMessage(), failure);
+                }
+            }
             if (element.editorFactory != null) {
                 if (element.kind != Kind.FIELD || element.id.contains("."))
                     throw new IllegalArgumentException("Custom editor requires a direct field: " + element.id);
@@ -114,6 +132,20 @@ public final class Layout {
             }
         });
         prepareRelations();
+        var inputs = new LinkedHashMap<String, Element>();
+        walk(roots, element -> { if (element.kind == Kind.FIELD) inputs.put(element.id, element); });
+        walk(roots, element -> {
+            if (element.kind != Kind.LIST) return;
+            for (SelectionValue value : element.listFilters.values()) {
+                if (value instanceof SelectionValue.FieldValue field) {
+                    try { requireSource(field.path(), inputs); }
+                    catch (RuntimeException failure) {
+                        throw new IllegalArgumentException("Element '" + element.id + "': " + failure.getMessage(), failure);
+                    }
+                    if (!element.readPaths.contains(field.path())) element.readPaths.add(field.path());
+                }
+            }
+        });
         // Explicitly hidden fields stay bound; explicit remove acknowledges the omission.
         for (FieldMetadataInfo field : metadata.getFormFields()) {
             if (field.isRequired() && !fields.contains(field.getName()) && !acknowledged.contains(field.getName()))
@@ -201,6 +233,7 @@ public final class Layout {
             case CUSTOM -> new CustomNode(element.factory);
             case PANEL -> new PanelNode(null, element.title, nodes(element.children));
             case SECTION -> new SectionNode(element.rowClass);
+            case LIST -> embeddedList(element);
             case TABS -> new TabSheetNode(element.children.stream().map(tab ->
                 new TabDefinition(tab.id, tab.title == null ? tab.id : tab.title, nodes(tab.children), tab.visible, tab.width)).toList());
             case TAB, REMAINING -> throw new IllegalArgumentException("Unexpected element: " + element.id);
@@ -211,6 +244,9 @@ public final class Layout {
             element.selectionVariant, element.lookupPaths, readPaths,
             new FieldRelations(element.selectionFilters, element.clearInvalidSelection, element.fillFrom,
                 element.fillOnlyIfEmpty, element.allowEmptySelectionSource), element.editorFactory);
+    }
+    private EmbeddedListNode embeddedList(Element element) {
+        return new EmbeddedListNode(element.listEntity, element.listVariant, element.listFilters, element.listCommands);
     }
     private static void walk(List<Element> elements, java.util.function.Consumer<Element> action) {
         walk(elements, action, Collections.newSetFromMap(new IdentityHashMap<>()));
@@ -235,7 +271,7 @@ public final class Layout {
         return result.getFirst();
     }
 
-    private enum Kind { FIELD, DISPLAY, CUSTOM, PANEL, TABS, TAB, SECTION, REMAINING }
+    private enum Kind { FIELD, DISPLAY, CUSTOM, PANEL, TABS, TAB, SECTION, REMAINING, LIST }
 
     public final class Element {
         private final Kind kind;
@@ -252,6 +288,10 @@ public final class Layout {
         private Supplier<? extends Component> editorFactory;
         private Function<Object, String> formatter;
         private Class<? extends IdentifiableEntity<Long>> rowClass;
+        private Class<? extends IdentifiableEntity<Long>> listEntity;
+        private String listVariant;
+        private final Map<String, SelectionValue> listFilters = new LinkedHashMap<>();
+        private org.ipro.form.builder.ListCommandLayout listCommands = org.ipro.form.builder.ListCommandLayout.builder().build();
         private Element(Kind kind, String id) {
             this.kind = kind;
             if (id == null || id.isBlank()) throw new IllegalArgumentException("Element id must not be blank");
@@ -269,6 +309,26 @@ public final class Layout {
         public Element setReadOnly(boolean value) { readOnly = value; return this; }
         public Element setWidth(String value) { width = value; return this; }
         public Element setSelectionVariant(String value) { selectionVariant = value; return this; }
+        public Element setVariant(String value) {
+            requireList();
+            if (value != null && value.isBlank()) throw new IllegalArgumentException("Blank embedded list variant: " + id);
+            listVariant = value; return this;
+        }
+        public Element setFilter(String path, Object value) {
+            requireList();
+            if (path == null || path.isBlank()) throw new IllegalArgumentException("Blank embedded list filter: " + id);
+            listFilters.put(path, value instanceof SelectionValue parameter ? parameter : new SelectionValue.Constant(value));
+            return this;
+        }
+        public Element commands(java.util.function.Consumer<org.ipro.form.builder.ListCommandLayout.Builder> configuration) {
+            requireList();
+            var builder = org.ipro.form.builder.ListCommandLayout.builder();
+            Objects.requireNonNull(configuration).accept(builder);
+            listCommands = builder.build().overlayOn(listCommands); return this;
+        }
+        private void requireList() {
+            if (kind != Kind.LIST) throw new IllegalArgumentException("Embedded list property requires a list: " + id);
+        }
         /** A fresh HasValue editor per opening. Its value type is the metadata field's model type. */
         public <C extends Component & com.vaadin.flow.component.HasValue<?, ?>> Element setEditor(Supplier<C> factory) {
             editorFactory = Objects.requireNonNull(factory); return this;
@@ -320,6 +380,9 @@ public final class Layout {
     public Element addDisplay(String path) { Element element = display(path); roots.add(element); return element; }
     public Element addCustom(String id, Supplier<? extends Component> factory) {
         Element element = custom(id, factory); roots.add(element); return element;
+    }
+    public Element addList(String id, Class<? extends IdentifiableEntity<Long>> entityClass) {
+        Element element = list(id, entityClass); roots.add(element); return element;
     }
     public Element addTab(String tabs, String id) { Element element = tab(id); element(tabs).add(element); return element; }
 }

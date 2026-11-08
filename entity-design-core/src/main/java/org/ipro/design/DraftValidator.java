@@ -36,7 +36,7 @@ public final class DraftValidator {
         private final Set<String> types = new HashSet<>(), tables = new HashSet<>();
         private final Set<String> newTypes = new HashSet<>();
         private final Set<String> foldedTypes = new HashSet<>();
-        private boolean extension() { return draft.recipe().equals(RecipeCatalog.STANDARD_CATALOG_V2) || draft.recipe().equals(RecipeCatalog.STANDARD_DOCUMENT); }
+        private boolean extension() { return RecipeCatalog.isStandardExtension(draft.recipe()); }
         /** The captured recipe keeps its original semantic checks; every later recipe also gets the accessor rules. */
         private boolean capturedCatalog() { return draft.recipe().equals(RecipeCatalog.STANDARD_CATALOG); }
         private UUID sectionId, fieldId;
@@ -46,7 +46,7 @@ public final class DraftValidator {
             boolean registerRecipe = RecipeCatalog.isRegisterRecipe(draft.recipe());
             var recipe = RecipeCatalog.find(draft.recipe());
             if (registerRecipe) {
-                int envelope = RecipeCatalog.INDEPENDENT_REGISTER_RLS.equals(draft.recipe()) ? 4 : 3;
+                int envelope = RecipeCatalog.isRlsRegisterRecipe(draft.recipe()) ? 4 : 3;
                 if (draft.schemaVersion() != envelope) error(UNSUPPORTED_VERSION, "schemaVersion", Integer.toString(draft.schemaVersion()));
                 if (recipe.isEmpty()) error(UNSUPPORTED_VERSION, "recipe", draft.recipe().toString());
                 if (!draft.sections().isEmpty()) error(REGISTER_SECTION_UNSUPPORTED, "sections", Integer.toString(draft.sections().size()));
@@ -59,12 +59,12 @@ public final class DraftValidator {
             } else {
                 if (draft.schemaVersion() != 1 && draft.schemaVersion() != 2 || draft.schemaVersion() == 1 && draft.owner() != null)
                     error(UNSUPPORTED_VERSION, "schemaVersion", Integer.toString(draft.schemaVersion()));
-                if (draft.schemaVersion() == 2 && !Set.of(RecipeCatalog.STANDARD_CATALOG_V2, RecipeCatalog.STANDARD_DOCUMENT).contains(draft.recipe()))
+                if (draft.schemaVersion() == 2 && !RecipeCatalog.isStandardExtension(draft.recipe()))
                     error(UNSUPPORTED_VERSION, "recipe", draft.recipe().toString());
                 if (recipe.isEmpty()) error(UNSUPPORTED_VERSION, "recipe", draft.recipe().toString());
                 else if (!recipe.get().draftSupported()) error(RECIPE_DRAFT_UNSUPPORTED,"recipe",draft.recipe().toString());
                 // Capture v1 keeps its original semantic checks. Opting into v2 requires current runtime facts.
-                else if (draft.recipe().equals(RecipeCatalog.STANDARD_CATALOG_V2) || draft.recipe().equals(RecipeCatalog.STANDARD_DOCUMENT)) {
+                else if (RecipeCatalog.isStandardExtension(draft.recipe())) {
                     if (!context.runtimeSnapshot().complete()) error(PROJECT_FACT_UNKNOWN,"context.runtimeSnapshot","incomplete");
                     for (String prerequisite : recipe.get().runtimePrerequisites()) {
                         var fact=context.runtimeSnapshot().prerequisite(prerequisite);
@@ -85,6 +85,10 @@ public final class DraftValidator {
                 error(PROJECT_FACT_UNKNOWN, "packageName", "defaultPackage");
             type(e.className(), pkg);
             newTypes.add(pkg + "." + e.className());
+            if (RecipeCatalog.formConfigurationRecipe(draft.recipe())) {
+                type(e.className() + "FormConfiguration", pkg);
+                newTypes.add(pkg + "." + e.className() + "FormConfiguration");
+            }
             if (!registerRecipe) for (var s : draft.sections()) newTypes.add(DraftSuggestions.rowPackage(s, pkg) + "." + s.rowClassName());
             required(e.label(), "label"); raw(e.className(), "className"); raw(e.packageName().text(), "packageName");
             storage(table, "tableName", tables); raw(e.tableName().text(), "tableName");
@@ -228,7 +232,7 @@ public final class DraftValidator {
         }
         private CheckedStructure.RegisterRls registerRls(RegisterDraft register, Map<UUID, CheckedStructure.Field> fields) {
             var policy = register.rls();
-            if (!RecipeCatalog.INDEPENDENT_REGISTER_RLS.equals(draft.recipe())) {
+            if (!RecipeCatalog.isRlsRegisterRecipe(draft.recipe())) {
                 if (policy != null) error(REGISTER_RLS_INVALID, "register.rls", "RLS requires envelope v4 and independent-register-v2@2");
                 return null;
             }
@@ -278,7 +282,7 @@ public final class DraftValidator {
         private CheckedStructure.Owner owner(Set<String> reserved, Set<String> columns) {
             var owner = draft.owner();
             if (owner == null) return null;
-            if (!draft.recipe().equals(RecipeCatalog.STANDARD_CATALOG_V2)) error(OWNER_UNSUPPORTED_RECIPE, "owner", draft.recipe().id());
+            if (!RecipeCatalog.structuralRecipe(draft.recipe()).equals(RecipeCatalog.STANDARD_CATALOG_V2)) error(OWNER_UNSUPPORTED_RECIPE, "owner", draft.recipe().id());
             identifier(owner.fieldName(), "owner.fieldName"); required(owner.label(), "owner.label");
             raw(owner.columnName().text(), "owner.columnName"); raw(owner.targetTypeId(), "owner.targetTypeId");
             String suffix = accessorSuffix(owner.fieldName());

@@ -87,6 +87,8 @@ final class StandardRootJavaGenerator {
                     target(source.draftId(), section.id(), null, "applications"), messageKey(GenerationDiagnostic.Code.PROJECTION_UNREPRESENTABLE), Map.of())));
             }
         }
+        if (RecipeCatalog.formConfigurationRecipe(source.recipe()))
+            files.add(FormConfigurationSourceBuilder.file(checked, projection));
         var planId = PlanFingerprint.planId(fingerprintProfile, source.recipe(), generatorVersion, currentDraft, currentContext, files, checked.owner(), projection.owner());
         return GenerationResult.generated(new GenerationPlan(planId, source.recipe(), generatorVersion,
                 currentDraft, currentContext, files));

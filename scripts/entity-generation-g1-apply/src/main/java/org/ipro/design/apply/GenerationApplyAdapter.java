@@ -73,7 +73,7 @@ public final class GenerationApplyAdapter {
     private ApplyResult applyChecked(ApplyRequest request, GenerationPlan plan,
                                      EntityDraft draft, ProjectDesignContext context)
             throws ApplyFailure {
-        if (RecipeCatalog.isRegisterRecipe(plan.recipe())
+        if (RecipeCatalog.formConfigurationRecipe(plan.recipe()) || RecipeCatalog.isRegisterRecipe(plan.recipe())
                 || plan.generatorVersion().startsWith("register-java-")
                 || RecipeCatalog.STANDARD_DOCUMENT.equals(plan.recipe())
                 || RecipeCatalog.STANDARD_CATALOG_V2.equals(plan.recipe()) && !"catalog-java-v1".equals(plan.generatorVersion())) {

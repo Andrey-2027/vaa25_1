@@ -8,6 +8,7 @@ import org.ipro.filtergrid.PeriodFilter;
 import org.ipro.filtergrid.PeriodRange;
 import org.ipro.form.builtin.ListForm;
 import org.ipro.form.registry.FormRegistry;
+import org.ipro.form.spi.FormSettingsStore;
 import org.ipro.metadata.MetadataResolver;
 import org.ipro.metadata.annotation.EntityMetadata;
 import org.ipro.metadata.annotation.FieldMetadata;
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -102,17 +104,26 @@ class FilterPanelIntegrationTest {
         verify(condition).create(false);
         assertThat(ContextFilterConditions.specificationFor(Row.class, fields, Map.of("date", PeriodRange.empty()))).isNull();
     }
-    @Test void compactModeTraversesFormItemTextLabelsAndUpdatesThePeriodEditor() {
+    @Test void oldCompactSettingDoesNotEnableTheRemovedMode() {
+        var form = form();
+        FormSettingsStore settings = mock(FormSettingsStore.class);
+        when(settings.get(anyString())).thenReturn(Optional.of("true"));
+
+        form.setViewSupport(null, settings, "row");
+
+        assertThat(form.getFilterGrid().isCompact()).isFalse();
+    }
+
+    @Test void compactModeIsNotPartOfTheListFormToolbarAnymore() {
         var form = form();
         form.setContextFilters(List.of(ContextFilterField.filter("date").setPeriod(), ContextFilterField.filter("active")));
-        var compact = form.getToolbar().getChildren().filter(com.vaadin.flow.component.button.Button.class::isInstance)
+        assertThat(form.getToolbar().getChildren()
+            .filter(com.vaadin.flow.component.button.Button.class::isInstance)
             .map(com.vaadin.flow.component.button.Button.class::cast)
-            .filter(button -> "Компактный вид".equals(button.getElement().getAttribute("aria-label"))).findFirst().orElseThrow();
-        assertThatCode(compact::click).doesNotThrowAnyException();
-        assertThat(form.getFilterGrid().isCompact()).isTrue();
+            .map(button -> button.getElement().getAttribute("aria-label")))
+            .doesNotContain("Компактный вид");
+        assertThat(form.getFilterGrid().isCompact()).isFalse();
         var panel = (ContextFilterPanel) form.getFilterPanel().getChildren().filter(ContextFilterPanel.class::isInstance).findFirst().orElseThrow();
-        assertThat(panel.getControl("date").getElement().getThemeList()).contains("small");
-        assertThatCode(compact::click).doesNotThrowAnyException();
         assertThat(panel.getControl("date").getElement().getThemeList()).doesNotContain("small");
     }
     @Test void numericEqualityKeepsTheEntityPropertyTypeForPrefillAndRejectsMalformedInput() {

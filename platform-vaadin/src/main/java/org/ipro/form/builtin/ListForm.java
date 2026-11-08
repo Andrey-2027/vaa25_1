@@ -1,5 +1,6 @@
 package org.ipro.form.builtin;
 
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
@@ -12,6 +13,7 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.function.ValueProvider;
+import org.ipro.form.CommandBar;
 import org.ipro.form.EntityField;
 import org.ipro.form.FilterLookupOptions;
 import org.ipro.form.FieldRenderer;
@@ -23,7 +25,7 @@ import org.ipro.form.action.ActionHandler;
 import org.ipro.form.action.ActionId;
 import org.ipro.form.action.ActionInvocation;
 import org.ipro.form.action.ActionResolver;
-import org.ipro.form.action.CopyLinkButton;
+import org.ipro.form.action.CopyLinkAction;
 import org.ipro.form.link.FormLinkService;
 import org.ipro.form.action.CrudAction;
 import org.ipro.form.coordinator.FormNavigator;
@@ -38,6 +40,8 @@ import org.ipro.crud.BaseService;
 import org.ipro.crud.LookupService;
 import org.ipro.form.builder.ContextFilterField;
 import org.ipro.form.builder.ContextFilterPanel;
+import org.ipro.form.builder.ListCommandLayout;
+import org.ipro.form.builder.ListUiCommand;
 import org.ipro.form.registry.ListFormContext;
 import org.ipro.filtergrid.ComboBoxFilter;
 import org.ipro.filtergrid.DateRangeFilter;
@@ -218,19 +222,36 @@ public class ListForm<T extends IdentifiableEntity<Long>, ID> extends VerticalLa
     private final EntityMetadataInfo metadata;
     private List<ColumnPath> defaultColumns;
     private final org.ipro.filtergrid.FilterGrid<T> filterGrid;
-    private final HorizontalLayout toolbar = new HorizontalLayout();
-    private final Button addButton = new Button("Создать", VaadinIcon.PLUS.create());
-    private final Button copyButton = new Button("Копировать", VaadinIcon.COPY.create());
-    private final Button editButton = new Button("Изменить", VaadinIcon.EDIT.create());
+    private final CommandBar commandBar = new CommandBar();
+    /** Совместимая дополнительная область; основные команды живут в {@link #commandBar}. */
+    private final HorizontalLayout toolbar = new CompatibilityArea();
+    private Button addButton;
+    private Button copyButton;
+    private Button editButton;
     /**
      * «Просмотр» — то же открытие строки, но для типа или строки без изменения: видимость и
      * доступность решает общее решение (§2.2 плана E1), а не отдельная формула в форме.
      */
-    private final Button openButton = new Button("Просмотр", VaadinIcon.EYE.create());
-    private final Button deleteButton = new Button("Удалить", VaadinIcon.TRASH.create());
-    private final Button refreshButton = new Button(VaadinIcon.REFRESH.create());
-    private final Button viewsButton = new Button(VaadinIcon.LIST.create());
-    private final Button compactButton = new Button(VaadinIcon.COMPRESS.create());
+    private Button openButton;
+    private Button deleteButton;
+    private Button refreshButton;
+    private Button viewsButton;
+
+    private CommandBar.Command addCommand;
+    private CommandBar.Command copyCommand;
+    private CommandBar.Command editCommand;
+    private CommandBar.Command openCommand;
+    private CommandBar.Command deleteCommand;
+    private CommandBar.Command refreshCommand;
+    private CommandBar.Command viewsCommand;
+    private CommandBar.Command groupingCommand;
+
+    /** Группировка управляется существующей кнопкой библиотеки; host на экран не добавляется. */
+    private HorizontalLayout groupingHost;
+    private Button groupingToggle;
+
+    private ListCommandLayout baseCommandLayout = ListCommandLayout.platformDefaults();
+    private ListCommandLayout instanceCommandLayout;
 
     private List<ColumnPath> activeColumns;
 
@@ -276,8 +297,10 @@ public class ListForm<T extends IdentifiableEntity<Long>, ID> extends VerticalLa
      */
     private FormLinkService formLinkService;
 
-    /** Кнопка адреса списка; {@code null}, пока сервис ссылок не поставлен. */
-    private CopyLinkButton copyLinkButton;
+    /** Команда адреса списка; {@code null}, пока сервис ссылок не поставлен. */
+    private CommandBar.Command copyLinkCommand;
+    /** До присоединения к UI каталог адресов не спрашивается. */
+    private boolean copyLinkLive;
 
     /**
      * Объявленные действия списка (E1.6a): кнопка и решение по её объявлению.
@@ -285,7 +308,7 @@ public class ListForm<T extends IdentifiableEntity<Long>, ID> extends VerticalLa
      * <p>Ключ — само объявление: у одного действия не может быть двух кнопок, и повторная
      * отрисовка (решатель поставлен до сборки тулбара) не создаёт вторую.</p>
      */
-    private final Map<ActionDefinition, Button> declaredActions = new LinkedHashMap<>();
+    private final Map<ActionDefinition, CommandBar.Command> declaredActions = new LinkedHashMap<>();
 
     /** Локальные действия составного view: без Spring-бина и центральной регистрации. */
     private final Map<ActionId, ActionHandler> localActionHandlers = new LinkedHashMap<>();
@@ -584,9 +607,7 @@ public class ListForm<T extends IdentifiableEntity<Long>, ID> extends VerticalLa
     public void setFormLinkService(FormLinkService formLinkService) {
         this.formLinkService = formLinkService;
         installCopyLinkButton();
-        if (copyLinkButton != null) {
-            copyLinkButton.refresh();
-        }
+        updateActionStates();
     }
 
     /**
@@ -602,20 +623,16 @@ public class ListForm<T extends IdentifiableEntity<Long>, ID> extends VerticalLa
      * строкой, и выделение ей не нужно.</p>
      */
     private void installCopyLinkButton() {
-        if (copyLinkButton != null || formLinkService == null || actionResolver == null) {
+        if (copyLinkCommand != null || formLinkService == null || actionResolver == null) {
             return;
         }
-        copyLinkButton = CopyLinkButton.forList("Скопировать ссылку", formLinkService,
-            metadata.getEntityClass(), formVariant,
-            () -> decide(CrudAction.COPY_LINK, null), this::notifyBlocked,
-            () -> captureViewState().toJson());
-        copyLinkButton.setIcon(VaadinIcon.LINK.create());
-        int refreshPosition = toolbar.indexOf(refreshButton);
-        if (refreshPosition < 0) {
-            toolbar.add(copyLinkButton);
-        } else {
-            toolbar.addComponentAtIndex(refreshPosition + 1, copyLinkButton);
-        }
+        copyLinkCommand = commandBar.addMenuCommand(CrudAction.COPY_LINK.id(),
+            "Скопировать ссылку",
+            () -> CopyLinkAction.execute(() -> decide(CrudAction.COPY_LINK, null),
+                () -> formLinkService.linkToList(metadata.getEntityClass(), formVariant,
+                    captureViewState().toJson()).linkPath(), this::notifyBlocked),
+            CommandBar.Group.SERVICE);
+        updateActionStates();
     }
 
     /**
@@ -651,24 +668,34 @@ public class ListForm<T extends IdentifiableEntity<Long>, ID> extends VerticalLa
     /** Пересчитать видимость, доступность и подсказки generic-кнопок из текущего решения. */
     private void updateActionStates() {
         T selected = getSelectedItem();
-        applyDecision(addButton, CrudAction.CREATE, null);
-        applyDecision(copyButton, CrudAction.COPY, selected);
-        applyDecision(editButton, CrudAction.EDIT, selected);
-        applyDecision(openButton, CrudAction.OPEN, selected);
-        applyDecision(deleteButton, CrudAction.DELETE, selected);
-        applyDecision(refreshButton, CrudAction.REFRESH, null);
-        if (copyLinkButton != null) {
-            copyLinkButton.refresh();
+        applyDecision(addCommand, CrudAction.CREATE, null);
+        applyDecision(copyCommand, CrudAction.COPY, selected);
+        applyDecision(editCommand, CrudAction.EDIT, selected);
+        applyDecision(openCommand, CrudAction.OPEN, selected);
+        applyDecision(deleteCommand, CrudAction.DELETE, selected);
+        applyDecision(refreshCommand, CrudAction.REFRESH, null);
+        if (copyLinkCommand != null) {
+            if (copyLinkLive) {
+                applyDecision(copyLinkCommand, CrudAction.COPY_LINK, null);
+            } else {
+                copyLinkCommand.setVisible(false);
+                copyLinkCommand.setEnabled(false);
+            }
         }
-        for (Map.Entry<ActionDefinition, Button> entry : declaredActions.entrySet()) {
+        if (viewsCommand != null) {
+            viewsCommand.setVisible(gridViewStore != null);
+        }
+        if (groupingCommand != null) {
+            groupingCommand.setEnabled(groupingToggle != null && groupingToggle.isEnabled());
+        }
+        for (Map.Entry<ActionDefinition, CommandBar.Command> entry : declaredActions.entrySet()) {
             ActionDecision decision = decisionOf(entry.getKey(), selected);
-            // Режим просмотра здесь не применяется: он — решение host'а о формax, а доступность
-            // прикладного действия выражается его требованием. Второе правило молча прятало бы
-            // действие с выполненным требованием и без названной причины.
-            entry.getValue().setVisible(decision.visible());
-            entry.getValue().setEnabled(decision.actionable());
-            entry.getValue().setTooltipText(tooltipFor(decision));
+            CommandBar.Command command = entry.getValue();
+            command.setVisible(decision.visible());
+            command.setEnabled(decision.actionable());
+            command.setTooltip(tooltipFor(decision));
         }
+        commandBar.refresh();
     }
 
     // === Объявленные действия (E1.6a) ===
@@ -713,25 +740,18 @@ public class ListForm<T extends IdentifiableEntity<Long>, ID> extends VerticalLa
                     .anyMatch(rendered -> rendered.id().equals(definition.id()))) {
             return;
         }
-        Button button = new Button(definition.title());
+        VaadinIcon icon = null;
         if (definition.iconName() != null) {
             try {
-                button.setIcon(new Icon(VaadinIcon.valueOf(definition.iconName())));
+                icon = VaadinIcon.valueOf(definition.iconName());
             } catch (IllegalArgumentException invalidIconName) {
                 // неверное имя иконки — просто без иконки, как и в легаси-командах
             }
         }
-        button.setEnabled(false);
-        button.addClickListener(event -> executeDeclaredAction(definition, handler));
-        declaredActions.put(definition, button);
-        // Предметная кнопка не встаёт правее разделителя: «Ещё» объявлена крайней справа
-        // (installMoreMenu), а объявленное действие рисуется после неё — решатель ставится
-        // координатором позже сборки тулбара.
-        if (moreMenuAnchor == null) {
-            toolbar.add(button);
-        } else {
-            toolbar.addComponentAtIndex(toolbar.indexOf(moreMenuAnchor), button);
-        }
+        String title = definition.title() == null ? definition.id().value() : definition.title();
+        CommandBar.Command command = commandBar.register(definition.id(), title, icon,
+            () -> executeDeclaredAction(definition, handler)).setDefinitionOrder(definition.order());
+        declaredActions.put(definition, command);
         updateActionStates();
     }
 
@@ -771,11 +791,14 @@ public class ListForm<T extends IdentifiableEntity<Long>, ID> extends VerticalLa
      * Одно решение → одно состояние кнопки. Текст подсказки в решении не участвует и прав не даёт:
      * он только объясняет уже принятое решение.
      */
-    private void applyDecision(Button button, CrudAction action, T row) {
+    private void applyDecision(CommandBar.Command command, CrudAction action, T row) {
+        if (command == null) {
+            return;
+        }
         ActionDecision decision = decide(action, row);
-        button.setVisible(decision.visible());
-        button.setEnabled(decision.actionable());
-        button.setTooltipText(action == CrudAction.COPY && decision.actionable()
+        command.setVisible(decision.visible());
+        command.setEnabled(decision.actionable());
+        command.setTooltip(action == CrudAction.COPY && decision.actionable()
             ? "Копировать выбранную запись со строками" : tooltipFor(decision));
     }
 
@@ -1084,6 +1107,8 @@ public class ListForm<T extends IdentifiableEntity<Long>, ID> extends VerticalLa
                      org.ipro.filtergrid.grouping.GroupValuesService<T> groupValuesService,
                      List<ColumnPath> columns) {
         this.metadata = metadata;
+        com.vaadin.flow.component.ComponentUtil.setData(this, CommandBar.class, commandBar);
+        addAttachListener(event -> scheduleCommandValidation());
         this.defaultColumns = List.copyOf(columns);
         this.visualFilterAdapter = new ListFormVisualFilterAdapter<>(
             this::compileFilter,
@@ -1112,15 +1137,21 @@ public class ListForm<T extends IdentifiableEntity<Long>, ID> extends VerticalLa
         // deriveGroupFields() не задаёт labelGenerator, и подпись узла уходит в
         // value.toString() — «org.ip.model.Journal@…» вместо displayName.
         if (this.filterGrid instanceof GroupableJpaFilterGrid) {
+            // Кнопка библиотеки создаётся в отдельном host, который не добавляется на экран:
+            // меню лишь делегирует ей click, второй видимой кнопки над гридом не появляется.
+            groupingHost = new HorizontalLayout();
+            groupingHost.setVisible(false);
             ((GroupableJpaFilterGrid<T>) this.filterGrid)
-                .enableGrouping(toolbar, deriveGroupFieldsWithLabels().toArray(GroupField[]::new));
+                .enableGrouping(groupingHost, deriveGroupFieldsWithLabels().toArray(GroupField[]::new));
+            groupingToggle = ((GroupableJpaFilterGrid<T>) this.filterGrid).getGroupingToggleButton();
         }
 
         if (afterColumnsConfigured != null) {
             afterColumnsConfigured.run();
         }
 
-        add(toolbar, this.filterGrid);
+        add(commandBar, toolbar, this.filterGrid);
+        setFlexGrow(0, commandBar);
         setFlexGrow(0, toolbar);
         setFlexGrow(1, this.filterGrid);
 
@@ -1128,6 +1159,13 @@ public class ListForm<T extends IdentifiableEntity<Long>, ID> extends VerticalLa
         // Идемпотентно: координатор вызывает метод ещё раз после сквозных добавок
         // тулбара — повторный вызов безопасен и ничего не ломает.
         installMoreMenu();
+
+        addAttachListener(event -> {
+            if (!copyLinkLive) {
+                copyLinkLive = true;
+                updateActionStates();
+            }
+        });
 
         try {
             this.filterGrid.build();
@@ -1237,7 +1275,6 @@ public class ListForm<T extends IdentifiableEntity<Long>, ID> extends VerticalLa
 
     // === Toolbar ===
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
     private void configureToolbar(BaseService<T, ID> service) {
         toolbar.setSpacing(true);
         toolbar.setPadding(false);
@@ -1246,66 +1283,62 @@ public class ListForm<T extends IdentifiableEntity<Long>, ID> extends VerticalLa
         toolbar.getStyle().set("gap", "var(--lumo-space-s)");
         toolbar.setAlignItems(FlexComponent.Alignment.CENTER);
 
-        addButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        addButton.addClickListener(e -> {
-            ActionDecision decision = decide(CrudAction.CREATE, null);
-            if (!decision.actionable()) {
-                notifyBlocked(decision);
-                return;
-            }
-            if (onAdd != null) onAdd.accept(null);
-        });
+        addCommand = commandBar.registerPrimary(CrudAction.CREATE.id(), "Создать",
+            VaadinIcon.PLUS, () -> {
+                ActionDecision decision = decide(CrudAction.CREATE, null);
+                if (!decision.actionable()) {
+                    notifyBlocked(decision);
+                    return;
+                }
+                if (onAdd != null) onAdd.accept(null);
+            });
+        addButton = addCommand.button();
 
-        copyButton.setEnabled(false);
-        copyButton.addClickListener(e -> {
-            T selected = getSelectedItem();
-            ActionDecision decision = decide(CrudAction.COPY, selected);
-            if (!decision.actionable()) {
-                notifyBlocked(decision);
-                return;
-            }
-            if (selected != null && selected.getId() != null && onCopy != null) {
-                onCopy.accept(selected);
-            }
-        });
+        copyCommand = commandBar.register(CrudAction.COPY.id(), "Копировать",
+            VaadinIcon.COPY, () -> {
+                T selected = getSelectedItem();
+                ActionDecision decision = decide(CrudAction.COPY, selected);
+                if (!decision.actionable()) {
+                    notifyBlocked(decision);
+                    return;
+                }
+                if (selected != null && selected.getId() != null && onCopy != null) {
+                    onCopy.accept(selected);
+                }
+            });
+        copyButton = copyCommand.button();
 
-        editButton.setEnabled(false);
-        editButton.addClickListener(e -> requestRowAction(CrudAction.EDIT));
+        editCommand = commandBar.register(CrudAction.EDIT.id(), "Изменить",
+            VaadinIcon.EDIT, () -> requestRowAction(CrudAction.EDIT));
+        editButton = editCommand.button();
 
-        openButton.setEnabled(false);
-        openButton.addClickListener(e -> requestRowAction(CrudAction.OPEN));
+        openCommand = commandBar.register(CrudAction.OPEN.id(), "Просмотр",
+            VaadinIcon.EYE, () -> requestRowAction(CrudAction.OPEN));
+        openButton = openCommand.button();
 
-        deleteButton.setEnabled(false);
-        deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
-        deleteButton.addClickListener(e -> {
-            T selected = getSelectedItem();
-            ActionDecision decision = decide(CrudAction.DELETE, selected);
-            if (!decision.actionable()) {
-                notifyBlocked(decision);
-                return;
-            }
-            if (selected != null) confirmAndDelete(selected, service);
-        });
+        deleteCommand = commandBar.registerDanger(CrudAction.DELETE.id(), "Удалить",
+            VaadinIcon.TRASH, () -> {
+                T selected = getSelectedItem();
+                ActionDecision decision = decide(CrudAction.DELETE, selected);
+                if (!decision.actionable()) {
+                    notifyBlocked(decision);
+                    return;
+                }
+                if (selected != null) confirmAndDelete(selected, service);
+            });
+        deleteButton = deleteCommand.button();
 
-        refreshButton.addThemeVariants(ButtonVariant.LUMO_ICON);
-        refreshButton.getElement().setAttribute("aria-label", "Обновить");
-        refreshButton.addClickListener(e -> refresh());
+        refreshCommand = commandBar.register(CrudAction.REFRESH.id(), "Обновить",
+            VaadinIcon.REFRESH, this::refresh);
+        refreshButton = refreshCommand.button();
 
+        viewsCommand = commandBar.register(ListUiCommand.VIEWS.id(), "Виды",
+            VaadinIcon.LIST, this::openViewSelector);
+        viewsButton = viewsCommand.button();
+        viewsCommand.setVisible(false);
+
+        applyCommandLayout();
         installCopyLinkButton();
-
-        viewsButton.addThemeVariants(ButtonVariant.LUMO_ICON);
-        viewsButton.getElement().setAttribute("aria-label", "Виды");
-        viewsButton.setTooltipText("Виды");
-        viewsButton.setVisible(false);
-        viewsButton.addClickListener(e -> openViewSelector());
-
-        compactButton.addThemeVariants(ButtonVariant.LUMO_ICON);
-        compactButton.getElement().setAttribute("aria-label", "Компактный вид");
-        compactButton.setTooltipText("Компактный вид");
-        compactButton.addClickListener(e -> toggleCompact());
-
-        toolbar.add(addButton, copyButton, editButton, openButton, deleteButton, refreshButton,
-            viewsButton, compactButton);
         renderDeclaredActions();
     }
 
@@ -1639,13 +1672,8 @@ public class ListForm<T extends IdentifiableEntity<Long>, ID> extends VerticalLa
         this.gridViewStore = gridViewStore;
         this.formSettingsStore = formSettingsStore;
         this.formKey = formKey;
-        viewsButton.setVisible(gridViewStore != null);
-        if (formSettingsStore != null) {
-            formSettingsStore.get(compactKey()).ifPresent(v -> {
-                boolean c = Boolean.parseBoolean(v);
-                filterGrid.setCompact(c);
-                updateCompactButtonState();
-            });
+        if (viewsCommand != null) {
+            viewsCommand.setVisible(gridViewStore != null);
         }
         if (gridViewStore == null || formSettingsStore == null) return;
 
@@ -1661,36 +1689,6 @@ public class ListForm<T extends IdentifiableEntity<Long>, ID> extends VerticalLa
     /** Вариант списка для ActionInvocation; не зависит от ключа сохранённых видов. */
     public void setFormVariant(String formVariant) {
         this.formVariant = formVariant;
-    }
-
-    private String compactKey() {
-        return formKey != null ? "filtergrid.compact." + formKey : "filtergrid.compact";
-    }
-
-    private void toggleCompact() {
-        boolean newCompact = !filterGrid.isCompact();
-        filterGrid.setCompact(newCompact);
-        updateCompactButtonState();
-        if (formSettingsStore != null) {
-            formSettingsStore.put(compactKey(), String.valueOf(newCompact));
-        }
-    }
-
-    private void updateCompactButtonState() {
-        boolean isCompact = filterGrid.isCompact();
-        if (contextFilterPanel != null) contextFilterPanel.setCompact(isCompact);
-        if (filterPanel != null) compactControls(filterPanel, isCompact);
-        compactButton.removeThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        if (isCompact) {
-            compactButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        }
-    }
-
-    private static void compactControls(com.vaadin.flow.component.Component component, boolean compact) {
-        if (component.getElement().isTextNode()) return;
-        component.getElement().getThemeList().set("small", compact);
-        if (component instanceof org.ipro.filtergrid.PeriodField<?> period) period.setCompact(compact);
-        component.getChildren().forEach(child -> compactControls(child, compact));
     }
 
     public void setAfterColumnsConfigured(Runnable afterColumnsConfigured) {
@@ -1719,32 +1717,147 @@ public class ListForm<T extends IdentifiableEntity<Long>, ID> extends VerticalLa
         return toolbar;
     }
 
+    /** Применить разрешённый слой настроек команд (из FormResolver или экземпляра). */
+    public void setCommandLayout(ListCommandLayout layout) {
+        this.baseCommandLayout = layout == null ? ListCommandLayout.platformDefaults() : layout;
+        applyCommandLayout();
+        updateActionStates();
+    }
+
+    /**
+     * Экземплярный слой настроек. Слои накладываются в порядке вызовов; явно заданные
+     * свойства перекрывают нижние слои, не замораживая остальные.
+     */
+    public void configureCommands(Consumer<ListCommandLayout.Builder> configuration) {
+        Objects.requireNonNull(configuration, "configuration");
+        ListCommandLayout.Builder builder = ListCommandLayout.builder();
+        configuration.accept(builder);
+        ListCommandLayout layer = builder.build();
+        configureCommandLayout(layer);
+    }
+
+    /** Append an immutable instance layer, including embedded-list declarations. Does not change policy. */
+    public void configureCommandLayout(ListCommandLayout layer) {
+        Objects.requireNonNull(layer, "layer");
+        instanceCommandLayout = instanceCommandLayout == null
+            ? layer : layer.overlayOn(instanceCommandLayout);
+        applyCommandLayout();
+        updateActionStates();
+    }
+
+    private void applyCommandLayout() {
+        ListCommandLayout resolved = instanceCommandLayout == null
+            ? baseCommandLayout : instanceCommandLayout.overlayOn(baseCommandLayout);
+        commandBar.setLayout(resolved);
+        scheduleCommandValidation();
+    }
+
+    private boolean commandValidationPending;
+
+    private void scheduleCommandValidation() {
+        getUI().ifPresent(ui -> {
+            if (commandValidationPending) return;
+            commandValidationPending = true;
+            ui.beforeClientResponse(this, context -> {
+                commandValidationPending = false;
+                String source = "list commands " + metadata.getEntityClass().getName()
+                    + " variant '" + formVariant + "'";
+                ListCommandLayout layout = commandBar.layout();
+                layout.validate(id -> ListCommandLayout.isPlatformKey(id)
+                    || actionResolver != null && actionResolver.definitions().stream()
+                        .anyMatch(definition -> definition.id().equals(id)), source);
+                layout.validateLocal(commandBar::hasCommand, source);
+            });
+        });
+    }
+
     private boolean moreMenuInstalled = false;
 
     /**
-     * Разделитель, перед которым встают предметные кнопки: держится затем, чтобы «Ещё» оставалась
-     * крайней справа. С E1.6b объявленные действия рисуются по решению уже после разделителя
-     * (решатель ставит координатор позже сборки тулбара), поэтому место вставки надо помнить.
-     */
-    private HorizontalLayout moreMenuAnchor;
-
-    /**
-     * Кнопка «Ещё» справа над гридом (как в 1С): меню дополнительных действий
-     * списка — общий поиск и условное форматирование (см. {@link FilterGridMoreMenu}).
-     *
-     * <p>Вызывается координатором после сборки тулбара, чтобы «Ещё» оставалась крайней
-     * справа; предметные кнопки вставляются перед разделителем. Идемпотентно.</p>
+     * Наполнить «Ещё» настройками грида и группировкой. Идемпотентный публичный вход
+     * совместимости: координатор может вызвать его после сборки формы.
      */
     public void installMoreMenu() {
         if (moreMenuInstalled) return;
         moreMenuInstalled = true;
-        HorizontalLayout spacer = new HorizontalLayout();
-        spacer.setWidth("0");
-        spacer.getStyle().set("min-width", "0");
-        moreMenuAnchor = spacer;
-        toolbar.add(spacer, FilterGridMoreMenu.create(filterGrid));
-        toolbar.setFlexGrow(1, spacer);
-        toolbar.setAlignItems(FlexComponent.Alignment.CENTER);
+        FilterGridMoreMenu.populate(commandBar, filterGrid);
+        if (groupingToggle != null) {
+            groupingCommand = commandBar.addMenuCommand(ListUiCommand.GROUPING.id(),
+                "Группировка", () -> groupingToggle.click(), CommandBar.Group.SETTINGS);
+        }
+        updateActionStates();
+    }
+
+    /**
+     * Совместимая область ниже основной панели. Она не содержит штатных команд и
+     * автоматически скрывается, когда прикладных компонентов нет.
+     */
+    private final class CompatibilityArea extends HorizontalLayout {
+
+        private CompatibilityArea() {
+            setVisible(false);
+        }
+
+        @Override
+        public void add(Component... components) {
+            super.add(components);
+            syncVisibility();
+        }
+
+        @Override
+        public void addComponentAtIndex(int index, Component component) {
+            super.addComponentAtIndex(index, component);
+            syncVisibility();
+        }
+
+        @Override
+        public void remove(Component... components) {
+            removeComponents(components);
+        }
+
+        @Override
+        public void remove(Collection<Component> components) {
+            removeComponents(components.toArray(Component[]::new));
+        }
+
+        /** Сначала проверяет весь набор, затем меняет команды и дополнительную область. */
+        private void removeComponents(Component... components) {
+            List<Component> regular = new ArrayList<>();
+            List<ActionId> excluded = new ArrayList<>();
+            for (Component component : components) {
+                ActionId commandId = commandBar.commandIdForButton(component);
+                if (commandId != null) {
+                    excluded.add(commandId);
+                } else {
+                    regular.add(component);
+                }
+            }
+            for (Component component : regular) {
+                if (component == null || component.getParent().orElse(null) != this) {
+                    throw new IllegalArgumentException(
+                        "Компонент не принадлежит дополнительной области списка");
+                }
+            }
+            for (ActionId commandId : excluded) {
+                commandBar.exclude(commandId);
+            }
+            for (Component component : regular) {
+                // Не super.remove(...): default-метод HasComponents.remove(Component...)
+                // снова вызывает remove(Collection), то есть наш override — бесконечная рекурсия.
+                getElement().removeChild(component.getElement());
+            }
+            syncVisibility();
+        }
+
+        @Override
+        public void removeAll() {
+            super.removeAll();
+            syncVisibility();
+        }
+
+        private void syncVisibility() {
+            setVisible(getComponentCount() > 0);
+        }
     }
 
     public Button getAddButton() { return addButton; }

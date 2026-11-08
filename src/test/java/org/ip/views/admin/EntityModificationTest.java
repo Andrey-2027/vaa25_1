@@ -207,6 +207,21 @@ class EntityModificationTest {
         assertThat(workshop()).doesNotContain("address");
     }
 
+    @Test void previewExplainsExplicitColumnsAndKeepsTheirConfigurationUntouched() throws Exception {
+        Path config = root.resolve("org/ip/views/forms/WorkshopSourceConfig.java");
+        Files.createDirectories(config.getParent());
+        String text = "package org.ip.views.forms; import org.ipro.metadata.annotation.*; @FormConfigurationFor(org.ip.model.Workshop.class) @ListColumns({\"code\",\"name\"}) @SelectionColumns(\"name\") public class WorkshopSourceConfig {}";
+        Files.writeString(config, text);
+        var view = view(false); addAddress(view);
+        EntityDraftEditorViewTest.button(view, "Показать изменения").click();
+        var messages = all(view).filter(c -> c instanceof com.vaadin.flow.component.html.Span).map(c -> ((com.vaadin.flow.component.html.Span)c).getText()).toList();
+        assertThat(messages).anyMatch(m -> m.contains("WorkshopSourceConfig") && m.contains("явный состав, реквизит «address» не добавлен"));
+        assertThat(messages).noneMatch(m -> m.contains("FORM_EXPLICIT_FIELD_NOT_ADDED"));
+        assertThat(((Pre)byAttribute(view, "data-modify-diff", null).getFirst()).getText()).contains("private String address;");
+        assertThat(Files.readString(config)).isEqualTo(text);
+        assertThat(workshop()).doesNotContain("private String address;");
+    }
+
     @Test void aLaterEditHidesThePlanThatNoLongerMatches() {
         var view = view(true);
         addAddress(view);

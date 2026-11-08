@@ -79,10 +79,11 @@ class FormStructureAssemblyTest {
         assertThat(coordinator.createListForm(Entity.class)).isSameAs(generic);
         assertThat(coordinator.createListForm(Entity.class, "custom", null)).isSameAs(custom);
         assertThat(coordinator.createListForm(Entity.class, "custom", null)).isSameAs(custom);
-        var menus = custom.getToolbar().getChildren().filter(component ->
-            component.getId().filter("entity-structure-menu"::equals).isPresent()).toList();
-        assertThat(menus).hasSize(1);
-        click(((MenuBar) menus.get(0)).getItems().get(0).getSubMenu().getItems().get(0));
+        var serviceMenu = org.ipro.form.CommandBar.forForm(custom).serviceMenu();
+        var development = serviceMenu.getItems().stream()
+            .filter(item -> item.getId().filter("entity-structure-menu"::equals).isPresent())
+            .findFirst().orElseThrow();
+        click(development.getSubMenu().getItems().get(0));
         verify(navigation).open(Entity.class, null);
     }
 

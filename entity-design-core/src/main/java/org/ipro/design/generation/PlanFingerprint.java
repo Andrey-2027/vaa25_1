@@ -44,6 +44,25 @@ final class PlanFingerprint {
     static String planId(String profile, RecipeRef recipe, String generatorVersion, EntityDraft source,
                          ProjectDesignContext context, List<GenerationFile> files,
                          CheckedStructure.Owner owner, FieldApplicationMapping.OwnerBinding binding) {
+        if (GenerationManifest.FORM_CONFIGURATION_FINGERPRINT.equals(profile)) {
+            var predecessor = org.ipro.design.RecipeCatalog.structuralRecipe(recipe);
+            if (predecessor.equals(recipe)) throw new IllegalArgumentException("Form configuration recipe required");
+            String prior = org.ipro.design.RecipeGenerationProfile.find(predecessor).orElseThrow().fingerprintProfile();
+            var modeBuffer = new ByteArrayOutputStream();
+            try (var out = new DataOutputStream(modeBuffer)) {
+                text(out, profile);
+                text(out, planId(prior, recipe, generatorVersion, source, context, files, owner, binding));
+                text(out, FieldApplicationMapping.CompositionMode.EXPLICIT.name());
+                text(out, FieldApplicationMapping.CompositionMode.EXPLICIT.name());
+                out.writeInt(context.runtimeSnapshot().types().size());
+                for (var key : sorted(context.runtimeSnapshot().types())) {
+                    text(out, key);
+                    var facts = context.runtimeSnapshot().types().get(key);
+                    text(out, facts.listMode().name()); text(out, facts.selectionMode().name());
+                }
+            } catch (IOException ex) { throw new UncheckedIOException(ex); }
+            return "g1-" + GenerationHash.sha256(modeBuffer.toByteArray());
+        }
         if (!FORMAT.equals(profile) && !GenerationManifest.EXTENSION_FINGERPRINT.equals(profile)
                 && !GenerationManifest.REGISTER_FINGERPRINT.equals(profile) && !GenerationManifest.REGISTER_RLS_FINGERPRINT.equals(profile))
             throw new IllegalArgumentException("Unsupported fingerprint profile");

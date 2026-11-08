@@ -26,6 +26,12 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.*;
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 @SpringBootTest(classes = Application.class, properties = "rls.write-boundary.enforced-types=org.ip.model.AccountingObjectInstallation,org.ip.model.AccountingObjectCorrection,org.ip.model.NomenclatureAccountingObject")
 class AccountingObjectPilotIT {
@@ -48,6 +54,10 @@ class AccountingObjectPilotIT {
     @Autowired RecorderRefPresentationResolver captions;
     @Autowired org.ipro.form.registry.FormResolver forms;
     @Autowired org.ip.application.form.ItemFormSaveDispatcher formSaves;
+    @Autowired org.ipro.metadata.MetadataResolver metadata;
+    @Autowired org.ipro.form.FieldFactory fields;
+    @Autowired org.ipro.form.TableSectionFactory tables;
+    @Autowired org.ipro.crud.EntityCopyService copies;
     private String username;
     private Fixture fixture;
 
@@ -129,12 +139,14 @@ class AccountingObjectPilotIT {
         org.ipro.form.builtin.ItemForm<AccountingObjectCorrection> form = forms.resolveItemForm(
             AccountingObjectCorrection.class, null, null, null);
         form.setEntity(access.detail(AccountingObjectCorrection.class, correction.getId()).orElseThrow());
+        assertThat(form.isDirty()).isFalse();
         var table = form.tableSection(AccountingObjectCorrectionItem.class);
         var row = table.getRows().getFirst();
         assertThat(row.getDocument()).isSameAs(form.peekEntity());
         assertThat(row.getCurrentAccountingType().getId()).isEqualTo(fixture.fifo.getId());
         row.setAccountingType(fixture.ske); table.markDirty();
         form.getEntityField("date", LocalDateTime.class).setValue(DATE.minusDays(1));
+        assertThat(form.isDirty()).isTrue();
         assertThat(table.getRows().getFirst()).isSameAs(row);
         assertThat(row.getCurrentAccountingType()).isNull();
         assertThat(row.getAccountingType()).isSameAs(fixture.ske);
@@ -156,6 +168,10 @@ class AccountingObjectPilotIT {
             AccountingObjectCorrectionItem.class,
             org.ip.views.forms.AccountingObjectCorrectionRowConfig.VARIANT, null, null);
         form.setEntity(row);
+        assertThat(form.isDirty()).isFalse();
+        assertThat(form.<Nomenclature>entityField("nomenclature").isRequiredIndicatorVisible()).isTrue();
+        assertThat(form.<AccountingType>entityField("accountingType").isRequiredIndicatorVisible()).isTrue();
+        assertThat(form.<AccountingType>entityField("currentAccountingType").isReadOnly()).isTrue();
         assertThat(form.<AccountingType>entityField("currentAccountingType").getValue().getId())
             .isEqualTo(fixture.fifo.getId());
         assertThat(form.<AccountingType>entityField("accountingType").getValue()).isSameAs(fixture.lifo);
@@ -163,6 +179,78 @@ class AccountingObjectPilotIT {
             form.<Nomenclature>entityField("nomenclature"), "onSelectedInDialog", fixture.n2);
         assertThat(form.<AccountingType>entityField("currentAccountingType").getValue()).isNull();
         assertThat(form.<AccountingType>entityField("accountingType").getValue()).isNull();
+    }
+
+    @Test void correctionOpeningRecalculatesCurrentTypesExactlyOnce() {
+        install(fixture.a, fixture.n, fixture.fifo, DATE);
+        var correction = correct(fixture.a, fixture.n, fixture.lifo, DATE.plusDays(1));
+        var counting = mock(AccountingObjectRegisterService.class);
+        doAnswer(invocation -> {
+            reader.refreshCurrentTypes(invocation.getArgument(0), invocation.getArgument(1));
+            return null;
+        }).when(counting).refreshCurrentTypes(any(), anyList());
+        var form = new org.ip.views.forms.AccountingObjectCorrectionFormConfig.CorrectionForm(counting);
+        form.buildDescription(metadata.resolve(AccountingObjectCorrection.class), fields);
+        tables.attachTableSections(form, AccountingObjectCorrection.class);
+        form.setEntity(access.detail(AccountingObjectCorrection.class, correction.getId()).orElseThrow());
+        verify(counting, times(1)).refreshCurrentTypes(any(), anyList());
+        assertThat(form.<AccountingObjectCorrectionItem>tableSection(AccountingObjectCorrectionItem.class)
+            .getRows().getFirst().getCurrentAccountingType().getId()).isEqualTo(fixture.fifo.getId());
+        form.applySavedState(() -> form.applyPersistedEntity(form.peekEntity()));
+        verify(counting, times(1)).refreshCurrentTypes(any(), anyList());
+        form.getEntityField("date", LocalDateTime.class).setValue(DATE.minusDays(1));
+        verify(counting, times(2)).refreshCurrentTypes(any(), anyList());
+    }
+
+    @Test void correctionFormSavesDraftRowAndReopensWithCurrentAndNewTypes() {
+        install(fixture.a, fixture.n, fixture.fifo, DATE);
+        var correction = correct(fixture.a, fixture.n, fixture.lifo, DATE.plusDays(1));
+        org.ipro.form.builtin.ItemForm<AccountingObjectCorrection> form = forms.resolveItemForm(
+            AccountingObjectCorrection.class, null, null, null);
+        form.setEntity(access.detail(AccountingObjectCorrection.class, correction.getId()).orElseThrow());
+        var table = form.tableSection(AccountingObjectCorrectionItem.class);
+        var row = table.getRows().getFirst();
+        row.setAccountingType(fixture.ske);
+        table.markDirty();
+        form.getEntityField("date", LocalDateTime.class).setValue(DATE);
+        assertThat(row.getCurrentAccountingType().getId()).isEqualTo(fixture.fifo.getId());
+        assertThat(row.getAccountingType().getId()).isEqualTo(fixture.ske.getId());
+        form.setSaveHandler(value -> (org.ipro.form.FormSaveResult) formSaves.save((org.ipro.form.builtin.ItemForm) value));
+        assertThat(form.save()).isInstanceOf(org.ipro.form.FormSaveResult.Success.class);
+        assertThat(form.isDirty()).isFalse();
+        assertThat(table.isDirty()).isFalse();
+        new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
+            entityManager.flush(); entityManager.clear();
+        });
+        org.ipro.form.builtin.ItemForm<AccountingObjectCorrection> reopened = forms.resolveItemForm(
+            AccountingObjectCorrection.class, null, null, null);
+        reopened.setEntity(access.detail(AccountingObjectCorrection.class, correction.getId()).orElseThrow());
+        var reopenedRow = reopened.tableSection(AccountingObjectCorrectionItem.class).getRows().getFirst();
+        assertThat(reopenedRow.getAccountingType().getId()).isEqualTo(fixture.ske.getId());
+        assertThat(reopenedRow.getCurrentAccountingType().getId()).isEqualTo(fixture.fifo.getId());
+        assertThat(reopened.isDirty()).isFalse();
+    }
+
+    @Test void correctionCopyKeepsRowsAndSavedNewTypesWithoutFalseHeaderDirty() {
+        install(fixture.a, fixture.n, fixture.fifo, DATE);
+        var source = correct(fixture.a, fixture.n, fixture.lifo, DATE.plusDays(1));
+        var loaded = access.detail(AccountingObjectCorrection.class, source.getId()).orElseThrow();
+        var headerCopy = copies.copyEntity(loaded);
+        var rowsCopy = tables.copyRowsFor(AccountingObjectCorrection.class, loaded, headerCopy, copies);
+        org.ipro.form.builtin.ItemForm<AccountingObjectCorrection> form = forms.resolveItemForm(
+            AccountingObjectCorrection.class, null, null, null);
+        form.setEntityFactory(() -> headerCopy);
+        form.initializeNewEntity(Map.of());
+        assertThat(form.isDirty()).isFalse();
+        var table = form.tableSection(AccountingObjectCorrectionItem.class);
+        @SuppressWarnings("unchecked")
+        var rows = (List<AccountingObjectCorrectionItem>) rowsCopy.get(AccountingObjectCorrectionItem.class);
+        table.applyPersistedRows(form.peekEntity(), rows);
+        table.markDirty();
+        assertThat(table.getRows()).hasSize(1);
+        assertThat(table.getRows().getFirst().getAccountingType().getId()).isEqualTo(fixture.lifo.getId());
+        assertThat(table.getRows().getFirst().getCurrentAccountingType().getId()).isEqualTo(fixture.fifo.getId());
+        assertThat(table.isDirty()).isTrue();
     }
 
     @Test @SuppressWarnings({"unchecked", "rawtypes"})

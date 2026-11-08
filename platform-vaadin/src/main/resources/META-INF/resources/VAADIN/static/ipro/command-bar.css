@@ -1,0 +1,87 @@
+/* Scoped to the list/selection command renderer, including its portalled submenus. */
+.ipro-command-bar [data-cb-row] > vaadin-button[data-cb-command] {
+  box-sizing: border-box;
+  height: var(--lumo-size-m);
+  min-height: var(--lumo-size-m);
+  min-width: var(--lumo-size-m);
+  margin: 0;
+  padding: 0 var(--lumo-space-s);
+  border: 1px solid #8f8f8f !important;
+  border-radius: 3px !important;
+  background: linear-gradient(to bottom, #fdfdfd, #e9e9e9) !important;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 90%) !important;
+  color: var(--lumo-body-text-color) !important;
+  font-size: var(--lumo-font-size-m);
+}
+.ipro-command-bar [data-cb-row] > vaadin-button[data-cb-view="icon"] {
+  width: var(--lumo-size-m);
+  padding: 0;
+}
+.ipro-command-bar [data-cb-row] > vaadin-button[data-cb-command][theme~="primary"] {
+  border-color: #2f6db4 !important;
+  background: linear-gradient(to bottom, #f3f8ff, #e2edfc) !important;
+}
+.ipro-command-bar [data-cb-row] > vaadin-button[data-cb-command]:hover:not([disabled]) {
+  border-color: #3c7fb1 !important;
+  background: linear-gradient(to bottom, #f2f8fd, #d3e5f5) !important;
+}
+.ipro-command-bar [data-cb-row] > vaadin-button[data-cb-command]:active:not([disabled]) {
+  background: #dce8f3 !important;
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 15%) !important;
+}
+.ipro-command-bar [data-cb-row] > vaadin-button[data-cb-command]::part(label) {
+  padding: 0;
+  color: inherit !important;
+  font-weight: 400;
+}
+.ipro-command-bar [data-cb-row] > vaadin-button[data-cb-command] > vaadin-icon {
+  width: 24px;
+  height: 24px;
+  color: inherit !important;
+}
+/* A disabled item remains disabled, but accepts hover so its reason is discoverable. */
+:is(vaadin-context-menu-item, vaadin-menu-bar-item)[data-command-id][disabled] {
+  pointer-events: auto;
+  cursor: default;
+}
+:is(vaadin-context-menu-overlay, vaadin-menu-bar-overlay)[theme~="ipro-list-commands"]::part(content) {
+  box-sizing: border-box;
+  max-width: calc(100vw - 16px);
+  overflow-x: clip;
+}
+:is(vaadin-context-menu-list-box, vaadin-menu-bar-list-box)[theme~="ipro-list-commands"] {
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: min(24rem, calc(100vw - 24px));
+}
+:is(vaadin-context-menu-list-box, vaadin-menu-bar-list-box)[theme~="ipro-list-commands"]::part(items) {
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+:is(vaadin-context-menu-item, vaadin-menu-bar-item)[theme~="ipro-list-commands"] {
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+:is(vaadin-context-menu-item, vaadin-menu-bar-item)[theme~="ipro-list-commands"]::part(content) {
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+:is(vaadin-context-menu-item, vaadin-menu-bar-item)[data-command-id] > vaadin-icon {
+  width: 24px;
+  height: 24px;
+  margin-inline-end: var(--lumo-space-s);
+  vertical-align: middle;
+}
+
+/* Lumo's legacy arrow uses a negative outer margin; keep it inside the row. */
+:is(vaadin-context-menu-item, vaadin-menu-bar-item)[theme~="ipro-list-commands"][aria-haspopup="true"]::after {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 0;
+}

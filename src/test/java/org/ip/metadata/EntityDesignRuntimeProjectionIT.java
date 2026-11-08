@@ -29,6 +29,19 @@ class EntityDesignRuntimeProjectionIT {
     @Autowired MetadataConsistencyStartupCheck startup;
     @Autowired EntityManagerFactory emf;
     @Autowired NumberingMetadataRegistry numbering;
+    @Autowired org.ipro.metadata.MetadataResolver metadata;
+
+    @Test void compositionIntentIsProjectedIndependentlyFromResolvedColumns() {
+        var snapshot = projection.snapshot();
+        for (var type : catalog.managedTypes()) metadata.find(type).ifPresent(info -> {
+            var facts = snapshot.types().get(type.getName());
+            assertThat(facts.listColumns()).containsExactlyElementsOf(info.getListColumnPaths().stream().map(org.ipro.metadata.ColumnPath::getKey).toList());
+            assertThat(facts.listMode()).isEqualTo(info.hasExplicitListColumns() ? org.ipro.design.FieldApplicationMapping.CompositionMode.EXPLICIT
+                : org.ipro.design.FieldApplicationMapping.CompositionMode.AUTO);
+            assertThat(facts.selectionMode()).isEqualTo(info.hasExplicitSelectColumns() ? org.ipro.design.FieldApplicationMapping.CompositionMode.EXPLICIT
+                : org.ipro.design.FieldApplicationMapping.CompositionMode.AUTO);
+        });
+    }
 
     @Test void snapshotComesFromABackendArtifactAndReadsNoBusinessRows() throws Exception {
         assertThat(EntityDesignRuntimeProjection.class.getProtectionDomain().getCodeSource().getLocation().toString()).endsWith(".jar");

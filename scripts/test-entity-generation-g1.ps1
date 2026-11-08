@@ -275,10 +275,26 @@ function Read-PlanManifest {
     if ([string]$manifest.planId -notmatch '^g1-[0-9a-f]{64}$') {
         Reject 'manifest-invalid' ('Invalid planId: ' + $manifest.planId)
     }
-    $register = ([string]$manifest.generatorVersion -in @('register-java-v1','register-java-v2') -or
+    $register = ([string]$manifest.generatorVersion -in @('register-java-v1','register-java-v2','register-java-v3','register-java-v4') -or
         [string]$manifest.recipe.id -in @('independent-register-v1','independent-register-v2') -or
         [string]$manifest.fingerprintProfile -in @('plan-fingerprint-v3','plan-fingerprint-v4'))
-    if ($register) {
+    $forms = ([string]$manifest.fingerprintProfile -eq 'plan-fingerprint-v5' -or
+        [string]$manifest.recipe.id -in @('standard-catalog-v3','standard-document-v2','independent-register-v3','independent-register-v4') -or
+        [string]$manifest.generatorVersion -in @('catalog-java-v5','document-java-v5','register-java-v3','register-java-v4'))
+    if ($forms) {
+        $tuples = @{
+            'standard-catalog-v3' = @('3', 'catalog-java-v5', 2)
+            'standard-document-v2' = @('2', 'document-java-v5', 2)
+            'independent-register-v3' = @('3', 'register-java-v3', 2)
+            'independent-register-v4' = @('4', 'register-java-v4', 2)
+        }
+        $tuple = $tuples[[string]$manifest.recipe.id]
+        if ([string]$manifest.fingerprintProfile -ne 'plan-fingerprint-v5' -or $null -eq $tuple -or [string]$manifest.recipe.version -ne $tuple[0] -or
+                [string]$manifest.generatorVersion -ne $tuple[1] -or @($manifest.entries).Count -lt $tuple[2] -or
+                ([string]$manifest.recipe.id -like 'independent-register-*' -and @($manifest.entries).Count -ne 2)) {
+            Reject 'manifest-invalid' 'Form configuration C requires an exact recipe/generator/F5 tuple and complete entity/configuration set'
+        }
+    } elseif ($register) {
         $captured = ([string]$manifest.generatorVersion -eq 'register-java-v1' -and [string]$manifest.recipe.id -eq 'independent-register-v1' -and [string]$manifest.recipe.version -eq '1' -and [string]$manifest.fingerprintProfile -eq 'plan-fingerprint-v3')
         $rls = ([string]$manifest.generatorVersion -eq 'register-java-v2' -and [string]$manifest.recipe.id -eq 'independent-register-v2' -and [string]$manifest.recipe.version -eq '2' -and [string]$manifest.fingerprintProfile -eq 'plan-fingerprint-v4')
         if ((-not $captured -and -not $rls) -or @($manifest.entries).Count -ne 1) {
@@ -705,7 +721,7 @@ function Invoke-Acceptance {
             }
         }
 
-        if ($spec.RegisterScenario -ne ($null -ne $manifest -and [string]$manifest.generatorVersion -in @('register-java-v1','register-java-v2'))) {
+        if ($spec.RegisterScenario -ne ($null -ne $manifest -and [string]$manifest.generatorVersion -in @('register-java-v1','register-java-v2','register-java-v3','register-java-v4'))) {
             Reject 'spec-mismatch' 'Register manifest and register scenario must be selected together'
         }
         $sourceContract = Assert-SourceContract -Source $SourceFile -Relative $RelativePath
@@ -745,7 +761,7 @@ function Invoke-Acceptance {
 
         $beforeJars = Get-PlatformJarHashes $LocalRepository
         $isolation = New-Isolation -RegisterScenario:$spec.RegisterScenario
-        $rlsManifest = ($null -ne $manifest -and [string]$manifest.generatorVersion -eq 'register-java-v2')
+        $rlsManifest = ($null -ne $manifest -and [string]$manifest.generatorVersion -in @('register-java-v2','register-java-v4'))
         if ($spec.RegisterRlsScenario -ne $rlsManifest) { Reject 'spec-mismatch' 'An explicit RLS profile requires independent RLS expectations and its required security suite' }
         if ($spec.RegisterRlsScenario) {
             Copy-Item -LiteralPath (Join-Path $script:SupportRoot 'register-rls-tests/RegisterRlsSecurityTest.java') -Destination (Join-Path $isolation 'src/test/java/com/example/generated/harness/RegisterRlsSecurityTest.java')
@@ -790,8 +806,16 @@ function Invoke-Acceptance {
                 -Destination (Join-Path $isolation 'src/test/java/com/example/generated/harness/SectionsScenarioTest.java')
             $MavenExtraArgs += @('-Dtest=SectionsScenarioTest')
         }
+        $entityEntryCount = $generatedEntries.Count
+        if ($null -ne $manifest -and [string]$manifest.fingerprintProfile -eq 'plan-fingerprint-v5') {
+            $configurationPath = ([string]$manifest.entries[0].relativePath -replace '\.java$', 'FormConfiguration.java')
+            if (@($generatedEntries | Where-Object { $_.relativePath -eq $configurationPath }).Count -ne 1) {
+                Reject 'manifest-invalid' 'The entity form configuration must be present exactly once'
+            }
+            $entityEntryCount--
+        }
         $targetMultiTest = ''
-        if ($generatedEntries.Count -gt 1 -and -not $spec.SectionScenario) {
+        if ($entityEntryCount -gt 1 -and -not $spec.SectionScenario) {
             if (-not (Test-Path -LiteralPath $script:MultiFileTest)) {
                 Reject 'harness-missing' ('Multi-file suite not found: ' + $script:MultiFileTest)
             }
@@ -818,13 +842,13 @@ function Invoke-Acceptance {
         }
         $summary.supportSources = @($supportSources | Sort-Object { $_.relativePath })
 
-        $requiredSuites = if ($generatedEntries.Count -gt 1) {
+        $requiredSuites = if ($entityEntryCount -gt 1) {
             @('com.example.generated.harness.MultiFileScenarioTest')
         } else {
             @('com.example.generated.harness.GenerationScenarioTest')
         }
         $effectiveMavenArgs = @($MavenExtraArgs)
-        if ($generatedEntries.Count -gt 1 -and -not $spec.SectionScenario) {
+        if ($entityEntryCount -gt 1 -and -not $spec.SectionScenario) {
             $effectiveMavenArgs += '-Dtest=com.example.generated.harness.MultiFileScenarioTest'
         }
         $summary.maven.attempted = $true

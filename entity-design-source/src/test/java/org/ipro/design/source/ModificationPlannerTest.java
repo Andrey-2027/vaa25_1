@@ -116,6 +116,17 @@ class ModificationPlannerTest {
         assertEquals(WORKSHOP, Files.readString(root.resolve("t/Workshop.java")), "planning writes nothing");
     }
 
+    @Test void externalColumnConfigurationIsAHashedDependencyOfLabelOnlyPlans(@TempDir Path root) throws IOException {
+        fixture(root);
+        String config = "package t; import org.ipro.metadata.annotation.*; @FormConfigurationFor(Workshop.class) @ListColumns(\"code\") class WorkshopForms {}";
+        write(root, "WorkshopForms", config);
+        var outcome = plan(root, draft -> draft.withFields(draft.fields().stream().map(f -> new FieldDraft(f.id(), f.name(), "Заметка", f.type(),
+            f.columnName(), f.serverRequired(), f.uiRequired(), f.constraints(), f.reference(), f.applications())).toList()));
+        assertTrue(outcome.succeeded(), String.valueOf(outcome.refusal()) + outcome.problems());
+        assertEquals(Map.of("t/WorkshopForms.java", JavaSources.sha256(config.getBytes(StandardCharsets.UTF_8))), outcome.plan().dependencyHashes());
+        assertFalse(outcome.plan().newContent().contains("listColumns"));
+    }
+
     @Test void theSameInputGivesTheSamePlan(@TempDir Path root) throws IOException {
         fixture(root);
         assertEquals(plan(root, add(field("address", "STRING", null))).plan().planId(), plan(root, add(field("address", "STRING", null))).plan().planId());

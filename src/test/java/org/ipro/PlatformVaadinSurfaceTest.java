@@ -147,7 +147,7 @@ class PlatformVaadinSurfaceTest {
                 + " итого 138; UX pilot P1 добавила INTERNAL-проекцию структуры EntityStructureFactsAssembler;"
                 + " E3.B добавила INTERNAL owner/form bridge CatalogOwnerForms — итого 140;"
                 + " Б1 добавила INTERNAL поиск автокомплита с отбором выбора FilterableSearchFunction — итого 141")
-            .hasSize(153); // AF5.5: declaration, adjustment, properties and behavior API.
+            .hasSize(169); // AF6 stage 2: per-opening embedded-list runtime host.
         assertThat(withoutRole)
             .as("тип будущего platform-vaadin без роли: классификация — решение, которое нужно"
                 + " принять до переноса, а не после него")

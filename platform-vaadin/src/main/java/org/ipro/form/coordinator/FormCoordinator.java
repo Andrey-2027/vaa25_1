@@ -555,7 +555,8 @@ public class FormCoordinator implements FormNavigator {
             form.setAfterColumnsConfigured(() -> configurator.accept(form));
         }
 
-        FormStructureAffordance.attach(form.getToolbar(), entityClass, structureNavigation, false);
+        FormStructureAffordance.attach(org.ipro.form.CommandBar.forForm(form),
+            entityClass, structureNavigation, false);
         return form;
     }
 

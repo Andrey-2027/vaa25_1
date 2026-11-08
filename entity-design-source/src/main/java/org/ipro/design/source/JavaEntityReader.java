@@ -87,8 +87,7 @@ public final class JavaEntityReader {
 
         // Class-level publication: a manual list wins over the per-field grid flag.
         var metadata = AnnotationValues.find(modifiers, "EntityMetadata");
-        var list = columns(source, metadata, "listColumns");
-        var selection = columns(source, metadata, "selectColumns");
+        var formColumns = FormColumnReader.read(typeId, source, type, described, project, chain);
         boolean row = shape == EntityShape.SECTION_ROW;
 
         var reads = new ArrayList<Read>();
@@ -110,13 +109,14 @@ public final class JavaEntityReader {
 
         var fields = new ArrayList<FieldDraft>();
         for (var read : reads) {
-            if (!row && (list.opaque() || selection.opaque())) {
+            if (!row && (formColumns.list().mode() == org.ipro.design.FieldApplicationMapping.CompositionMode.UNKNOWN
+                    || formColumns.selection().mode() == org.ipro.design.FieldApplicationMapping.CompositionMode.UNKNOWN)) {
                 locked.add(new LockedField(read.field().name(), DraftSuggestions.column(read.field()), read.field().label(),
-                    read.field().type(), "NOT_LITERAL:" + (list.opaque() ? "listColumns" : "selectColumns")));
+                    read.field().type(), "NOT_LITERAL:" + (formColumns.list().mode() == org.ipro.design.FieldApplicationMapping.CompositionMode.UNKNOWN ? "listColumns" : "selectColumns")));
                 continue;
             }
-            boolean inList = list.manual() ? list.publishes(read.field().name()) : read.gridVisible();
-            boolean inSelection = selection.manual() ? selection.publishes(read.field().name()) : inList;
+            boolean inList = formColumns.list().resolutionComplete() ? publishes(formColumns.list().resolvedPaths(), read.field().name()) : read.gridVisible();
+            boolean inSelection = formColumns.selection().resolutionComplete() ? publishes(formColumns.selection().resolvedPaths(), read.field().name()) : read.gridVisible();
             var applications = row ? new FieldApplications(!read.hidden(), false, false, read.gridVisible())
                 : new FieldApplications(!read.hidden(), inList, inSelection, false);
             fields.add(withApplications(read.field(), applications));
@@ -130,7 +130,11 @@ public final class JavaEntityReader {
             described.tableName().isEmpty() ? DraftText.auto() : DraftText.explicit(described.tableName()), null, icon);
         var draft = new EntityDraft(2, RecipeCatalog.EXISTING_ENTITY, UUID.nameUUIDFromBytes(("entity#" + typeId).getBytes(StandardCharsets.UTF_8)),
             properties, fields, List.of());
-        return new ExistingEntity(typeId, relativePath, source.sha256(), described.tableName(), shape, draft, locked, inherited, occupied, inheritedColumns, unreadableColumns);
+        return new ExistingEntity(typeId, relativePath, source.sha256(), described.tableName(), shape, draft, locked, inherited, occupied, inheritedColumns, unreadableColumns, formColumns.list(), formColumns.selection(), formColumns.declarations());
+    }
+
+    private static boolean publishes(List<String> paths, String field) {
+        return paths.stream().anyMatch(path -> path.equals(field) || path.startsWith(field + "."));
     }
 
     // ------------------------------------------------------------------ one field
@@ -336,18 +340,4 @@ public final class JavaEntityReader {
             .map(DraftText::explicit).orElse(DraftText.auto());
     }
 
-    /** The manual column list of {@code @EntityMetadata}: absent, a list of strings, or not understood. */
-    private record Columns(boolean manual, boolean opaque, List<String> paths) {
-        boolean publishes(String field) {
-            return paths.stream().anyMatch(path -> path.equals(field) || path.startsWith(field + "."));
-        }
-    }
-
-    private static Columns columns(ParsedSource source, Optional<AnnotationTree> metadata, String argument) {
-        var value = AnnotationValues.asList(AnnotationValues.argument(source, metadata, argument));
-        var strings = AnnotationValues.strings(value);
-        if (strings.isEmpty()) return new Columns(false, true, List.of());
-        // An absent argument and an explicit {} both ask the platform to pick columns itself.
-        return new Columns(!strings.get().isEmpty(), false, strings.get());
-    }
 }

@@ -223,7 +223,10 @@ INTERNAL org.ipro.form.CatalogOwnerForms
 # сегмент, а резерв первого сегмента — политика приложения (список `reserved` в baseline
 # маршрутов), не свойство URL. Baseline `.api` обновлён этим же срезом.
 
-# ---- APP_API (60)
+# ---- APP_API (67)
+APP_API org.ipro.form.builder.layout.SelectionValue
+APP_API org.ipro.form.builder.layout.FieldRelations
+APP_API org.ipro.form.ValueChangeSource
 # AF5.5: supported form declarations and callbacks; component instances are per opening.
 APP_API org.ipro.form.builder.FormFor
 APP_API org.ipro.form.builder.FormParameter
@@ -254,7 +257,9 @@ APP_API org.ipro.form.action.ActionSurface
 APP_API org.ipro.form.action.CrudAction
 APP_API org.ipro.form.builder.ContextFilterField
 APP_API org.ipro.form.builder.ItemFormVariants
+APP_API org.ipro.form.builder.ListCommandLayout
 APP_API org.ipro.form.builder.ListFormVariants
+APP_API org.ipro.form.builder.ListUiCommand
 APP_API org.ipro.form.builder.layout.CustomNode
 APP_API org.ipro.form.builder.layout.DisplayNode
 APP_API org.ipro.form.builder.layout.FieldNode
@@ -312,7 +317,13 @@ APP_SPI org.ipro.form.spi.WorkspaceGateway
 # Its signature is closed over APP_API FormContext and Vaadin Component; the registry stays MODULE_API.
 APP_SPI org.ipro.form.registry.FormFactory
 
-# ---- MODULE_API (23)
+# ---- MODULE_API (28)
+# AF6 stage 1: data-only embedded-list node and typed creation port; no application reach-through.
+MODULE_API org.ipro.form.builder.layout.EmbeddedListNode
+MODULE_API org.ipro.form.registry.EmbeddedListFactory
+MODULE_API org.ipro.form.FilterableSearchFunction
+MODULE_API org.ipro.form.LookupSelectionFormFactory
+MODULE_API org.ipro.form.LookupSearchFunction
 # AF5.1: layout declarations, prepared for the application pilot in AF5.5.
 MODULE_API org.ipro.form.builder.layout.RemainingFieldsNode
 MODULE_API org.ipro.form.builder.layout.SectionNode
@@ -341,7 +352,13 @@ MODULE_API org.ipro.form.registry.FormRegistry
 MODULE_API org.ipro.form.registry.FormResolver
 MODULE_API org.ipro.vaadin.search.GlobalSearchNavigationAdapter
 
-# ---- INTERNAL (56)
+# ---- INTERNAL (60)
+INTERNAL org.ipro.form.builtin.EmbeddedListHost
+INTERNAL org.ipro.form.builder.layout.FormReadDependencies
+INTERNAL org.ipro.form.action.CopyLinkAction
+INTERNAL org.ipro.form.RelatedFields
+# CM1/CM2: общий рендерер команд — внутренний механизм; наружу остаётся getToolbar().
+INTERNAL org.ipro.form.CommandBar
 INTERNAL org.ipro.form.builder.layout.ElementNode
 INTERNAL org.ipro.form.builder.ContextFilterConditions
 # UX pilot P1: internal resolved-structure projection; no new application-facing assembler.
@@ -354,7 +371,6 @@ INTERNAL org.ipro.vaadin.telemetry.TelemetryVaadinInitListener
 INTERNAL org.ipro.form.FieldRenderer
 INTERNAL org.ipro.form.FilterGridMoreMenu
 INTERNAL org.ipro.form.FilterLookupOptions
-INTERNAL org.ipro.form.FilterableSearchFunction
 INTERNAL org.ipro.form.SectionPresence
 INTERNAL org.ipro.form.TableSectionFactory
 INTERNAL org.ipro.form.action.ActionContext
@@ -399,7 +415,9 @@ INTERNAL org.ipro.form.registry.SelectionFilter
 INTERNAL org.ipro.vaadin.explorer.config.EntityExplorerAutoConfiguration
 INTERNAL org.ipro.vaadin.search.config.GlobalSearchVaadinAutoConfiguration
 
-# ---- test-usage overlay (24)
+# ---- test-usage overlay (26)
+# AF6 stage 2: test-only card exercises the real nested-list factory and read boundary.
+test-usage org.ipro.form.registry.EmbeddedListFactory org/ip/form/EmbeddedListRuntimeIT.java
 # AF5.3: compare the generic renderer with the new remaining-fields node.
 test-usage org.ipro.form.builder.layout.RemainingFieldsNode org/ip/form/ItemFormRenderParityTest.java org/ipro/form/config/MigratedApplicationColumnsTest.java
 # D3.5.8: ссылки тестов приложения на не-API типы модуля. Формат: test-usage <fqn> <файлы тестов>.
@@ -458,7 +476,7 @@ test-usage org.ipro.form.coordinator.ListFormWrapper org/ip/form/coordinator/For
 # и резолвер вручную — прикладные конфиги и варианты формы без этого не проверить. Снятие =
 # проверка тех же свойств через собранную форму. (Запись про `ListCommandRegistry` снята в E1.7
 # вместе с самим реестром.)
-test-usage org.ipro.form.registry.FormRegistry org/ip/config/ActionPolicyConfigTest.java org/ip/form/FormRegistryEnumVariantTest.java org/ip/form/TableSectionFactoryStartupValidationTest.java org/ip/form/coordinator/DialogWorkspaceResolutionIT.java org/ip/form/coordinator/FormCoordinatorUiIsolationTest.java org/ip/form/coordinator/FormRouteOpenOutcomeTest.java org/ip/form/registry/FormRegistryDuplicateTest.java org/ip/form/registry/FormRegistryLifecycleTest.java org/ip/vaadin/explorer/EntitySummaryAccessPilotTest.java org/ip/vaadin/explorer/EntitySummaryActionPilotTest.java org/ip/vaadin/explorer/EntitySummaryAssemblerTest.java org/ip/vaadin/explorer/EntitySummaryReadPlanPilotTest.java org/ip/vaadin/explorer/LookupTargetFactsIT.java org/ip/vaadin/explorer/SubsystemSummaryAssemblerTest.java org/ip/views/admin/EntityExplorerPilotPanelTest.java org/ip/views/admin/EntitySummaryDiagnosticPilotTest.java org/ipro/FormAssemblyPurityTest.java org/ipro/PlatformVaadinModuleTest.java org/ipro/PlatformVaadinWiringIT.java org/ip/form/ItemFormConstructionTest.java org/ip/form/FormReadDependenciesIT.java org/ip/form/builtin/PrdSpecHiddenSectionSkipsValidationAndSaveTest.java org/ipro/form/config/MigratedApplicationColumnsTest.java
+test-usage org.ipro.form.registry.FormRegistry org/ip/config/ActionPolicyConfigTest.java org/ip/form/FormRegistryEnumVariantTest.java org/ip/form/ItemFormConstructionTest.java org/ip/form/TableSectionFactoryStartupValidationTest.java org/ip/form/coordinator/DialogWorkspaceResolutionIT.java org/ip/form/coordinator/FormCoordinatorUiIsolationTest.java org/ip/form/coordinator/FormRouteOpenOutcomeTest.java org/ip/form/registry/FormRegistryDuplicateTest.java org/ip/form/registry/FormRegistryLifecycleTest.java org/ip/vaadin/explorer/EntitySummaryAccessPilotTest.java org/ip/vaadin/explorer/EntitySummaryActionPilotTest.java org/ip/vaadin/explorer/EntitySummaryAssemblerTest.java org/ip/vaadin/explorer/EntitySummaryReadPlanPilotTest.java org/ip/vaadin/explorer/LookupTargetFactsIT.java org/ip/vaadin/explorer/SubsystemSummaryAssemblerTest.java org/ip/views/admin/EntityExplorerPilotPanelTest.java org/ip/views/admin/EntitySummaryDiagnosticPilotTest.java org/ipro/FormAssemblyPurityTest.java org/ipro/PlatformVaadinModuleTest.java org/ipro/PlatformVaadinWiringIT.java org/ipro/form/config/SourceFormColumnsPlatformParityTest.java org/ip/form/FormReadDependenciesIT.java org/ip/form/builtin/PrdSpecHiddenSectionSkipsValidationAndSaveTest.java org/ipro/form/config/MigratedApplicationColumnsTest.java
 # Существующий тест непериодического регистра проверяет штатное открытие через resolver.
 test-usage org.ipro.form.registry.FormResolver org/ip/application/catalog/AttributeTypeWriteBoundaryIT.java org/ip/application/register/AccountingObjectPilotIT.java org/ip/form/TableSectionFactoryStartupValidationTest.java org/ip/form/builtin/PrdSpecHiddenSectionSkipsValidationAndSaveTest.java org/ip/form/coordinator/DialogWorkspaceResolutionIT.java org/ip/form/coordinator/FormCoordinatorUiIsolationTest.java org/ip/form/coordinator/FormRouteOpenOutcomeTest.java org/ip/form/coordinator/ItemFormWorkspaceOpenGuardTest.java org/ip/form/coordinator/PrdSpecSectionCompositionTest.java org/ipro/FormAssemblyPurityTest.java org/ip/routes/DeepLinkTwoUserAccessIT.java org/ip/application/register/NomenclaturePriceFormTest.java org/ip/service/UserAdministrationFlowIT.java org/ip/application/register/RegisterListFormToolbarTest.java org/ip/config/PilotRegisterListToolbarIT.java org/ip/application/register/IndependentNoneRegisterFormTest.java org/ip/form/AutoformFilterPanelTest.java org/ip/form/ItemFormConstructionTest.java org/ip/views/forms/WorkshopItemFormTest.java org/ip/form/CustomEditorPlatformIT.java org/ip/form/FormReadDependenciesIT.java org/ip/form/ReceivingDocumentAutoformIT.java org/ipro/fetch/plan/FetchPlanLookupHydrationIT.java
 test-usage org.ipro.form.registry.SelectionColumnsDef org/ip/form/registry/FormRegistryDuplicateTest.java org/ip/form/registry/FormRegistryLifecycleTest.java org/ip/vaadin/explorer/EntitySummaryAssemblerTest.java
@@ -469,5 +487,8 @@ test-usage org.ipro.vaadin.telemetry.TelemetryErrorHandler org/ipro/PlatformVaad
 test-usage org.ipro.vaadin.telemetry.TelemetryVaadinInitListener org/ipro/PlatformVaadinWiringIT.java
 
 
-# Reviewed metadata/form integration fixtures.
-test-usage org.ipro.form.config.FormColumnDeclarationsCollector org/ipro/form/config/ApplicationColumnsTestSupport.java org/ipro/form/config/MigratedApplicationColumnsTest.java
+# CM5: source-reader integration fixtures exercise the actual collector without copying it.
+test-usage org.ipro.form.config.FormColumnDeclarationsCollector org/ipro/form/config/SourceFormColumnsPlatformParityTest.java org/ipro/form/config/ApplicationColumnsTestSupport.java org/ipro/form/config/MigratedApplicationColumnsTest.java
+
+# CM5: 166 reviewed types; CommandBar/CopyLinkAction remain INTERNAL.
+# Field relation values and change source are API data; lookup factories are module contracts.

@@ -142,7 +142,11 @@ public final class EntityDesignRuntimeProjection {
                 descriptor.capabilities().writes().stream().map(Enum::name).collect(java.util.stream.Collectors.toSet()),classification.interned(),classification.recorderOwned(),
                 sections.findByRow(type).map(s -> s.getOwnerClass().getName()).orElse(""),list,selection,attributes,owned,keys,
                 contract.map(c -> c.creation()).orElse(""),contract.map(c -> List.of(c.specialOperations())).orElse(List.of()),
-                ownerFacts,register));
+                ownerFacts,register,
+                info.map(m -> m.hasExplicitListColumns() ? org.ipro.design.FieldApplicationMapping.CompositionMode.EXPLICIT
+                    : org.ipro.design.FieldApplicationMapping.CompositionMode.AUTO).orElse(org.ipro.design.FieldApplicationMapping.CompositionMode.UNKNOWN),
+                info.map(m -> m.hasExplicitSelectColumns() ? org.ipro.design.FieldApplicationMapping.CompositionMode.EXPLICIT
+                    : org.ipro.design.FieldApplicationMapping.CompositionMode.AUTO).orElse(org.ipro.design.FieldApplicationMapping.CompositionMode.UNKNOWN)));
         }
         if (registerFacts != null) {
             for (String declared : registerFacts.keySet()) {

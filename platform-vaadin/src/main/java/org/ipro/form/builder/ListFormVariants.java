@@ -6,6 +6,8 @@ import org.ipro.form.registry.FormFactory;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.function.Consumer;
 
 /**
  * Коллектор вариантов Формы Списка одной сущности. Передаётся в
@@ -49,6 +51,7 @@ public class ListFormVariants {
     private final Map<String, Class<? extends Component>> views = new LinkedHashMap<>();
     private final Map<String, List<ContextFilterField>> contextFilterRows = new LinkedHashMap<>();
     private final Map<String, List<ListFormCustomizer>> customizers = new LinkedHashMap<>();
+    private final Map<String, ListCommandLayout> commandLayouts = new LinkedHashMap<>();
     private List<ContextFilterField> filterPanel = List.of();
 
     public ContextFilterField filter(String path) { return ContextFilterField.filter(path); }
@@ -129,6 +132,29 @@ public class ListFormVariants {
         return this;
     }
 
+    /**
+     * Настройки команд default-варианта. Слой описывает только явно заданные свойства;
+     * отсутствие вызова означает наследование.
+     */
+    public ListFormVariants commands(Consumer<ListCommandLayout.Builder> commands) {
+        return commands(null, commands);
+    }
+
+    /** Настройки команд именованного варианта. */
+    public ListFormVariants commands(String variant, Consumer<ListCommandLayout.Builder> commands) {
+        Objects.requireNonNull(commands, "commands");
+        if (variant != null && variant.isBlank()) {
+            throw new IllegalArgumentException("List command variant must not be blank");
+        }
+        ListCommandLayout.Builder builder = ListCommandLayout.builder();
+        commands.accept(builder);
+        ListCommandLayout layout = builder.build();
+        if (commandLayouts.putIfAbsent(variant, layout) != null) {
+            throw new IllegalStateException("Duplicate list commands for variant '" + variant + "'");
+        }
+        return this;
+    }
+
     // Package-visible для Registrar
     Map<String, FormFactory> getFactories() {
         return factories;
@@ -148,5 +174,9 @@ public class ListFormVariants {
 
     Map<String, List<ListFormCustomizer>> getCustomizers() {
         return customizers;
+    }
+
+    Map<String, ListCommandLayout> getCommandLayouts() {
+        return commandLayouts;
     }
 }

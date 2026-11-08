@@ -48,6 +48,17 @@ public class ListFormCustomizationRegistrar implements InitializingBean {
             variants.getViews().forEach((variant, viewClass) ->
                 formRegistry.registerListFormView(entityClass, variant, viewClass, source));
 
+            variants.getCommandLayouts().forEach((variant, layout) -> {
+                try {
+                    layout.validateStructure();
+                } catch (IllegalArgumentException invalid) {
+                    throw new IllegalArgumentException(source + ": list commands for "
+                        + entityClass.getSimpleName() + " variant '" + variant + "': "
+                        + invalid.getMessage(), invalid);
+                }
+                formRegistry.registerListCommandLayout(entityClass, variant, layout, source);
+            });
+
             var fields = new java.util.LinkedHashMap<String, ContextFilterField>();
             customization.contextFilters().forEach(field -> fields.put(field.path(), field));
             for (var field : variants.getFilterPanel()) {

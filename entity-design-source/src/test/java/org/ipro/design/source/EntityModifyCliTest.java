@@ -44,6 +44,18 @@ class EntityModifyCliTest {
 
     // ------------------------------------------------------------------ usage
 
+    @Test void explicitFormWarningIsReadableAndIncludedInTheSavedPlan(@TempDir Path directory) throws Exception {
+        var project = project(directory);
+        String config = "package t; import org.ipro.metadata.annotation.*; @FormConfigurationFor(Workshop.class) @ListColumns(\"code\") class Forms {}";
+        ModificationPlannerTest.write(project.source(), "Forms", config);
+        var run = project.makePlan("--add-field", "name=address,type=STRING,label=Адрес");
+        assertEquals(EntityModifyCli.OK, run.code(), run.err());
+        assertTrue(run.out().contains("В форме «t.Forms» (список) явный состав, реквизит «address» не добавлен."), run.out());
+        var plan = PlanDirectory.read(project.plan());
+        assertEquals(1, plan.warnings().size());
+        assertEquals(config, Files.readString(project.source().resolve("t/Forms.java")));
+    }
+
     @Test void wrongUsageIsExitCode1WithTheUsageText() {
         for (String[] args : new String[][] {{}, {"frobnicate"}, {"plan"}, {"apply"}, {"plan", "--project"}, {"plan", "--unknown", "x"}, {"apply", "--plan", "a", "--plan", "b", "--project", "p"}}) {
             var run = run(args);

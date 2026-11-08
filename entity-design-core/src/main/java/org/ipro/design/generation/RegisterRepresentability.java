@@ -72,7 +72,7 @@ public final class RegisterRepresentability {
         for (var field : checked.fields()) fieldsById.putIfAbsent(field.id(), field);
         var rls = register.rls();
         var rawRls = source.register() == null ? null : source.register().rls();
-        if (RecipeCatalog.INDEPENDENT_REGISTER_RLS.equals(recipe)) {
+        if (RecipeCatalog.isRlsRegisterRecipe(recipe)) {
             var field = rls == null ? null : fieldsById.get(rls.fieldId());
             if (field == null || rawRls == null || !rls.dimension().matches("[A-Z][A-Z0-9_]{0,63}")
                     || !rls.dimension().equals(rawRls.dimension()) || !rls.fieldId().equals(rawRls.fieldId())

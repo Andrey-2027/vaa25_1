@@ -106,6 +106,16 @@ class JavaEntityReaderParityTest {
         var byName = platform.stream().collect(Collectors.toMap(FieldMetadataInfo::getName, info -> info));
         var metadata = MetadataResolver.isApplicable(entityClass) ? resolver.resolve(entityClass) : null;
         boolean row = entity.shape() == EntityShape.SECTION_ROW;
+        if (metadata != null && !row) {
+            assertThat(entity.listColumns().resolvedPaths()).as(name + " resolved list order")
+                .containsExactlyElementsOf(metadata.getListColumnPaths().stream().map(org.ipro.metadata.ColumnPath::getKey).toList());
+            assertThat(entity.selectionColumns().resolvedPaths()).as(name + " resolved selection order")
+                .containsExactlyElementsOf(metadata.getSelectColumnPaths().stream().map(org.ipro.metadata.ColumnPath::getKey).toList());
+            assertThat(entity.listColumns().mode()).as(name + " list mode")
+                .isEqualTo(metadata.hasExplicitListColumns() ? FieldApplicationMapping.CompositionMode.EXPLICIT : FieldApplicationMapping.CompositionMode.AUTO);
+            assertThat(entity.selectionColumns().mode()).as(name + " selection mode")
+                .isEqualTo(metadata.hasExplicitSelectColumns() ? FieldApplicationMapping.CompositionMode.EXPLICIT : FieldApplicationMapping.CompositionMode.AUTO);
+        }
         var listRoots = metadata == null ? Set.<String>of() : rootNames(metadata.getListColumnPaths());
         var selectRoots = metadata == null ? Set.<String>of() : rootNames(metadata.getSelectColumnPaths());
 

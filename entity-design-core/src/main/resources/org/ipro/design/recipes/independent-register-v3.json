@@ -1,0 +1,30 @@
+{
+  "id": "independent-register-v3",
+  "version": 3,
+  "predecessor": {
+    "id": "independent-register-v1",
+    "version": 1
+  },
+  "upgradesAutomatically": false,
+  "kind": "INFORMATION_REGISTER",
+  "baseType": "org.ipro.crud.BaseEntity",
+  "phase": "DRAFT_READY",
+  "runtimePrerequisites": [
+    "ET6_ET7_REGISTER_CLASSIFICATION",
+    "REGISTER_ENGINE_OPERATIONS"
+  ],
+  "generatorVersion": "register-java-v3",
+  "fingerprintProfile": "plan-fingerprint-v5",
+  "generationEnabled": false,
+  "compatibleEnvelopes": [
+    3
+  ],
+  "formConfiguration": {
+    "file": "<Entity>FormConfiguration.java",
+    "binding": "FormConfigurationFor",
+    "list": "ListColumns",
+    "selection": "SelectionColumns",
+    "listMode": "EXPLICIT",
+    "selectionMode": "EXPLICIT"
+  }
+}

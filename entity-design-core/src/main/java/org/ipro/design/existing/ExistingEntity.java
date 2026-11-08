@@ -22,10 +22,36 @@ import org.ipro.design.EntityDraft;
 public record ExistingEntity(String typeId, String relativePath, String sourceSha256, String tableName,
                              EntityShape shape, EntityDraft draft, List<LockedField> lockedFields,
                              Set<String> inheritedNames, Set<String> occupiedMethodNames,
-                             Set<String> inheritedColumns, Set<String> unreadableColumns) {
+                             Set<String> inheritedColumns, Set<String> unreadableColumns,
+                             ExistingFormColumns listColumns, ExistingFormColumns selectionColumns, List<ExistingFormDeclaration> formDeclarations) {
+    /** Compatible default-only snapshot from the first source-column reader. */
+    public ExistingEntity(String typeId, String relativePath, String sourceSha256, String tableName,
+                          EntityShape shape, EntityDraft draft, List<LockedField> lockedFields,
+                          Set<String> inheritedNames, Set<String> occupiedMethodNames,
+                          Set<String> inheritedColumns, Set<String> unreadableColumns,
+                          ExistingFormColumns listColumns, ExistingFormColumns selectionColumns) {
+        this(typeId, relativePath, sourceSha256, tableName, shape, draft, lockedFields, inheritedNames, occupiedMethodNames,
+            inheritedColumns, unreadableColumns, listColumns, selectionColumns, defaultDeclarations(typeId, listColumns, selectionColumns));
+    }
+    private static List<ExistingFormDeclaration> defaultDeclarations(String typeId, ExistingFormColumns list, ExistingFormColumns selection) {
+        var result = new java.util.ArrayList<ExistingFormDeclaration>();
+        if (!list.sourceTypeId().isEmpty() && !list.sourceTypeId().equals(typeId)) result.add(new ExistingFormDeclaration(ExistingFormDeclaration.Kind.LIST, "", list));
+        if (!selection.sourceTypeId().isEmpty() && !selection.sourceTypeId().equals(typeId)) result.add(new ExistingFormDeclaration(ExistingFormDeclaration.Kind.SELECTION, "", selection));
+        return List.copyOf(result);
+    }
+    /** Compatibility with readers that did not retain declaration intent. */
+    public ExistingEntity(String typeId, String relativePath, String sourceSha256, String tableName,
+                          EntityShape shape, EntityDraft draft, List<LockedField> lockedFields,
+                          Set<String> inheritedNames, Set<String> occupiedMethodNames,
+                          Set<String> inheritedColumns, Set<String> unreadableColumns) {
+        this(typeId, relativePath, sourceSha256, tableName, shape, draft, lockedFields, inheritedNames,
+            occupiedMethodNames, inheritedColumns, unreadableColumns, ExistingFormColumns.unknown(), ExistingFormColumns.unknown());
+    }
     public ExistingEntity {
         Objects.requireNonNull(typeId); Objects.requireNonNull(relativePath); Objects.requireNonNull(sourceSha256);
         Objects.requireNonNull(tableName); Objects.requireNonNull(shape); Objects.requireNonNull(draft);
+        Objects.requireNonNull(listColumns); Objects.requireNonNull(selectionColumns);
+        formDeclarations = List.copyOf(formDeclarations);
         lockedFields = List.copyOf(lockedFields);
         inheritedNames = Set.copyOf(inheritedNames);
         occupiedMethodNames = Set.copyOf(occupiedMethodNames);

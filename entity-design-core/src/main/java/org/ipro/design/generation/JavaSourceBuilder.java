@@ -23,8 +23,8 @@ final class JavaSourceBuilder {
         var expected = owner == null ? null : new FieldApplicationMapping.OwnerBinding(owner.fieldName(), 30, true, false, false, "REQUIRED", true);
         if (!Objects.equals(expected, projection.owner()) || owner != null &&
                 (owner.order() != 30 || !owner.applications().equals(org.ipro.design.FieldApplications.root())
-                || projection.listColumns().size() < 3 || !projection.listColumns().get(2).equals(owner.fieldName())
-                || projection.selectColumns().size() < 3 || !projection.selectColumns().get(2).equals(owner.fieldName())))
+                || !RecipeCatalog.formConfigurationRecipe(checked.source().recipe()) && (projection.listColumns().size() < 3 || !projection.listColumns().get(2).equals(owner.fieldName())
+                || projection.selectColumns().size() < 3 || !projection.selectColumns().get(2).equals(owner.fieldName()))))
             throw new IllegalStateException("OWNER_PROJECTION_UNREPRESENTABLE");
         if (projection.sections().size() != checked.sections().size()) throw new IllegalStateException("Section projection mismatch");
         var bindings = new HashMap<UUID, FieldApplicationMapping.Binding>();
@@ -47,9 +47,13 @@ final class JavaSourceBuilder {
         out.append(INDENT).append("listFormTitle = ").append(literal(root.listTitle())).append(",\n");
         out.append(INDENT).append("itemFormTitle = ").append(literal(root.itemTitle())).append(",\n");
         out.append(INDENT).append("selectionFormTitle = ").append(literal(root.selectionTitle())).append(",\n");
-        out.append(INDENT).append("icon = ").append(literal(root.icon())).append(",\n");
-        out.append(INDENT).append("listColumns = ").append(arrayLiteral(projection.listColumns())).append(",\n");
-        out.append(INDENT).append("selectColumns = ").append(arrayLiteral(projection.selectColumns())).append('\n');
+        out.append(INDENT).append("icon = ").append(literal(root.icon()));
+        if (RecipeCatalog.formConfigurationRecipe(checked.source().recipe())) out.append('\n');
+        else {
+            out.append(",\n");
+            out.append(INDENT).append("listColumns = ").append(arrayLiteral(projection.listColumns())).append(",\n");
+            out.append(INDENT).append("selectColumns = ").append(arrayLiteral(projection.selectColumns())).append('\n');
+        }
         out.append(")\n");
         String baseType = RecipeCatalog.baseType(checked.source().recipe());
         out.append("public class ").append(root.className()).append(" extends ")

@@ -114,8 +114,12 @@ public class ItemFormCustomizationRegistrar implements InitializingBean, org.spr
                         if (SelectionColumnResolver.resolve(metadataResolver, formRegistry, info.getLookupEntity(), element.selectionVariant()) == null)
                             throw new IllegalArgumentException("Unknown selection variant '" + element.selectionVariant() + "' for " + field.fieldName());
                     }
-                    validateNodes(List.of(element.content()), entity);
+                    try { validateNodes(List.of(element.content()), entity); }
+                    catch (RuntimeException failure) {
+                        throw new IllegalArgumentException("Element '" + element.id() + "': " + failure.getMessage(), failure);
+                    }
                 }
+                case org.ipro.form.builder.layout.EmbeddedListNode list -> validateEmbeddedList(list, entity);
                 case org.ipro.form.builder.layout.SectionNode section -> {
                     if (metadataResolver.resolveTableSections(entity).stream().noneMatch(value -> value.getRowClass() == section.rowClass()))
                         throw new IllegalArgumentException("Unknown section " + section.rowClass().getName());
@@ -125,5 +129,23 @@ public class ItemFormCustomizationRegistrar implements InitializingBean, org.spr
                 default -> { }
             }
         }
+    }
+
+    private void validateEmbeddedList(org.ipro.form.builder.layout.EmbeddedListNode list, Class<?> parentType) {
+        metadataResolver.resolve(list.entityClass());
+        list.filtersFor(parentType);
+        if (formRegistry.getListFormViewClass(list.entityClass(), list.variant()) != null
+                || formRegistry.getListFormViewFactory(list.entityClass(), list.variant()) != null)
+            throw new IllegalArgumentException("Embedded list requires ListForm, not a View: " + list.entityClass().getName());
+        if (list.variant() != null && !formRegistry.has(list.entityClass(), org.ipro.form.registry.FormType.LIST, list.variant())
+                && !formRegistry.hasListColumns(list.entityClass(), list.variant()))
+            throw new IllegalArgumentException("Unknown embedded list variant '" + list.variant() + "' for " + list.entityClass().getName());
+        java.util.function.Predicate<org.ipro.form.action.ActionId> known = id ->
+            ListCommandLayout.isPlatformKey(id) || beanFactory.getBeanProvider(org.ipro.form.action.ActionRegistry.class)
+                .stream().anyMatch(registry -> registry.resolve(org.ipro.form.action.ActionSurface.LIST_TOOLBAR,
+                    list.entityClass(), list.variant(), id).isPresent());
+        String context = "Embedded list " + list.entityClass().getName() + " variant '" + list.variant() + "'";
+        list.commands().validate(known, context);
+        list.commands().validateLocal(known, context);
     }
 }

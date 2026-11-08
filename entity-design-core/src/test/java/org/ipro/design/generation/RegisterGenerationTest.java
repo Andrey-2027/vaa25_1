@@ -49,6 +49,14 @@ class RegisterGenerationTest {
         facts.put("RLS_NUMERIC_REFERENCE_FILTERS",new RuntimeDesignSnapshot.Prerequisite(RuntimeDesignSnapshot.Status.AVAILABLE,"validated RLS fixture"));
         return context.withRuntimeSnapshot(new RuntimeDesignSnapshot("runtime:rls-2",true,Map.of(),facts));
     }
+    @Test void formConfigurationsPreservePeriodicAndRlsRegisterContracts() {
+        for (boolean periodic : List.of(false, true)) {
+            var plain = periodic ? dayDraft() : noneDraft();
+            var context = periodic ? context(Map.of("com.example.Item", target("com.example.Item"))) : context(Map.of());
+            FormConfigurationGenerationTest.verify(FormConfigurationGenerationTest.version(plain, RecipeCatalog.INDEPENDENT_REGISTER_V3), context);
+            FormConfigurationGenerationTest.verify(FormConfigurationGenerationTest.version(rlsDraft(periodic), RecipeCatalog.INDEPENDENT_REGISTER_RLS_V4), rlsContext(periodic));
+        }
+    }
     @Test void explicitRlsGeneratesMatchingReadWriteDeclarationsForReferenceScopes() {
         for (boolean periodic : List.of(false,true)) {
             var draft=rlsDraft(periodic); var context=rlsContext(periodic);

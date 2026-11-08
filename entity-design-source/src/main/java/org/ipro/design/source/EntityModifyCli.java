@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.function.UnaryOperator;
 import org.ipro.design.ConstraintDraft;
 import org.ipro.design.DraftText;
+import org.ipro.design.DraftProblem;
 import org.ipro.design.EntityDraft;
 import org.ipro.design.FieldApplications;
 import org.ipro.design.FieldDraft;
@@ -141,7 +142,7 @@ public final class EntityModifyCli {
             out.println("SQL to run before the application starts (" + output.resolve(PlanDirectory.SCHEMA) + "):");
             plan.schemaStatements().forEach(out::println);
         }
-        for (var warning : plan.warnings()) out.println("Warning " + warning.code() + " " + warning.target().propertyKey() + " " + warning.parameters());
+        for (var warning : plan.warnings()) out.println("Warning " + (warning.code() == DraftProblem.Code.FORM_EXPLICIT_FIELD_NOT_ADDED ? warning.parameters().get("message") : warning.code() + " " + warning.target().propertyKey() + " " + warning.parameters()));
         out.println();
         out.println("Plan written to " + output.toAbsolutePath());
     }

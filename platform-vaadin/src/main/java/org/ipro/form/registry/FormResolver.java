@@ -7,6 +7,8 @@ import org.ipro.form.TableSectionFactory;
 import org.ipro.form.builtin.ItemForm;
 import org.ipro.form.builtin.ListForm;
 import org.ipro.form.SelectionForm;
+import org.ipro.form.action.ActionId;
+import org.ipro.form.builder.ListCommandLayout;
 import org.ipro.form.coordinator.FormNavigator;
 import org.ipro.metadata.EntityMetadataInfo;
 import org.ipro.metadata.FieldMetadataInfo;
@@ -23,7 +25,9 @@ import org.springframework.context.ApplicationContext;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 /**
  * Резолвер форм — стратегия поиска и создания форм.
@@ -84,6 +88,11 @@ public class FormResolver {
      * конструкторе.</p>
      */
     private final ObjectProvider<FormNavigator> formNavigators;
+    private EmbeddedListFactory embeddedListFactory;
+
+    public void setEmbeddedListFactory(EmbeddedListFactory factory) {
+        this.embeddedListFactory = Objects.requireNonNull(factory);
+    }
 
     @org.springframework.beans.factory.annotation.Autowired
     public FormResolver(FormRegistry formRegistry,
@@ -261,8 +270,11 @@ public class FormResolver {
     }
 
     private void prepareDescription(ItemForm<?> form, Class<?> entityClass) {
-        if (!form.isDescriptionBuilt()) form.buildDescription(
-            org.ipro.form.builder.ItemFormCustomizationRegistrar.descriptionMetadata(metadataResolver, entityClass), fieldFactory);
+        if (!form.isDescriptionBuilt()) {
+            if (embeddedListFactory != null) form.setEmbeddedListFactory(embeddedListFactory);
+            form.buildDescription(
+                org.ipro.form.builder.ItemFormCustomizationRegistrar.descriptionMetadata(metadataResolver, entityClass), fieldFactory);
+        }
     }
 
     /**
@@ -388,6 +400,7 @@ public class FormResolver {
             .entityLookup(lookupService)
             .service(service)
             .formNavigator(navigatorOrNull())
+            .embeddedListFactory(embeddedListFactory)
             .parameter("variant", variant)
             .build();
     }
@@ -406,6 +419,7 @@ public class FormResolver {
             .fieldFactory(fieldFactory)
             .entityLookup(lookupService)
             .formNavigator(navigatorOrNull())
+            .embeddedListFactory(embeddedListFactory)
             .build();
     }
 
@@ -427,6 +441,57 @@ public class FormResolver {
             form = new ListForm<>(meta, service, gvs, columns);
         }
         return form;
+    }
+
+    /**
+     * Разрешить слои настроек команд списка. Семейство применяется после платформы, затем
+     * default-конфигурация сущности, именованный вариант и экземпляр. UI не создаётся.
+     */
+    public ListCommandLayout resolveListCommands(Class<?> entityClass, String variant) {
+        return resolveListCommands(entityClass, variant, null);
+    }
+
+    /** Разрешить слои с необязательным экземплярным слоем. */
+    public ListCommandLayout resolveListCommands(Class<?> entityClass, String variant,
+                                                 ListCommandLayout instance) {
+        var registries = applicationContext.getBeansOfType(org.ipro.form.action.ActionRegistry.class).values();
+        return resolveListCommands(entityClass, variant, instance, id ->
+            ListCommandLayout.isPlatformKey(id) || registries.stream().anyMatch(registry -> registry.resolve(
+                org.ipro.form.action.ActionSurface.LIST_TOOLBAR, entityClass, variant, id).isPresent()));
+    }
+
+    /**
+     * Разрешить слои с явным предикатом известных действий без создания редакторов/форм.
+     */
+    public ListCommandLayout resolveListCommands(Class<?> entityClass, String variant,
+                                                 ListCommandLayout instance,
+                                                 Predicate<ActionId> knownActions) {
+        Objects.requireNonNull(entityClass, "entityClass");
+        ListCommandLayout resolved = ListCommandLayout.platformDefaults();
+        for (var customization : typeCustomizations) {
+            if (!customization.supports(entityClass)) continue;
+            var builder = ListCommandLayout.builder();
+            customization.configureListCommands(entityClass, builder);
+            resolved = builder.build().overlayOn(resolved);
+        }
+        ListCommandLayout defaultLayout = formRegistry.getListCommandLayout(entityClass, null);
+        if (defaultLayout != null) {
+            resolved = defaultLayout.overlayOn(resolved);
+        }
+        if (variant != null) {
+            ListCommandLayout variantLayout = formRegistry.getListCommandLayout(entityClass, variant);
+            if (variantLayout != null) {
+                resolved = variantLayout.overlayOn(resolved);
+            }
+        }
+        if (instance != null) {
+            resolved = instance.overlayOn(resolved);
+        }
+        if (knownActions != null) {
+            resolved.validate(knownActions, "list commands " + entityClass.getSimpleName()
+                + " variant '" + variant + "'");
+        }
+        return resolved;
     }
 
     /** Data-only resolution, also used by startup validation; never constructs a component. */
@@ -469,6 +534,9 @@ public class FormResolver {
             Class<T> entityClass, String variant,
             ListForm<T, ID> form, Map<String, Object> parameters) {
         form.setFormVariant(variant);
+        // Настройки команд разрешаются до кастомайзеров: экземплярный слой, добавленный
+        // фабрикой/кастомайзером, накладывается поверх, а не теряется.
+        form.setCommandLayout(resolveListCommands(entityClass, variant));
         form.setOpeningParameters(parameters);
         form.setMetadataResolver(metadataResolver);
         var lookupProvider = applicationContext.getBeanProvider(org.ipro.crud.LookupService.class);

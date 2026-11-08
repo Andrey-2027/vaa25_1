@@ -163,19 +163,23 @@ public final class JavaEntityPatcher {
                 Integer order = orders.next();
 
                 Grid grid;
-                if (listColumns.manual() || listColumns.opaque()) {
-                    if (inList && listColumns.opaque()) throw unsupported("listColumns is not a literal list, " + field.name() + " cannot be added to it");
-                    if (inList) toList.add(field.name());
-                    grid = new Grid(false, null);
+                if (!base.formDeclarations().isEmpty() || external(base.listColumns()) || external(base.selectionColumns())) {
+                    grid = formGrid(field, order, listColumns, selectColumns, toList, toSelect);
                 } else {
-                    grid = inList ? (order == null ? null : new Grid(null, order)) : new Grid(false, null);
-                }
-                if (selectColumns.manual()) {
-                    if (inSelection) toSelect.add(field.name());
-                } else if (selectColumns.opaque()) {
-                    if (inSelection) throw unsupported("selectColumns is not a literal list, " + field.name() + " cannot be added to it");
-                } else if (inSelection != inList) {
-                    throw unsupported("selection differs from the list for " + field.name() + " but selectColumns is not set; the platform shows the list");
+                    if (listColumns.manual() || listColumns.opaque()) {
+                        if (inList && listColumns.opaque()) throw unsupported("listColumns is not a literal list, " + field.name() + " cannot be added to it");
+                        if (inList) toList.add(field.name());
+                        grid = new Grid(false, null);
+                    } else {
+                        grid = inList ? (order == null ? null : new Grid(null, order)) : new Grid(false, null);
+                    }
+                    if (selectColumns.manual()) {
+                        if (inSelection) toSelect.add(field.name());
+                    } else if (selectColumns.opaque()) {
+                        if (inSelection) throw unsupported("selectColumns is not a literal list, " + field.name() + " cannot be added to it");
+                    } else if (inSelection != inList) {
+                        throw unsupported("selection differs from the list for " + field.name() + " but selectColumns is not set; the platform shows the list");
+                    }
                 }
                 var publication = new Publication(order, field.uiRequired().name(), !field.applications().form(), grid);
                 fieldTexts.add(lines(JavaMemberFragments.field(spec, publication)));
@@ -186,6 +190,46 @@ public final class JavaEntityPatcher {
             appendColumns("selectColumns", selectColumns, toSelect);
             placeMembers(String.join(nl + nl, fieldTexts), String.join(nl + nl, accessorTexts));
             addImports(imports);
+        }
+
+        private boolean external(org.ipro.design.existing.ExistingFormColumns columns) {
+            return !columns.sourceTypeId().isEmpty() && !columns.sourceTypeId().equals(base.typeId());
+        }
+
+        /** Only entity metadata is edited. Fixed external compositions never drive grid publication. */
+        private Grid formGrid(FieldDraft field, Integer order, Columns list, Columns selection, List<String> toList, List<String> toSelect) {
+            boolean externalList = external(base.listColumns()), externalSelection = external(base.selectionColumns());
+            boolean inList = field.applications().list(), inSelection = field.applications().selection();
+            if (externalList && base.listColumns().mode() == org.ipro.design.FieldApplicationMapping.CompositionMode.UNKNOWN
+                    || externalSelection && base.selectionColumns().mode() == org.ipro.design.FieldApplicationMapping.CompositionMode.UNKNOWN)
+                throw unsupported("unknown external column composition for " + field.name());
+            boolean listGrid = externalList ? base.listColumns().mode() == org.ipro.design.FieldApplicationMapping.CompositionMode.AUTO : !list.manual() && !list.opaque();
+            boolean selectionGrid = externalSelection ? base.selectionColumns().mode() == org.ipro.design.FieldApplicationMapping.CompositionMode.AUTO
+                : !selection.manual() && !selection.opaque() && !list.manual() && !list.opaque();
+            for (var declaration : base.formDeclarations()) if (declaration.columns().mode() == org.ipro.design.FieldApplicationMapping.CompositionMode.AUTO) {
+                if (declaration.kind() == org.ipro.design.existing.ExistingFormDeclaration.Kind.LIST) listGrid = true;
+                else selectionGrid = true;
+            }
+            if (listGrid && selectionGrid && inList != inSelection)
+                throw unsupported("automatic list and selection columns share grid publication for " + field.name() + "; their requested publication must agree");
+            if (!externalList) {
+                if (list.opaque() && inList) throw unsupported("listColumns is not a literal list, " + field.name() + " cannot be added to it");
+                if (list.manual() && inList) toList.add(field.name());
+            }
+            if (!externalSelection) {
+                if (selection.manual()) { if (inSelection) toSelect.add(field.name()); }
+                else if (selection.opaque()) {
+                    if (inSelection) throw unsupported("selectColumns is not a literal list, " + field.name() + " cannot be added to it");
+                } else if (list.manual()) {
+                    if (externalList) { if (inSelection) toList.add(field.name()); }
+                    else if (inSelection != inList)
+                        throw unsupported("selection inherits the legacy list for " + field.name() + "; its requested publication must agree with the list");
+                } else if (list.opaque() && inSelection) {
+                    throw unsupported("selection inherits a nonliteral legacy list, " + field.name() + " cannot be added to it");
+                }
+            }
+            boolean visible = listGrid ? inList : selectionGrid && inSelection;
+            return visible ? (order == null ? null : new Grid(null, order)) : new Grid(false, null);
         }
 
         private FieldSpec spec(FieldDraft field) {

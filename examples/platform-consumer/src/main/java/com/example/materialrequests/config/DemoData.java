@@ -78,11 +78,16 @@ public class DemoData implements CommandLineRunner {
     }
     private void grant(AccessGrant.SubjectType kind, String subject, String dimension, Long value,
                        boolean read, boolean update, boolean delete) {
-        if (grants.findBySubjectTypeAndSubjectKeyAndDimension(kind, subject, dimension).stream()
-                .anyMatch(g -> java.util.Objects.equals(g.getDimensionValueId(), value))) return;
-        var grant = new AccessGrant();
+        // READ and operations share the canonical ENTITY key. Accumulate their flags
+        // on the same row instead of silently dropping the later operation grant.
+        var grant = grants.findBySubjectTypeAndSubjectKeyAndDimension(kind, subject, dimension).stream()
+            .filter(g -> java.util.Objects.equals(g.getDimensionValueId(), value)).findFirst()
+            .orElseGet(AccessGrant::new);
         grant.setSubjectType(kind); grant.setSubjectKey(subject); grant.setDimension(dimension);
-        grant.setDimensionValueId(value); grant.setCanRead(read); grant.setCanUpdate(update); grant.setCanDelete(delete);
+        grant.setDimensionValueId(value);
+        grant.setCanRead(grant.isCanRead() || read);
+        grant.setCanUpdate(grant.isCanUpdate() || update);
+        grant.setCanDelete(grant.isCanDelete() || delete);
         grants.save(grant);
     }
 }

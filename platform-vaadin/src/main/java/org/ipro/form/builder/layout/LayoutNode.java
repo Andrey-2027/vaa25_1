@@ -16,5 +16,5 @@ package org.ipro.form.builder.layout;
  * {@code FieldFactory}/{@code FormBindingRegistry}.
  */
 public sealed interface LayoutNode permits FieldNode, PanelNode, TabSheetNode, CustomNode, DisplayNode,
-        RemainingFieldsNode, SectionNode, ElementNode {
+        RemainingFieldsNode, SectionNode, ElementNode, EmbeddedListNode {
 }

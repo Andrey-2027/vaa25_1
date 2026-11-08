@@ -1,5 +1,6 @@
 package org.ipro.form.builder;
 
+import org.ipro.form.action.CrudAction;
 import org.ipro.form.registry.FormRegistry;
 import org.junit.jupiter.api.Test;
 
@@ -36,6 +37,35 @@ class CustomizerRegistrarTest {
 
         assertThat(registry.getListCustomizers(String.class, null)).containsExactly(def);
         assertThat(registry.getListCustomizers(String.class, "v")).containsExactly(named);
+    }
+
+    @Test
+    void listCommandLayoutsRegisteredPerVariant() {
+        FormRegistry registry = new FormRegistry();
+        ListFormCustomization config = new ListFormCustomization() {
+            @Override
+            public Class<?> entityClass() {
+                return String.class;
+            }
+
+            @Override
+            public void configure(ListFormVariants variants) {
+                variants.commands(commands -> commands
+                    .commands(CrudAction.CREATE.id())
+                    .panel(CrudAction.CREATE.id()));
+                variants.commands("v", commands -> commands.allOnPanel());
+            }
+        };
+
+        new ListFormCustomizationRegistrar(registry, List.of(config)).afterPropertiesSet();
+
+        ListCommandLayout defaults = registry.getListCommandLayout(String.class, null);
+        ListCommandLayout variant = registry.getListCommandLayout(String.class, "v");
+        assertThat(defaults).isNotNull();
+        assertThat(defaults.composition()).isEqualTo(ListCommandLayout.Composition.EXPLICIT);
+        assertThat(defaults.panelMode()).isEqualTo(ListCommandLayout.PanelMode.EXPLICIT);
+        assertThat(variant).isNotNull();
+        assertThat(variant.panelMode()).isEqualTo(ListCommandLayout.PanelMode.ALL);
     }
 
     @Test

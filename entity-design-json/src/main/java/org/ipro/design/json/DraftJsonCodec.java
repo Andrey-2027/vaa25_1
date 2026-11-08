@@ -111,6 +111,20 @@ public final class DraftJsonCodec {
         catch (IOException | IllegalArgumentException e) { throw invalid("Не удалось выгрузить формат черновика"); }
     }
     private void envelope(JsonNode tree) {
+        var candidate = tree.path("recipe");
+        if (candidate.path("id").isTextual() && candidate.path("version").isIntegralNumber()
+                && candidate.path("version").canConvertToInt()) {
+            var ref = new RecipeRef(candidate.path("id").textValue(), candidate.path("version").intValue());
+            if (RecipeCatalog.formConfigurationRecipe(ref)) {
+                // Validate the predecessor shape without rewriting the imported recipe identity.
+                var copy = tree.deepCopy();
+                var recipeNode = (com.fasterxml.jackson.databind.node.ObjectNode) copy.path("recipe");
+                var predecessor = RecipeCatalog.structuralRecipe(ref);
+                recipeNode.put("id", predecessor.id()); recipeNode.put("version", predecessor.version());
+                envelope(copy);
+                return;
+            }
+        }
         if (tree.path("schemaVersion").isIntegralNumber() && tree.path("schemaVersion").intValue() == 4) {
             check(tree, registerRlsSchema, "$", registerRlsSchema);
             return;

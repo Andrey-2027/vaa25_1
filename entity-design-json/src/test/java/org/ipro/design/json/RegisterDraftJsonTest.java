@@ -20,6 +20,19 @@ class RegisterDraftJsonTest {
     private final Path contracts = Path.of("../docs/architecture/contracts/register");
     private final DraftValidator validator = new DraftValidator();
 
+    @Test void separateFormRecipesRoundTripWithoutImplicitUpgrade() throws Exception {
+        var old = codec.decode(Files.readString(contracts.resolve("register-draft-day.json")));
+        for (var recipe : List.of(RecipeCatalog.INDEPENDENT_REGISTER_V3, RecipeCatalog.INDEPENDENT_REGISTER_RLS_V4)) {
+            boolean rls = RecipeCatalog.isRlsRegisterRecipe(recipe);
+            var draft = new EntityDraft(rls ? 4 : 3, recipe, old.draftId(), old.entity(), old.fields(), old.sections(), null,
+                rls ? old.register().withRls(new RegisterRlsDraft("REGISTER_ITEM", old.register().dimensions().getFirst())) : old.register());
+            assertEquals(draft, codec.decode(codec.encode(draft)));
+            var wrong = (ObjectNode)mapper.readTree(codec.encode(draft));
+            ((ObjectNode)wrong.get("recipe")).put("version", 999);
+            assertThrows(DraftJsonException.class, () -> codec.decode(wrong.toString()));
+        }
+        assertEquals(RecipeCatalog.INDEPENDENT_REGISTER, codec.decode(codec.encode(old)).recipe());
+    }
     @Test void explicitRlsEnvelopeRoundTripsWithoutChangingCapturedEnvelope() throws Exception {
         var old=codec.decode(Files.readString(contracts.resolve("register-draft-day.json")));
         var policy=new RegisterRlsDraft("REGISTER_ITEM",old.register().dimensions().getFirst());

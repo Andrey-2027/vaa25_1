@@ -3,7 +3,9 @@ package org.ipro.form;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.menubar.MenuBar;
 import org.ipro.filtergrid.FilterGrid;
+import org.ipro.form.builder.ListUiCommand;
 import org.ipro.filtergrid.jpa.JpaFilterGrid;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -83,6 +85,18 @@ class SelectionFormContextTest {
         form.setContextFilter("journal.id", 7L);
 
         assertThat(selectButton().isEnabled()).isFalse();
+    }
+
+    @Test
+    void moreMenuUsesTheSharedCommandBarWithGridSettingsOnly() {
+        CommandBar bar = form.getCommandBar();
+
+        assertThat(form.getChildren()).anyMatch(CommandBar.class::isInstance);
+        assertThat(form.getChildren()).noneMatch(MenuBar.class::isInstance);
+        assertThat(bar.hasCommand(ListUiCommand.QUICK_SEARCH.id())).isTrue();
+        assertThat(bar.hasCommand(ListUiCommand.FORMATTING.id())).isTrue();
+        assertThat(bar.hasCommand(org.ipro.form.action.CrudAction.CREATE.id())).isFalse();
+        assertThat(bar.moreMenuBar().getItems()).hasSize(1);
     }
 
     @Test

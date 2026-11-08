@@ -1,0 +1,31 @@
+{
+  "id": "standard-catalog-v3",
+  "version": 3,
+  "predecessor": {
+    "id": "standard-catalog-v2",
+    "version": 2
+  },
+  "upgradesAutomatically": false,
+  "kind": "CATALOG",
+  "baseType": "org.ipro.crud.StandardCatalogEntity",
+  "phase": "DRAFT_READY",
+  "runtimePrerequisites": [
+    "STANDARD_CATALOG_APP_API",
+    "ET0_ET7_RUNTIME"
+  ],
+  "generatorVersion": "catalog-java-v5",
+  "fingerprintProfile": "plan-fingerprint-v5",
+  "generationEnabled": false,
+  "compatibleEnvelopes": [
+    1,
+    2
+  ],
+  "formConfiguration": {
+    "file": "<Entity>FormConfiguration.java",
+    "binding": "FormConfigurationFor",
+    "list": "ListColumns",
+    "selection": "SelectionColumns",
+    "listMode": "EXPLICIT",
+    "selectionMode": "EXPLICIT"
+  }
+}

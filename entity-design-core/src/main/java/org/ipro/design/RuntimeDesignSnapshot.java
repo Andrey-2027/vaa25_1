@@ -110,7 +110,20 @@ public record RuntimeDesignSnapshot(String snapshotId, boolean complete, Map<Str
                             String sectionOwnerTypeId, List<String> listColumns, List<String> selectColumns,
                             List<Attribute> attributes, List<OwnedSection> sections, List<NaturalKey> naturalKeys,
                             String creationChannel, List<String> specialOperations, CatalogOwnerFacts owner,
-                            RegisterFacts register) {
+                            RegisterFacts register, FieldApplicationMapping.CompositionMode listMode,
+                            FieldApplicationMapping.CompositionMode selectionMode) {
+        /** Older snapshots did not carry declaration intent; resolved columns cannot recover it. */
+        public TypeFacts(String typeId, String kind, String kindOrigin, String kindSource, String exposure,
+                         String capabilitiesOrigin, String capabilitiesSource, String identityOrigin, String identitySource,
+                         Set<String> reads, Set<String> writes, boolean interned, boolean recorderOwned,
+                         String sectionOwnerTypeId, List<String> listColumns, List<String> selectColumns,
+                         List<Attribute> attributes, List<OwnedSection> sections, List<NaturalKey> naturalKeys,
+                         String creationChannel, List<String> specialOperations, CatalogOwnerFacts owner, RegisterFacts register) {
+            this(typeId, kind, kindOrigin, kindSource, exposure, capabilitiesOrigin, capabilitiesSource,
+                identityOrigin, identitySource, reads, writes, interned, recorderOwned, sectionOwnerTypeId,
+                listColumns, selectColumns, attributes, sections, naturalKeys, creationChannel, specialOperations,
+                owner, register, FieldApplicationMapping.CompositionMode.UNKNOWN, FieldApplicationMapping.CompositionMode.UNKNOWN);
+        }
         /** Совместимый конструктор без register: типы вне регистра остаются register=null. */
         public TypeFacts(String typeId, String kind, String kindOrigin, String kindSource, String exposure,
                          String capabilitiesOrigin, String capabilitiesSource, String identityOrigin, String identitySource,
@@ -136,6 +149,8 @@ public record RuntimeDesignSnapshot(String snapshotId, boolean complete, Map<Str
                 specialOperations, null, null);
         }
         public TypeFacts {
+            if (listMode == null) listMode = FieldApplicationMapping.CompositionMode.UNKNOWN;
+            if (selectionMode == null) selectionMode = FieldApplicationMapping.CompositionMode.UNKNOWN;
             Objects.requireNonNull(typeId); Objects.requireNonNull(kind); Objects.requireNonNull(kindOrigin);
             Objects.requireNonNull(kindSource); Objects.requireNonNull(exposure); Objects.requireNonNull(creationChannel);
             Objects.requireNonNull(capabilitiesOrigin); Objects.requireNonNull(capabilitiesSource);

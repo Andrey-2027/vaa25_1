@@ -1,5 +1,22 @@
 # Текущий engineering baseline
 
+## Меню формы списка: CM5/CM6 (2026-11-08)
+
+- Общая панель ListForm/SelectionForm сохраняет полное «Ещё» при переполнении; состав,
+  панель, иконки и порядок настраиваются form-owned API. INHERIT/AUTO/EXPLICIT и
+  REQUIRED/OPTIONAL/LOCAL разделены; конечная граница LOCAL — beforeClientResponse.
+  Сервисные команды сгруппированы, пустых подменю нет, режим компактности списка удалён.
+- Девять замечаний ревью и три замечания к оформлению исправлены. Проверка CM5 исполнителем:
+  669 тестов модуля, 11 целевых регистров/печати, 2 внешнего consumer; API verify без write,
+  старый CM0 JAR — linkage без пересборки. Настоящие формы проверены в Chromium; отдельная
+  визуальная приёмка владельца и полная suite приложения этим не подменяются.
+- В CM6 удалён production-прототип `/command-bar-demo`; его сценарии находятся в общих тестах.
+  [Руководство](../../forms/list-command-menu.md), [release notes и миграция](../../releases/2026-11-08-list-command-menu.md),
+  [план и журнал](../../plans/listform-command-menu-work-plan.md),
+  [evidence CM5](../../../outputs/verification/listform-command-menu-cm5-20261108/report.md).
+- Общие surface/fingerprint gates имеют независимый дрейф, перечисленный в evidence;
+  отсутствие новых ошибок меню не означает зелёный общий gate рабочего дерева.
+
 ## G1 extension: зафиксированный baseline (2026-10-31)
 
 - E0–E4, **E5.H** (общий автоматический прогон) и **E5.B** (браузерная приёмка) приняты в своих границах. **M для PostgreSQL отложен** по решению пользователя. [План extension и evidence E5](../../plans/entity-generation-g1-extension-plan.md).

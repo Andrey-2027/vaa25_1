@@ -140,17 +140,7 @@ public class EntityField<T extends HasDisplayName> extends Div implements HasLab
 
         suggestionGrid.addSelectionListener(e -> {
             if (isReadOnly()) return;
-            if (e.getFirstSelectedItem().isPresent()) {
-                T oldValue = selectedValue;
-                selectedValue = e.getFirstSelectedItem().get();
-                userEdited = true;
-                suppressValueChange = true;
-                textField.setValue(InstanceNameBridge.displayName(selectedValue));
-                suppressValueChange = false;
-                setStatusValid();
-                hideSuggestion();
-                fireValueChangeEvent(oldValue, selectedValue);
-            }
+            e.getFirstSelectedItem().ifPresent(this::selectSuggestion);
         });
 
         suggestionGrid.getElement().addEventListener("keydown", event -> {
@@ -207,6 +197,8 @@ public class EntityField<T extends HasDisplayName> extends Div implements HasLab
             String key = extractKey(event);
             if ("Escape".equals(key)) {
                 hideSuggestion();
+            } else if ("Enter".equals(key)) {
+                chooseSuggestionOnEnter();
             } else if ("ArrowDown".equals(key)) {
                 if (!"none".equals(suggestionPopup.getStyle().get("display"))
                         && suggestionGrid.getListDataView().getItemCount() > 0) {
@@ -304,6 +296,7 @@ public class EntityField<T extends HasDisplayName> extends Div implements HasLab
 
     private void showSuggestionPopup(List<T> matches) {
         notFoundShown = false;
+        focusedRowIndex = -1;
         notFoundHint.getStyle().set("display", "none");
         suggestionGrid.setVisible(true);
         suggestionGrid.setItems(new ArrayList<>(matches));
@@ -317,6 +310,7 @@ public class EntityField<T extends HasDisplayName> extends Div implements HasLab
      * убираются, чтобы стрелка вниз не уходила в устаревшие строки.
      */
     private void showNotFoundHint() {
+        focusedRowIndex = -1;
         suggestionGrid.setItems(new ArrayList<>());
         suggestionGrid.setVisible(false);
         notFoundDetail.setVisible(!selectionFilters.isEmpty());
@@ -328,6 +322,7 @@ public class EntityField<T extends HasDisplayName> extends Div implements HasLab
 
     private void hideSuggestion() {
         notFoundShown = false;
+        focusedRowIndex = -1;
         suggestionPopup.getStyle().set("display", "none");
     }
 
@@ -605,6 +600,35 @@ public class EntityField<T extends HasDisplayName> extends Div implements HasLab
         for (Consumer<T> listener : List.copyOf(valueChangeListeners)) {
             listener.accept(newValue);
         }
+    }
+
+    /** Applies a chosen suggestion, whether from the grid or Enter in the text field. */
+    private void selectSuggestion(T item) {
+        if (item == null || isReadOnly()) return;
+        T oldValue = selectedValue;
+        selectedValue = item;
+        userEdited = true;
+        suppressValueChange = true;
+        textField.setValue(InstanceNameBridge.displayName(selectedValue));
+        suppressValueChange = false;
+        setStatusValid();
+        hideSuggestion();
+        fireValueChangeEvent(oldValue, selectedValue);
+    }
+
+    /**
+     * Enter in the text field chooses the highlighted suggestion, or the only match when no
+     * suggestion is highlighted. Returns false for multiple matches without an active row.
+     */
+    boolean chooseSuggestionOnEnter() {
+        if (isReadOnly() || "none".equals(suggestionPopup.getStyle().get("display"))) return false;
+        int count = suggestionGrid.getListDataView().getItemCount();
+        int index = focusedRowIndex >= 0 ? focusedRowIndex : count == 1 ? 0 : -1;
+        if (index < 0 || index >= count) return false;
+        T item = suggestionGrid.getListDataView().getItem(index);
+        if (item == null) return false;
+        selectSuggestion(item);
+        return true;
     }
 
     private void notifyChange(T oldValue, T value, ValueChangeSource source) {

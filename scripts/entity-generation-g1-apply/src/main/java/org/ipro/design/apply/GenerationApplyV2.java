@@ -43,7 +43,8 @@ final class GenerationApplyV2 {
     private static final Set<String> SUPPORTED_GENERATORS = Set.of(
             "catalog-java-v2", "document-java-v2",
             "catalog-java-v3", "document-java-v3",
-            "catalog-java-v4", "document-java-v4", "register-java-v1", "register-java-v2");
+            "catalog-java-v4", "document-java-v4", "register-java-v1", "register-java-v2",
+            "catalog-java-v5", "document-java-v5", "register-java-v3", "register-java-v4");
     private static final String OWNER_ATTRIBUTE = "g1.apply";
 
     private final ApplyHooks hooks;
@@ -584,9 +585,9 @@ final class GenerationApplyV2 {
         if (org.ipro.design.RecipeCatalog.isRegisterRecipe(plan.recipe())
                 || plan.generatorVersion().startsWith("register-java-")) {
             if (!org.ipro.design.RecipeCatalog.isRegisterRecipe(plan.recipe())
-                    || !org.ipro.design.generation.EntityJavaGenerator.generatorVersion(plan.recipe()).equals(plan.generatorVersion()) || plan.files().size() != 1) {
+                    || !org.ipro.design.generation.EntityJavaGenerator.generatorVersion(plan.recipe()).equals(plan.generatorVersion()) || plan.files().size() != (org.ipro.design.RecipeCatalog.formConfigurationRecipe(plan.recipe()) ? 2 : 1)) {
                 throw new ApplyFailure(ApplyStatus.REJECTED, "UNSUPPORTED_REGISTER_PROFILE",
-                    "Register D2 requires an exact supported register recipe/generator tuple and one CREATE entry");
+                    "Register D2 requires an exact supported register recipe/generator tuple and its complete CREATE set");
             }
         }
         if (plan.files().isEmpty()) {

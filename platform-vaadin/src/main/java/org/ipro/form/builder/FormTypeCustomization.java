@@ -11,6 +11,8 @@ public interface FormTypeCustomization {
     /** Data-only column overrides, validated at startup and applied before entity overrides. */
     default void configureListColumns(Class<?> type, org.ipro.metadata.FormColumnDeclarations.Columns columns) { }
     default void configureSelectionColumns(Class<?> type, org.ipro.metadata.FormColumnDeclarations.Columns columns) { }
+    /** Data-only command placement for this entity family; applied before entity customizers. */
+    default void configureListCommands(Class<?> type, ListCommandLayout.Builder commands) { }
     default void customizeList(ListForm<?, ?> form, FormContext context) { }
     default void customizeItem(ItemForm<?> form, FormContext context) { }
 }

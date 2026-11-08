@@ -2,6 +2,8 @@ package org.ipro.form.builtin;
 
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.selection.SingleSelect;
 import com.vaadin.flow.dom.Element;
 import jakarta.persistence.Entity;
@@ -11,6 +13,7 @@ import org.ipro.data.EntityCapabilityOverride;
 import org.ipro.data.EntityDescriptorCatalog;
 import org.ipro.fetch.plan.FetchScenario;
 import org.ipro.filtergrid.FilterGrid;
+import org.ipro.form.CommandBar;
 import org.ipro.form.action.ActionContextProvider;
 import org.ipro.form.action.ActionDefinition;
 import org.ipro.form.action.ActionHandler;
@@ -36,8 +39,10 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -149,6 +154,21 @@ class ListFormDeclaredActionTest {
         assertThat(handler.invocations).isEmpty();
     }
 
+    @Test void immutableInstanceLayerCanIncludeAndRenameADeclaredActionWithoutBypassingItsRequirement() {
+        var handler=new RecordingHandler(Standard.class);
+        var waiting=form(Standard.class,null,handler).form;
+        var layer=org.ipro.form.builder.ListCommandLayout.builder();
+        layer.command(ROW_ACTION_ID).included(true).title("Показать материалы").onPanel();
+        waiting.configureCommandLayout(layer.build());
+        assertThat(button(waiting,"Показать материалы").isEnabled()).isFalse();
+        button(waiting,"Показать материалы").click(); assertThat(handler.invocations).isEmpty();
+        var ready=form(Standard.class,new Standard(),handler).form;
+        ready.setCommandLayout(org.ipro.form.builder.ListCommandLayout.builder().commands(CrudAction.CREATE.id()).build());
+        ready.configureCommandLayout(layer.build());
+        assertThat(button(ready,"Показать материалы").isVisible()).isTrue();
+        button(ready,"Показать материалы").click(); assertThat(handler.invocations).hasSize(1);
+    }
+
     /** Разрешённое действие получает снимок списка: строку, навигацию, контекст и обновление. */
     @Test
     void enabledActionExecutesWithSnapshotOfTheList() {
@@ -253,17 +273,13 @@ class ListFormDeclaredActionTest {
         form.installMoreMenu();
         form.setActionResolver(resolver);
 
-        List<com.vaadin.flow.component.Component> toolbar =
-            form.getToolbar().getChildren().toList();
-        int action = indexOf(toolbar, component -> component instanceof Button button
-            && "Только материалы".equals(button.getText()));
-        int moreMenu = indexOf(toolbar,
-            com.vaadin.flow.component.menubar.MenuBar.class::isInstance);
-
-        assertThat(action).isGreaterThanOrEqualTo(0);
-        assertThat(moreMenu).isGreaterThanOrEqualTo(0);
-        assertThat(action).as("объявленное действие обязано остаться слева от «Ещё»")
-            .isLessThan(moreMenu);
+        CommandBar.Command action = org.ipro.form.CommandBar.forForm(form).command(ROW_ACTION_ID);
+        assertThat(action.isOnPanel())
+            .as("объявленное действие остаётся рабочей командой панели")
+            .isTrue();
+        assertThat(action.menuItem())
+            .as("у объявленного действия есть постоянное представление в «Ещё»")
+            .isNotNull();
     }
 
     /** Индекс первого компонента тулбара, подходящего под условие; {@code -1} — не найден. */
@@ -311,6 +327,79 @@ class ListFormDeclaredActionTest {
             .hasMessageContaining("fixture.materials-only");
     }
 
+    /**
+     * §3.4: getToolbar остаётся дополнительной областью. Индексы, обход и removeAll относятся
+     * только к ней, а пустая область не занимает места в форме.
+     */
+    @Test
+    void compatibilityAreaContainsOnlyApplicationComponentsAndTracksItsOwnOrder() {
+        ListForm<?, ?> form = listForm(Standard.class, null);
+        Span span = new Span("span");
+        TextField field = new TextField("field");
+        Button button = new Button("button");
+
+        form.getToolbar().add(span);
+        form.getToolbar().add(field);
+        form.getToolbar().addComponentAtIndex(1, button);
+
+        assertThat(form.getToolbar().isVisible()).isTrue();
+        assertThat(form.getToolbar().getChildren()).containsExactly(span, button, field);
+        assertThat(form.getToolbar().indexOf(button)).isEqualTo(1);
+
+        form.getToolbar().remove(List.of(span, button));
+        assertThat(form.getToolbar().getChildren()).containsExactly(field);
+
+        form.getToolbar().removeAll();
+        assertThat(form.getToolbar().getChildren()).isEmpty();
+        assertThat(form.getToolbar().isVisible()).isFalse();
+    }
+
+    /**
+     * §3.4: remove стандартной кнопки — это включение false на экземплярном слое, а не удаление
+     * компонента из чужой области. Программный click после этого не должен исполнять команду.
+     */
+    @Test
+    void removingStandardButtonExcludesTheCommandAndBlocksItsProgrammaticClick() {
+        ListForm<?, ?> form = listForm(Standard.class, null);
+        AtomicBoolean added = new AtomicBoolean();
+        form.setOnAdd(entity -> added.set(true));
+
+        form.getToolbar().remove(form.getAddButton());
+
+        assertThat(org.ipro.form.CommandBar.forForm(form).command(CrudAction.CREATE.id()).isIncluded()).isFalse();
+        assertThat(form.getAddButton().isVisible()).isFalse();
+        form.getAddButton().click();
+        assertThat(added).isFalse();
+    }
+
+    /** Чужая кнопка другой формы не исключает одноимённую команду этой формы. */
+    @Test
+    void anotherFormsStandardButtonDoesNotExcludeThisFormsCommand() {
+        ListForm<?, ?> first = listForm(Standard.class, null);
+        ListForm<?, ?> second = listForm(Standard.class, null);
+
+        assertThatThrownBy(() -> first.getToolbar().remove(second.getDeleteButton()))
+            .isInstanceOf(IllegalArgumentException.class);
+
+        assertThat(org.ipro.form.CommandBar.forForm(first).command(CrudAction.DELETE.id()).isIncluded()).isTrue();
+        assertThat(org.ipro.form.CommandBar.forForm(second).command(CrudAction.DELETE.id()).isIncluded()).isTrue();
+    }
+
+    /** Смешанный remove сначала проверяет весь набор: ошибка родителя не оставляет частичных правок. */
+    @Test
+    void mixedRemovalWithAForeignComponentDoesNotExcludeTheStandardCommand() {
+        ListForm<?, ?> form = listForm(Standard.class, null);
+        Span own = new Span("own");
+        Span foreign = new Span("foreign");
+        form.getToolbar().add(own);
+
+        assertThatThrownBy(() -> form.getToolbar().remove(form.getAddButton(), foreign))
+            .isInstanceOf(IllegalArgumentException.class);
+
+        assertThat(org.ipro.form.CommandBar.forForm(form).command(CrudAction.CREATE.id()).isIncluded()).isTrue();
+        assertThat(form.getToolbar().getChildren()).containsExactly(own);
+    }
+
     // --- фикстуры -------------------------------------------------------------------------------
 
     private record Fixture(ListForm<?, ?> form, FormNavigator navigator) {
@@ -355,9 +444,9 @@ class ListFormDeclaredActionTest {
     }
 
     private static Button button(ListForm<?, ?> form, String title) {
-        return form.getToolbar().getChildren()
-            .filter(Button.class::isInstance)
-            .map(Button.class::cast)
+        return org.ipro.form.CommandBar.forForm(form).commands().stream()
+            .map(CommandBar.Command::button)
+            .filter(Objects::nonNull)
             .filter(button -> title.equals(button.getText()))
             .findFirst()
             .orElse(null);

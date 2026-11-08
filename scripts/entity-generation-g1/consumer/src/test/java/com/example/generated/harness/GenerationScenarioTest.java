@@ -109,10 +109,18 @@ class GenerationScenarioTest {
                 info.getListColumnPaths().stream().map(ColumnPath::getKey).toList());
         assertEquals(ScenarioSpec.SELECT_COLUMNS,
                 info.getSelectColumnPaths().stream().map(ColumnPath::getKey).toList());
+        if (info.getAnnotation().listColumns().length == 0) {
+            assertEquals(0, info.getAnnotation().listColumns().length);
+            assertEquals(0, info.getAnnotation().selectColumns().length);
+            assertEquals(entityClass.getName() + "FormConfiguration", info.getPropertySymbol("listColumns"));
+            assertTrue(info.hasExplicitListColumns());
+            assertTrue(info.hasExplicitSelectColumns());
+        } else {
         assertArrayEquals(ScenarioSpec.LIST_COLUMNS.toArray(String[]::new),
                 info.getAnnotation().listColumns());
         assertArrayEquals(ScenarioSpec.SELECT_COLUMNS.toArray(String[]::new),
                 info.getAnnotation().selectColumns());
+        }
 
         List<String> specNames = ScenarioSpec.FIELDS.stream().map(ScenarioSpec.FieldSpec::name).toList();
         assertEquals(specNames, info.getAllAnnotatedFields().stream()

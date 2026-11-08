@@ -373,7 +373,9 @@ public class FieldFactory {
             dp.setRequired(required);
             dp.setReadOnly(info.isReadOnly());
         } else if (field instanceof DateTimePicker dtp) {
-            // DateTimePicker не имеет setRequired в Vaadin 25
+            // DateTimePicker не имеет setRequired в Vaadin 25. Веб-компонент
+            // поддерживает required, а FormItem переносит его с первого field-элемента.
+            dtp.getElement().setAttribute("required", required);
             dtp.setReadOnly(info.isReadOnly());
         } else if (field instanceof IntegerField inf) {
             inf.setReadOnly(info.isReadOnly());

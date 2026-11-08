@@ -26,7 +26,7 @@ class RecipeDescriptionTest {
     @Test void descriptionsCoverExactlyTheVersionedRecipeCatalog() {
         var recipes = RecipeCatalog.recipes();
         var descriptors = RecipeCatalog.descriptors();
-        assertEquals(8, descriptors.size());
+        assertEquals(12, descriptors.size());
         assertEquals(recipes.stream().map(RecipeCatalog.Recipe::ref).toList(),
                 descriptors.stream().map(RecipeDescriptor::ref).toList());
         assertTrue(descriptors.stream().allMatch(descriptor -> !descriptor.displayName().isBlank()

@@ -11,5 +11,8 @@ public final class FormAdjust {
     public Layout.Element addField(String name) { return layout.addField(name); }
     public Layout.Element addDisplay(String path) { return layout.addDisplay(path); }
     public Layout.Element addCustom(String id, Supplier<? extends Component> factory) { return layout.addCustom(id, factory); }
+    public Layout.Element addList(String id, Class<? extends org.ipro.identity.IdentifiableEntity<Long>> entityClass) {
+        return layout.addList(id, entityClass);
+    }
     public Layout.Element addTab(String tabs, String id) { return layout.addTab(tabs, id); }
 }

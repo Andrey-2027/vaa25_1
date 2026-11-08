@@ -265,6 +265,7 @@ public class EntityModifyView extends Div implements Dirtyable {
     }
 
     private static String problemText(DraftProblem p) {
+        if (p.code() == DraftProblem.Code.FORM_EXPLICIT_FIELD_NOT_ADDED) return p.parameters().get("message");
         return p.code() + " · " + p.target().propertyKey() + (p.parameters().isEmpty() ? "" : " · " + p.parameters().values());
     }
 

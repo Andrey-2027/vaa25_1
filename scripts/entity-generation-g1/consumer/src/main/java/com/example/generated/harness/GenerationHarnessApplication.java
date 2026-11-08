@@ -8,7 +8,7 @@ import org.springframework.boot.persistence.autoconfigure.EntityScan;
  * Minimal backend bootstrap for the G1.2 harness. The generated root is deliberately a sibling
  * package: the harness never declares a business repository, service or entity of its own.
  */
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = "com.example.generated")
 @EntityScan("com.example.generated")
 public class GenerationHarnessApplication {
 

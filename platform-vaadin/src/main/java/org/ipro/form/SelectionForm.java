@@ -6,9 +6,6 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.menubar.MenuBar;
-import com.vaadin.flow.component.orderedlayout.FlexComponent;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import org.ipro.filtergrid.FilterGrid;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -37,6 +34,7 @@ public class SelectionForm<T> extends Dialog {
     private final Consumer<T> onSelect;
     private final Button selectButton;
     private final FilterGrid<T> filterGrid;
+    private final CommandBar commandBar = new CommandBar();
     private final Map<String, Object> fixedFilters = new LinkedHashMap<>();
     private java.util.function.Supplier<Map<String, Object>> fixedFilterProvider;
 
@@ -92,15 +90,11 @@ public class SelectionForm<T> extends Dialog {
         grid.asSingleSelect().addValueChangeListener(e -> updateSelectButton());
 
         // «Ещё» справа над гридом (как в 1С): общий поиск, условное форматирование.
-        MenuBar moreMenu = FilterGridMoreMenu.create(filterGrid);
-        HorizontalLayout spacer = new HorizontalLayout();
-        spacer.setWidthFull();
-        HorizontalLayout moreRow = new HorizontalLayout(spacer, moreMenu);
-        moreRow.setWidthFull();
-        moreRow.setPadding(false);
-        moreRow.setAlignItems(FlexComponent.Alignment.CENTER);
+        // Рендерер menu-only: панель команд у выбора не создаётся, настройки грида
+        // наполняют то же «Ещё», что и в ListForm.
+        FilterGridMoreMenu.populate(commandBar, filterGrid);
 
-        add(moreRow);
+        add(commandBar);
         catalogOwnerNotice.setVisible(false); add(catalogOwnerNotice);
         add(filterGrid);
         getFooter().add(cancelButton, selectButton);
@@ -112,6 +106,11 @@ public class SelectionForm<T> extends Dialog {
 
     public Button getSelectButton() {
         return selectButton;
+    }
+
+    /** Внутренний рендерер меню выбора; публичным контрактом остаются грид и кнопки. */
+    CommandBar getCommandBar() {
+        return commandBar;
     }
 
     /**

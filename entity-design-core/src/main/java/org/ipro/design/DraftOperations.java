@@ -30,9 +30,9 @@ public final class DraftOperations {
     public EntityDraft createRegister(RecipeRef recipe, String period) {
         if (!RecipeCatalog.isRegisterRecipe(recipe)) throw new IllegalArgumentException("Register recipe required");
         var plain = createRegister(period);
-        return RecipeCatalog.INDEPENDENT_REGISTER.equals(recipe) ? plain
-            : new EntityDraft(4, recipe, plain.draftId(), plain.entity(), plain.fields(), plain.sections(), null,
-                plain.register().withRls(new RegisterRlsDraft("", null)));
+        boolean rls = RecipeCatalog.isRlsRegisterRecipe(recipe);
+        return new EntityDraft(rls ? 4 : 3, recipe, plain.draftId(), plain.entity(), plain.fields(), plain.sections(), null,
+            rls ? plain.register().withRls(new RegisterRlsDraft("", null)) : plain.register());
     }
     public EntityDraft addField(EntityDraft draft, UUID sectionId, String type) {
         if (draft.fields().size() + draft.sections().stream().mapToInt(s -> s.fields().size()).sum() >= RecipeCatalog.MAX_FIELDS)

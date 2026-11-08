@@ -120,7 +120,7 @@ final class CSummaryV2 {
         String requiredSuite = register ? "com.example.generated.harness.RegisterScenarioTest"
                 : !plan.source().sections().isEmpty()
                 ? "com.example.generated.harness.SectionsScenarioTest"
-                : files.size() > 1
+                : files.size() > (org.ipro.design.RecipeCatalog.formConfigurationRecipe(plan.recipe()) ? 2 : 1)
                 ? MULTI_REQUIRED_SUITE
                 : plan.source().owner() != null ? "com.example.generated.harness.OwnerScenarioTest"
                 : plan.source().fields().stream().anyMatch(f -> "REFERENCE".equals(f.type()))

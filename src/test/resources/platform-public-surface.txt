@@ -114,6 +114,7 @@ API org.ipro.filtergrid.inmemory.InMemoryFilterGrid
 API org.ipro.filtergrid.jpa.JpaFilterGrid
 API org.ipro.form.BindingDescriptor
 API org.ipro.form.EntityField
+API org.ipro.form.ValueChangeSource
 API org.ipro.form.FieldFactory
 API org.ipro.form.FormSaveResult
 API org.ipro.form.ItemFormSaveHandler

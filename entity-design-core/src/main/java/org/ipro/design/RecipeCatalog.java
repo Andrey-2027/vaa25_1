@@ -8,6 +8,23 @@ public final class RecipeCatalog {
     private RecipeCatalog() {}
     public static final RecipeRef STANDARD_CATALOG = new RecipeRef("standard-catalog-v1", 1);
     public static final RecipeRef STANDARD_CATALOG_V2 = new RecipeRef("standard-catalog-v2", 2);
+    public static final RecipeRef STANDARD_CATALOG_V3 = new RecipeRef("standard-catalog-v3", 3);
+    public static final RecipeRef STANDARD_DOCUMENT_V2 = new RecipeRef("standard-document-v2", 2);
+    public static final RecipeRef INDEPENDENT_REGISTER_V3 = new RecipeRef("independent-register-v3", 3);
+    public static final RecipeRef INDEPENDENT_REGISTER_RLS_V4 = new RecipeRef("independent-register-v4", 4);
+    /** Structural predecessor only; generation keeps the exact selected version. */
+    public static RecipeRef structuralRecipe(RecipeRef ref) {
+        if (STANDARD_CATALOG_V3.equals(ref)) return STANDARD_CATALOG_V2;
+        if (STANDARD_DOCUMENT_V2.equals(ref)) return STANDARD_DOCUMENT;
+        if (INDEPENDENT_REGISTER_V3.equals(ref)) return INDEPENDENT_REGISTER;
+        if (INDEPENDENT_REGISTER_RLS_V4.equals(ref)) return INDEPENDENT_REGISTER_RLS;
+        return ref;
+    }
+    public static boolean formConfigurationRecipe(RecipeRef ref) { return !structuralRecipe(ref).equals(ref); }
+    public static boolean isRlsRegisterRecipe(RecipeRef ref) { return INDEPENDENT_REGISTER_RLS.equals(structuralRecipe(ref)); }
+    public static boolean isStandardExtension(RecipeRef ref) {
+        return STANDARD_CATALOG_V2.equals(structuralRecipe(ref)) || STANDARD_DOCUMENT.equals(structuralRecipe(ref));
+    }
     public static final RecipeRef STANDARD_DOCUMENT = new RecipeRef("standard-document-v1", 1);
     /**
      * Marks a draft read from an existing Java file. It is a working mode, not a recipe: it is
@@ -33,6 +50,7 @@ public final class RecipeCatalog {
     }
     /** Metadata contract only: this does not enable draft creation or generation. */
     public static List<InheritedField> inheritedFields(RecipeRef recipe) {
+        recipe = structuralRecipe(recipe);
         if (STANDARD_CATALOG.equals(recipe) || STANDARD_CATALOG_V2.equals(recipe)) return inheritedFields();
         if (STANDARD_DOCUMENT.equals(recipe)) return List.of(
                 new InheritedField("builtin:number", "number", "Номер", FieldType.STRING, 50, true,
@@ -43,7 +61,7 @@ public final class RecipeCatalog {
     }
     public static String baseType(RecipeRef recipe) {
         inheritedFields(recipe); // Restrict this API to the two standard base contracts.
-        return STANDARD_DOCUMENT.equals(recipe) ? "org.ipro.crud.StandardDocumentEntity" : BASE_TYPE;
+        return STANDARD_DOCUMENT.equals(structuralRecipe(recipe)) ? "org.ipro.crud.StandardDocumentEntity" : BASE_TYPE;
     }
     /**
      * A platform class an entity may extend. {@code fields} and {@code methods} are the names the
@@ -103,7 +121,7 @@ public final class RecipeCatalog {
         if (REGISTER_DAY.equals(period)) names.add("period");
         return Set.copyOf(names);
     }
-    public static boolean isRegisterRecipe(RecipeRef ref) { return INDEPENDENT_REGISTER.equals(ref) || INDEPENDENT_REGISTER_RLS.equals(ref); }
+    public static boolean isRegisterRecipe(RecipeRef ref) { return INDEPENDENT_REGISTER.equals(structuralRecipe(ref)) || isRlsRegisterRecipe(ref); }
     public static String registerBaseType(String period) {
         return descriptor(INDEPENDENT_REGISTER).orElseThrow().effectiveProfile(period).baseType();
     }
@@ -135,7 +153,23 @@ public final class RecipeCatalog {
             "SAFE_FILE_ADAPTER_WITH_ROLLBACK", "MANUAL_EDITS_AND_REPEATABILITY",
             "EXPLICIT_DB_MIGRATION_PLAN", "RECIPE_COMPILE_STARTUP_BEHAVIOR_GATE");
     }
+    private static Recipe formsRecipe(RecipeRef ref, RecipeRef predecessor) {
+        var base = legacyRecipes().stream().filter(r -> r.ref().equals(predecessor)).findFirst().orElseThrow();
+        var files = new java.util.ArrayList<>(base.files());
+        files.add("entity form configuration Java with explicit list/selection composition");
+        return new Recipe(ref, base.kind(), base.baseType(), base.baseApiRoleAtCapture(), base.phase(),
+            base.reads(), base.writes(), base.runtimePrerequisites(), base.subjectDecisions(), files,
+            base.schemaConstraints(), base.acceptanceFixtures(), base.draftBlockers());
+    }
     public static List<Recipe> recipes() {
+        var all = new java.util.ArrayList<>(legacyRecipes());
+        all.add(formsRecipe(STANDARD_CATALOG_V3, STANDARD_CATALOG_V2));
+        all.add(formsRecipe(STANDARD_DOCUMENT_V2, STANDARD_DOCUMENT));
+        all.add(formsRecipe(INDEPENDENT_REGISTER_V3, INDEPENDENT_REGISTER));
+        all.add(formsRecipe(INDEPENDENT_REGISTER_RLS_V4, INDEPENDENT_REGISTER_RLS));
+        return List.copyOf(all);
+    }
+    private static List<Recipe> legacyRecipes() {
         var reads=Set.of("LIST","DETAIL","LOOKUP");
         var writes=Set.of("CREATE","UPDATE","DELETE");
         var standardFiles=List.of("root entity Java", "owned row Java per section", "compile/runtime acceptance fixture");

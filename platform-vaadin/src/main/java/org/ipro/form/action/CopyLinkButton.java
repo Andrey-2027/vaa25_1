@@ -184,21 +184,9 @@ public final class CopyLinkButton extends Button {
 
     /** Клик: решение пересчитывается здесь же, поэтому устаревшая кнопка не отдаёт адрес. */
     private void execute() {
-        ActionDecision current = decision.get();
-        if (!current.actionable()) {
-            onBlocked.accept(current);
-            return;
-        }
-        Optional<String> path = address.get();
-        if (path.isEmpty()) {
-            // Решение сказало «ссылка построима», а каталог адресов её не построил. Это
-            // расхождение двух источников, и молчать о нём нельзя: пользователь нажал кнопку,
-            // которая есть, и обязан получить причину, а не тишину.
-            onBlocked.accept(ActionDecision.blocked(ActionDecision.Reason.NOT_LINKABLE,
-                "Ссылка не построена: адрес формы недоступен в этой сессии"));
-            return;
-        }
-        copyAddress(path.get());
+        // Общая граница исполнения с пунктом меню: решение перепроверяется здесь, а адрес
+        // остаётся ленивым.
+        CopyLinkAction.execute(decision.get(), address, onBlocked);
     }
 
     /**

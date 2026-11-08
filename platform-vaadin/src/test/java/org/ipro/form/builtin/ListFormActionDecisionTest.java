@@ -8,6 +8,7 @@ import com.vaadin.flow.dom.Element;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import org.ipro.crud.BaseEntity;
+import org.ipro.form.CommandBar;
 import org.ipro.data.DataOperation;
 import org.ipro.data.EntityCapabilityOverride;
 import org.ipro.data.EntityDescriptorCatalog;
@@ -122,6 +123,19 @@ class ListFormActionDecisionTest {
 
         assertThat(form.getAddButton().isEnabled()).isTrue();
         assertThat(tooltipOf(form.getAddButton())).isNull();
+    }
+
+    @Test void instanceInclusionAndRenameCannotGrantCreationOrRemoveReadOnly() {
+        when(gate.canCreate(Standard.class)).thenReturn(new AccessDecision(false,"Creation denied"));
+        var denied=form(Standard.class,writes(DataOperation.CREATE,DataOperation.UPDATE),null);
+        var layer=org.ipro.form.builder.ListCommandLayout.builder();
+        layer.command(org.ipro.form.action.CrudAction.CREATE.id()).included(true).title("Создать здесь");
+        denied.configureCommandLayout(layer.build());
+        assertThat(denied.getAddButton().isEnabled()).isFalse();
+        when(gate.canCreate(Standard.class)).thenReturn(AccessDecision.ALLOWED);
+        var readOnly=form(Standard.class,writes(DataOperation.CREATE,DataOperation.UPDATE),null);
+        readOnly.setReadOnly(true); readOnly.configureCommandLayout(layer.build());
+        assertThat(readOnly.getAddButton().isVisible()).isFalse();
     }
 
     @Test
@@ -266,10 +280,7 @@ class ListFormActionDecisionTest {
         form.setOnAdd(onAdd);
         form.setOnEdit(onEdit);
         form.setOnCopy(onCopy);
-        Button copy = form.getToolbar().getChildren()
-            .filter(Button.class::isInstance).map(Button.class::cast)
-            .filter(button -> "Копировать".equals(button.getText()))
-            .findFirst().orElseThrow();
+        Button copy = org.ipro.form.CommandBar.forForm(form).command(CrudAction.COPY.id()).button();
         assertThat(copy.isVisible()).isTrue();
         assertThat(copy.isEnabled()).isTrue();
 
@@ -308,8 +319,8 @@ class ListFormActionDecisionTest {
     void copyLinkAffordanceIsAbsentWithoutTheAddressService() {
         ListForm<Standard, Long> form = form(Standard.class, writes(DataOperation.CREATE), null);
 
-        assertThat(copyLinkButton(form))
-            .as("кнопка не появляется сама: её создаёт поставленный сервис ссылок")
+        assertThat(copyLinkCommand(form))
+            .as("команда не появляется сама: её создаёт поставленный сервис ссылок")
             .isEmpty();
     }
 
@@ -338,9 +349,9 @@ class ListFormActionDecisionTest {
             ActionHandlerRegistry.empty(), ActionSurface.LIST_TOOLBAR, Standard.class, null));
         form.setFormLinkService(mock(FormLinkService.class));
 
-        Button copyLink = copyLinkButton(form).orElseThrow();
+        CommandBar.Command copyLink = copyLinkCommand(form).orElseThrow();
         assertThat(copyLink.isVisible())
-            .as("до присоединения к UI состояние не вычисляется: affordance ждёт живой кнопки")
+            .as("до присоединения к UI состояние не вычисляется: affordance ждёт живого UI")
             .isFalse();
         assertThat(copyLink.isEnabled()).isFalse();
     }
@@ -350,12 +361,11 @@ class ListFormActionDecisionTest {
         return mock(Consumer.class);
     }
 
-    /** Кнопка адреса списка в тулбаре, если она создана (E2.1). */
-    private static Optional<Button> copyLinkButton(ListForm<?, ?> form) {
-        return form.getToolbar().getChildren()
-            .filter(Button.class::isInstance).map(Button.class::cast)
-            .filter(button -> "Скопировать ссылку".equals(button.getText()))
-            .findFirst();
+    /** Команда адреса списка в «Ещё», если она создана (E2.1). */
+    private static Optional<CommandBar.Command> copyLinkCommand(ListForm<?, ?> form) {
+        return org.ipro.form.CommandBar.forForm(form).hasCommand(CrudAction.COPY_LINK.id())
+            ? Optional.of(org.ipro.form.CommandBar.forForm(form).command(CrudAction.COPY_LINK.id()))
+            : Optional.empty();
     }
 
     /** Подсказка читается через {@code Tooltip}: {@code getTooltipText} в Vaadin 25 нет. */

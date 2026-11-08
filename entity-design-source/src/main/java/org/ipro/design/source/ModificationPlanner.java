@@ -96,14 +96,22 @@ public final class ModificationPlanner {
         compile(sourceRoot, type.relativePath(), typeId, patch.text(), classpath);
 
         var warnings = new ArrayList<>(validation.problems());
+        warnings.addAll(formWarnings(entity, changes));
         if (!project.complete()) warnings.add(incomplete(entity.draft().draftId(), project));
         return new Outcome(ModificationPlan.create(TOOL_VERSION, type.relativePath(), text, patch.text(),
-            dependencies(project, typeId, changes), changes, statements, warnings), List.of(), null);
+            dependencies(project, typeId, changes, entity), changes, statements, warnings), List.of(), null);
     }
 
     /** The files the plan was built from: the base classes, the known subclasses and the target of every new reference. */
-    private static Map<String, String> dependencies(ProjectSources project, String typeId, List<EntityChange> changes) {
+    private static Map<String, String> dependencies(ProjectSources project, String typeId, List<EntityChange> changes, org.ipro.design.existing.ExistingEntity entity) {
         var hashes = new TreeMap<String, String>();
+        for (var columns : List.of(entity.listColumns(), entity.selectionColumns()))
+            if (!columns.sourceTypeId().isEmpty() && !columns.sourceTypeId().equals(typeId))
+                hashes.put(columns.sourcePath(), columns.sourceSha256());
+        for (var declaration : entity.formDeclarations()) {
+            var columns = declaration.columns();
+            hashes.put(columns.sourcePath(), columns.sourceSha256());
+        }
         for (var base : project.chain(typeId).projectTypes()) if (!base.typeId().equals(typeId)) hashes.put(base.relativePath(), base.sha256());
         for (var subclass : project.descendants(typeId)) hashes.put(subclass.relativePath(), subclass.sha256());
         for (var change : changes) {
@@ -112,6 +120,22 @@ public final class ModificationPlanner {
                 for (var member : project.chain(added.field().reference().typeId()).projectTypes()) hashes.put(member.relativePath(), member.sha256());
         }
         return hashes;
+    }
+
+    private static List<DraftProblem> formWarnings(org.ipro.design.existing.ExistingEntity entity, List<EntityChange> changes) {
+        var result = new ArrayList<DraftProblem>();
+        for (var change : changes) if (change instanceof EntityChange.FieldAdded added)
+            for (var declaration : entity.formDeclarations()) {
+                var columns = declaration.columns();
+                if (columns.mode() != org.ipro.design.FieldApplicationMapping.CompositionMode.EXPLICIT) continue;
+                String kind = declaration.kind() == org.ipro.design.existing.ExistingFormDeclaration.Kind.LIST ? "список" : "выбор";
+                String variant = declaration.variant().isEmpty() ? "" : ", вариант «" + declaration.variant() + "»";
+                String message = "В форме «" + columns.sourceTypeId() + "» (" + kind + variant + ") явный состав, реквизит «" + added.field().name() + "» не добавлен.";
+                result.add(new DraftProblem(DraftProblem.Severity.WARNING, DraftProblem.Code.FORM_EXPLICIT_FIELD_NOT_ADDED,
+                    new DraftProblem.Target(entity.draft().draftId(), null, added.field().id(), declaration.kind() == org.ipro.design.existing.ExistingFormDeclaration.Kind.LIST ? "applications.list" : "applications.selection"),
+                    "entityDraft.FORM_EXPLICIT_FIELD_NOT_ADDED", Map.of("form", columns.sourceTypeId(), "kind", declaration.kind().name(), "variant", declaration.variant(), "field", added.field().name(), "message", message)));
+            }
+        return List.copyOf(result);
     }
 
     private static DraftProblem incomplete(UUID draftId, ProjectSources project) {

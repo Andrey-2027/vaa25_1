@@ -5,17 +5,16 @@ import org.ip.model.*;
 import org.ipro.crud.ValidationException;
 import org.ipro.data.EntityDataAccess;
 import org.ipro.filtergrid.inmemory.InMemoryFilterGrid;
-import org.ipro.form.BindingDescriptor;
 import org.ipro.form.EntityField;
-import org.ipro.form.FieldFactory;
 import org.ipro.form.SelectionForm;
 import org.ipro.form.SelectionFormAssembler;
 import org.ipro.form.TableSectionCustomization;
 import org.ipro.form.builtin.ItemForm;
 import org.ipro.form.builtin.ItemTable;
+import org.ipro.form.builder.FormBehavior;
 import org.ipro.form.builder.ItemFormCustomization;
 import org.ipro.form.builder.ItemFormVariants;
-import org.ipro.form.registry.FormContext;
+import org.ipro.form.builder.layout.FormAdjust;
 import org.ipro.metadata.HasDisplayName;
 import org.springframework.stereotype.Component;
 import java.util.*;
@@ -39,46 +38,51 @@ public class AccountingObjectCorrectionRowConfig implements ItemFormCustomizatio
         table.setRowVariantSelector(row -> VARIANT);
     }
     @Override public void configure(ItemFormVariants variants) {
-        variants.add(VARIANT, ctx -> new RowForm(ctx, reader, access, selections));
+        variants.add(VARIANT, ctx -> new RowForm(reader, access, selections));
     }
 
     public static class RowForm extends ItemForm<AccountingObjectCorrectionItem> {
         private final AccountingObjectRegisterService reader;
-        private final EntityField<Nomenclature> nomenclature;
-        private final EntityField<AccountingType> newType;
-        private boolean loading;
-        public RowForm(FormContext ctx, AccountingObjectRegisterService reader,
-                EntityDataAccess access, SelectionFormAssembler selections) {
-            super(AccountingObjectCorrectionItem.class, ctx.metadataResolver()
-                .resolveRowMetadata(AccountingObjectCorrectionItem.class).getFormFields().stream()
-                .filter(field -> field.getName().equals("currentAccountingType")).toList(), ctx.fieldFactory());
-            this.reader = reader;
-            getBindingRegistry().getBinding("currentAccountingType").orElseThrow().setDeclaredReadOnly(true);
-            nomenclature = new EntityField<>("Номенклатура", term -> candidates().stream()
-                .map(NomenclatureAccountingObject::getNomenclature)
-                .filter(n -> matches(n, term)).toList());
-            nomenclature.setSelectionFormFactory(onSelect -> selection(onSelect));
-            bindExternal(new BindingDescriptor("nomenclature", "Номенклатура", true), nomenclature,
-                AccountingObjectCorrectionItem::getNomenclature, AccountingObjectCorrectionItem::setNomenclature,
-                nomenclature::getValue, nomenclature::setValue, Objects::isNull, nomenclature::setReadOnly);
-            newType = new EntityField<>("Новый тип учёта", term -> access.lookup(AccountingType.class, term, 30));
-            newType.setSelectionFormFactory(onSelect -> selections.assemble(AccountingType.class, onSelect, Map.of()));
-            bindExternal(new BindingDescriptor("accountingType", "Новый тип учёта", true), newType,
-                AccountingObjectCorrectionItem::getAccountingType, AccountingObjectCorrectionItem::setAccountingType,
-                newType::getValue, newType::setValue, Objects::isNull, newType::setReadOnly);
-            addComponentAtIndex(1, nomenclature);
-            addComponentAtIndex(3, newType);
-            nomenclature.addValueChangeListener(value -> {
-                if (!loading) { refreshCurrent(value); newType.setValue(null); }
+        private final EntityDataAccess access;
+        private final SelectionFormAssembler selections;
+        public RowForm(AccountingObjectRegisterService reader, EntityDataAccess access,
+                SelectionFormAssembler selections) {
+            this.reader = reader; this.access = access; this.selections = selections;
+        }
+        @Override protected void adjust(FormAdjust a) {
+            a.element("currentAccountingType").setReadOnly(true);
+            a.element("nomenclature").setEditor(this::nomenclatureEditor);
+            a.element("accountingType").setEditor(this::accountingTypeEditor);
+        }
+        @Override protected void behavior(FormBehavior b) {
+            b.onChange("nomenclature", change -> {
+                refreshCurrent((Nomenclature) change.value());
+                this.<AccountingType>entityField("accountingType").clear();
+            });
+            b.onLoaded(() -> {
+                var row = peekEntity();
+                if (row == null) return;
+                refreshCurrent(row.getNomenclature());
+                getBindingRegistry().getBinding("currentAccountingType").orElseThrow().markClean();
             });
         }
-        @Override public void setEntity(AccountingObjectCorrectionItem row) {
-            loading = true;
-            try { super.setEntity(row); } finally { loading = false; }
-            refreshCurrent(row.getNomenclature());
+        private EntityField<Nomenclature> nomenclatureEditor() {
+            var field = new EntityField<Nomenclature>("Номенклатура", term -> candidates().stream()
+                .map(NomenclatureAccountingObject::getNomenclature)
+                .filter(n -> matches(n, term)).toList());
+            field.setSelectionFormFactory(onSelect -> selection(onSelect));
+            return field;
+        }
+        private EntityField<AccountingType> accountingTypeEditor() {
+            var field = new EntityField<AccountingType>("Новый тип учёта",
+                term -> access.lookup(AccountingType.class, term, 30));
+            field.setSelectionFormFactory(onSelect -> selections.assemble(AccountingType.class, onSelect, Map.of()));
+            return field;
         }
         private List<NomenclatureAccountingObject> candidates() {
-            try { return reader.selection(peekEntity().getDocument()); }
+            var row = peekEntity();
+            if (row == null || row.getDocument() == null) return List.of();
+            try { return reader.selection(row.getDocument()); }
             catch (ValidationException | org.springframework.security.access.AccessDeniedException refusal) {
                 com.vaadin.flow.component.notification.Notification.show(refusal.getMessage(), 5_000,
                     com.vaadin.flow.component.notification.Notification.Position.MIDDLE);
@@ -97,10 +101,11 @@ public class AccountingObjectCorrectionRowConfig implements ItemFormCustomizatio
             return new SelectionForm<>("Объекты учёта цеха на дату корректировки", grid, onSelect);
         }
         private void refreshCurrent(Nomenclature value) {
-            if (peekEntity() == null) return;
-            AccountingType current = value == null ? null : reader.currentType(peekEntity().getDocument(), value.getId())
+            var row = peekEntity();
+            if (row == null || row.getDocument() == null) return;
+            AccountingType current = value == null ? null : reader.currentType(row.getDocument(), value.getId())
                 .orElse(null);
-            peekEntity().setCurrentAccountingType(current);
+            row.setCurrentAccountingType(current);
             this.<AccountingType>entityField("currentAccountingType").setValue(current);
         }
         private static boolean matches(Nomenclature n, String term) {
@@ -119,4 +124,3 @@ public class AccountingObjectCorrectionRowConfig implements ItemFormCustomizatio
         return columns;
     }
 }
-

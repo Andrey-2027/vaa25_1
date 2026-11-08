@@ -127,8 +127,20 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
         if (isLoadingValues()) source = savedStateDepth > 0 ? org.ipro.form.ValueChangeSource.SAVED_STATE
             : org.ipro.form.ValueChangeSource.INITIAL_LOAD;
         var change = new FieldChange(field, oldValue, value, source);
-        if (relatedFields != null) relatedFields.changed(change);
-        for (var listener : List.copyOf(fieldChangeListeners.getOrDefault(field, List.of()))) listener.accept(change);
+        embeddedFieldChangeDepth++;
+        if (source == org.ipro.form.ValueChangeSource.USER || source == org.ipro.form.ValueChangeSource.HANDLER)
+            embeddedChangedFields.add(field);
+        boolean success = false;
+        try {
+            if (relatedFields != null) relatedFields.changed(change);
+            for (var listener : List.copyOf(fieldChangeListeners.getOrDefault(field, List.of()))) listener.accept(change);
+            success = true;
+        } finally {
+            embeddedFieldChangeDepth--;
+            if (embeddedFieldChangeDepth == 0 && !deliveringLoadedHandlers) {
+                if (success) refreshEmbeddedContext(); else embeddedChangedFields.clear();
+            }
+        }
     }
 
     public final List<String> getReadPaths() { return readPaths; }
@@ -207,6 +219,24 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
     protected void adjust(FormAdjust a) { }
     protected void behavior(FormBehavior b) { }
     protected void parameters(org.ipro.form.builder.FormParameters p) { }
+    private org.ipro.form.registry.EmbeddedListFactory embeddedListFactory;
+    private final List<EmbeddedListHost> embeddedLists = new ArrayList<>();
+    private final java.util.Set<String> embeddedChangedFields = new java.util.LinkedHashSet<>();
+    private int embeddedFieldChangeDepth;
+    private boolean deliveringLoadedHandlers;
+    private final List<Runnable> embeddedTabVisibility = new ArrayList<>();
+    private final java.util.Set<Component> hiddenLayoutElements = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+    private boolean synchronizingEmbeddedLists;
+
+    /** Infrastructure is installed by the resolver before evaluating a new-API description. */
+    public final void setEmbeddedListFactory(org.ipro.form.registry.EmbeddedListFactory factory) {
+        if (initialized) throw new IllegalStateException("Embedded list factory must be supplied before form assembly");
+        embeddedListFactory = java.util.Objects.requireNonNull(factory);
+    }
+
+    protected final org.ipro.form.registry.EmbeddedListFactory embeddedListFactory() {
+        return java.util.Objects.requireNonNull(embeddedListFactory, "Embedded list factory is not installed");
+    }
     private org.ipro.form.builder.FormParameters openingParameters;
 
     /** Called by the annotated-form factory before layout, behavior or editor creation. */
@@ -286,7 +316,14 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
 
     public final boolean isLoadingValues() { return loadingValues > 0; }
     public final void addLoadedHandler(Runnable handler) { loadedHandlers.add(java.util.Objects.requireNonNull(handler)); }
-    private void loaded() { if (loadingValues == 0) loadedHandlers.forEach(Runnable::run); }
+    private void loaded() {
+        if (loadingValues == 0) {
+            deliveringLoadedHandlers = true;
+            try { loadedHandlers.forEach(Runnable::run); }
+            finally { deliveringLoadedHandlers = false; embeddedChangedFields.clear(); }
+            synchronizeEmbeddedLists();
+        }
+    }
 
     /** One saved snapshot includes the header, returned rows and the clean baseline. */
     public final void applySavedState(Runnable apply) {
@@ -410,6 +447,7 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
 
     /** Общая инициализация для всех входов построения дерева. */
     private void initCommon() {
+        addAttachListener(event -> synchronizeEmbeddedLists());
         footer = new HorizontalLayout();
         readOnlyNotice = new Span();
         sections = new ItemSectionHost<>(() -> entity);
@@ -465,18 +503,22 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
                 .sorted(java.util.Comparator.comparingInt(FieldMetadataInfo::getOrder))
                 .forEach(field -> renderField(field.getName(), null, target));
             case SectionNode section -> target.add(sections.placeSection(section.rowClass()));
+            case org.ipro.form.builder.layout.EmbeddedListNode list -> target.add(
+                renderEmbeddedList(list, true, false));
             case ElementNode element -> renderElement(element, target);
         }
     }
 
     private void renderElement(ElementNode element, FormLayout target) {
         long count = target.getChildren().count();
-        if (element.content() instanceof FieldNode field)
+        if (element.content() instanceof org.ipro.form.builder.layout.EmbeddedListNode list)
+            target.add(renderEmbeddedList(list, element.visible(), element.readOnly()));
+        else if (element.content() instanceof FieldNode field)
             renderField(field.fieldName(), field.labelOverride(), target, element.selectionVariant(), element.editorFactory());
         else renderNode(element.content(), target);
         Component root = target.getChildren().skip(count).findFirst().orElseThrow();
         root.setId(element.id());
-        if (!element.visible()) root.setVisible(false);
+        if (!element.visible()) { root.setVisible(false); hiddenLayoutElements.add(root); }
         if (element.width() != null && !(element.content() instanceof FieldNode))
             root.getElement().getStyle().set("width", element.width()).set("max-width", "100%");
         if (element.content() instanceof FieldNode field) {
@@ -621,7 +663,18 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
     private void addAsFormItem(FormLayout target, Component component, String label) {
         if (component instanceof HasLabel hasLabel) {
             hasLabel.setLabel(null);
-            target.addFormItem(component, label);
+            if (component instanceof EntityField<?> entityField && entityField.isRequiredIndicatorVisible()) {
+                // EntityField — составной Div: FormItem ищет required у первого field-элемента
+                // и не видит внутренний input. Показываем ту же метку в подписи FormItem.
+                Span labelView = new Span(label == null ? "" : label);
+                Span marker = new Span(" *");
+                marker.getStyle().set("color", "var(--lumo-error-text-color)");
+                marker.getElement().setAttribute("aria-hidden", "true");
+                labelView.add(marker);
+                target.addFormItem(component, labelView);
+            } else {
+                target.addFormItem(component, label);
+            }
         } else {
             target.add(component);
         }
@@ -657,6 +710,7 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
         com.vaadin.flow.component.tabs.TabSheet layoutTabSheet = new com.vaadin.flow.component.tabs.TabSheet();
         layoutTabSheet.setWidthFull();
         for (TabDefinition tab : tabs) {
+            int embeddedBefore = embeddedLists.size();
             FormLayout tabContent = new FormLayout();
             if (tab.id() != null) tabContent.setId(tab.id());
             if (tab.width() != null) tabContent.setWidth(tab.width());
@@ -670,12 +724,89 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
             var tabButton = layoutTabSheet.add(tab.title(), tabContent);
             tabButton.setVisible(tab.visible());
             if (!tab.visible()) tabContent.setVisible(false);
+            boolean containsEmbeddedList = embeddedLists.size() > embeddedBefore;
+            embeddedTabVisibility.add(() -> {
+                boolean visible = tab.visible() && (!containsEmbeddedList
+                    || tabContent.getChildren().anyMatch(this::visibleLayoutContent));
+                tabButton.setVisible(visible);
+                tabContent.setVisible(visible);
+            });
         }
-        for (int index = 0; index < tabs.size(); index++) {
-            if (tabs.get(index).visible()) { layoutTabSheet.setSelectedIndex(index); break; }
-        }
-        if (tabs.stream().noneMatch(TabDefinition::visible)) layoutTabSheet.setVisible(false);
+        Runnable refreshSelection = () -> {
+            var firstVisible = java.util.stream.IntStream.range(0, layoutTabSheet.getTabCount())
+                .mapToObj(layoutTabSheet::getTabAt).filter(Component::isVisible).findFirst();
+            layoutTabSheet.setVisible(firstVisible.isPresent() && !hiddenLayoutElements.contains(layoutTabSheet));
+            var selected = layoutTabSheet.getSelectedTab();
+            if (firstVisible.isPresent() && (selected == null || !selected.isVisible()))
+                layoutTabSheet.setSelectedTab(firstVisible.get());
+        };
+        embeddedTabVisibility.forEach(Runnable::run);
+        embeddedTabVisibility.add(refreshSelection);
+        refreshSelection.run();
+        layoutTabSheet.addSelectedChangeListener(event -> activateEmbeddedLists());
         return layoutTabSheet;
+    }
+
+    private Component renderEmbeddedList(org.ipro.form.builder.layout.EmbeddedListNode definition,
+                                         boolean visible, boolean readOnly) {
+        var host = new EmbeddedListHost(definition, entityClass, this::embeddedListFactory,
+            this::embeddedFilterValue, visible, readOnly);
+        embeddedLists.add(host);
+        host.onVisibilityChanged(() -> {
+            if (!synchronizingEmbeddedLists) {
+                embeddedTabVisibility.forEach(Runnable::run);
+            }
+        });
+        return host;
+    }
+
+    private Object embeddedFilterValue(String path) {
+        String[] parts = path.split("\\.", 2);
+        var binding = registry.getBinding(parts[0]).orElseThrow();
+        Object value = binding.getValue();
+        if (value == null || parts.length == 1) return value;
+        return ColumnPath.resolve(layoutField(parts[0]).getJavaType(), parts[1]).getValue(value);
+    }
+
+    private void synchronizeEmbeddedLists() {
+        if (embeddedLists.isEmpty() || synchronizingEmbeddedLists) return;
+        synchronizingEmbeddedLists = true;
+        try {
+            embeddedLists.forEach(host -> { host.parentChanged(entity); host.contextChanged(); });
+            embeddedTabVisibility.forEach(Runnable::run);
+        } finally { synchronizingEmbeddedLists = false; }
+        activateEmbeddedLists();
+    }
+
+    private boolean visibleLayoutContent(Component component) {
+        if (!component.isVisible()) return false;
+        if (component instanceof FormLayout) return component.getChildren().anyMatch(this::visibleLayoutContent);
+        return true;
+    }
+
+    private void refreshEmbeddedContext() {
+        var changed = java.util.Set.copyOf(embeddedChangedFields);
+        embeddedChangedFields.clear();
+        boolean affected = false;
+        for (var host : embeddedLists) {
+            if (changed.stream().anyMatch(host::usesSource)) { host.contextChanged(); affected = true; }
+        }
+        if (affected) activateEmbeddedLists();
+    }
+
+    private void activateEmbeddedLists() {
+        if (synchronizingEmbeddedLists || !initialized || embeddedLists.isEmpty()) return;
+        if (isAttached() && isVisible()) activateEmbeddedListsIn(formLayout);
+    }
+
+    private void activateEmbeddedListsIn(Component component) {
+        if (!component.isVisible()) return;
+        if (component instanceof EmbeddedListHost host) { host.activate(); return; }
+        if (component instanceof com.vaadin.flow.component.tabs.TabSheet sheet) {
+            if (sheet.getSelectedTab() != null) activateEmbeddedListsIn(sheet.getComponent(sheet.getSelectedTab()));
+            return;
+        }
+        component.getChildren().forEach(this::activateEmbeddedListsIn);
     }
 
     // === Табличные части ===

@@ -41,6 +41,10 @@ public final class ProjectSources {
     public enum Kind { ROOT, SECTION_ROW, REGISTER, UNRESOLVED_BASE }
 
     private final Map<String, SourceType> types = new TreeMap<>();
+    private final Map<String, List<FormColumnReader.GridField>> gridFields = new HashMap<>();
+    private final Map<String, FormColumnReader.Configuration> formConfigurations = new TreeMap<>();
+    List<FormColumnReader.GridField> gridFields(String typeId) { return gridFields.getOrDefault(typeId, List.of()); }
+    Collection<FormColumnReader.Configuration> formConfigurations() { return formConfigurations.values(); }
     private final Map<String, String> superOf = new HashMap<>();
     private final Map<String, List<String>> children = new HashMap<>();
     private final List<Unparsable> unparsable = new ArrayList<>();
@@ -66,6 +70,11 @@ public final class ProjectSources {
                     for (var type : parsed.topLevelTypes()) {
                         var described = SourceType.of(parsed, type, relative, absolute);
                         if (index.types.putIfAbsent(described.typeId(), described) != null) index.duplicates.add(described.typeId());
+                        else {
+                            index.gridFields.put(described.typeId(), FormColumnReader.gridFields(parsed, type));
+                            for (var config : FormColumnReader.configurations(parsed, type, described))
+                                index.formConfigurations.put(described.typeId() + "@" + parsed.start(config.type()), config);
+                        }
                     }
                 } catch (SourceRefusal refusal) {
                     index.unparsable.add(new Unparsable(relative, refusal.reason()));

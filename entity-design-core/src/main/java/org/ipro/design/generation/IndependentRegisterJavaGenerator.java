@@ -56,6 +56,8 @@ final class IndependentRegisterJavaGenerator {
                 GenerationHash.sha256(content));
         var files = new ArrayList<GenerationFile>();
         files.add(file);
+        if (RecipeCatalog.formConfigurationRecipe(source.recipe()))
+            files.add(FormConfigurationSourceBuilder.file(checked, projection));
         var profile = RecipeCatalog.descriptor(source.recipe()).orElseThrow().generationProfile().orElseThrow();
         var planId = PlanFingerprint.planId(profile.fingerprintProfile(), source.recipe(), profile.generatorVersion(),
                 currentDraft, currentContext, files);

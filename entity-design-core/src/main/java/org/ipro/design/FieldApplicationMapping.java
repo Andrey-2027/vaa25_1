@@ -5,6 +5,7 @@ import java.util.*;
 /** Portable declaration mapping only, not file generation or query/REST publication. */
 public final class FieldApplicationMapping {
     private FieldApplicationMapping() { }
+    public enum CompositionMode { AUTO, EXPLICIT, UNKNOWN }
     public record Binding(UUID fieldId, String property, boolean emitFieldMetadata, boolean hidden, boolean gridVisible,
                           String requiredMode, boolean serverRequired) { }
     public record OwnerBinding(String property, int order, boolean emitFieldMetadata,
@@ -16,6 +17,8 @@ public final class FieldApplicationMapping {
         public Projection(List<String> listColumns, List<String> selectColumns, List<Binding> fields, List<Section> sections) {
             this(listColumns, selectColumns, fields, sections, null);
         }
+        public CompositionMode listMode() { return CompositionMode.EXPLICIT; }
+        public CompositionMode selectionMode() { return CompositionMode.EXPLICIT; }
         public Projection { listColumns=List.copyOf(listColumns); selectColumns=List.copyOf(selectColumns);
             fields=List.copyOf(fields); sections=List.copyOf(sections); }
     }

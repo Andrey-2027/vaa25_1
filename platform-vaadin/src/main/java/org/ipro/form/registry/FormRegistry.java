@@ -2,6 +2,7 @@ package org.ipro.form.registry;
 
 import com.vaadin.flow.component.Component;
 import org.ipro.form.builder.ContextFilterField;
+import org.ipro.form.builder.ListCommandLayout;
 
 import java.util.List;
 import java.util.Locale;
@@ -76,6 +77,8 @@ public class FormRegistry {
         new ConcurrentHashMap<>();
     private final Map<FormKey, List<org.ipro.form.builder.ItemFormCustomizer>> itemCustomizers =
         new ConcurrentHashMap<>();
+    private final Map<FormKey, ListCommandLayout> listCommandLayouts = new ConcurrentHashMap<>();
+    private final Map<FormKey, String> listCommandSources = new ConcurrentHashMap<>();
 
     /** Copies the frozen early declarations into the UI variant catalog before customization beans run. */
     @org.springframework.beans.factory.annotation.Autowired(required = false)
@@ -345,6 +348,8 @@ public class FormRegistry {
         listColumns.remove(key);
         columnSources.remove(key);
         variantContextFilters.remove(key);
+        listCommandLayouts.remove(key);
+        listCommandSources.remove(key);
         registrationSources.remove(key);
         variantContextFilterSources.remove(key);
     }
@@ -369,6 +374,8 @@ public class FormRegistry {
         selectionContextFilterSources.clear();
         listCustomizers.clear();
         itemCustomizers.clear();
+        listCommandLayouts.clear();
+        listCommandSources.clear();
     }
 
     /**
@@ -617,6 +624,32 @@ public class FormRegistry {
         List<org.ipro.form.builder.ListFormCustomizer> found =
             listCustomizers.get(new FormKey(entityClass, FormType.LIST, variant));
         return found == null ? List.of() : List.copyOf(found);
+    }
+
+    /** Зарегистрировать слой настроек команд списка (null variant — default-вариант). */
+    public void registerListCommandLayout(Class<?> entityClass, String variant,
+                                          ListCommandLayout layout, String source) {
+        requireOpen("регистрация настроек команд списка");
+        java.util.Objects.requireNonNull(entityClass, "entityClass");
+        java.util.Objects.requireNonNull(layout, "layout");
+        FormKey key = new FormKey(entityClass, FormType.LIST, variant);
+        ListCommandLayout previous = listCommandLayouts.putIfAbsent(key, layout);
+        if (previous != null) {
+            throw duplicate("настроек команд списка", key, previous, source);
+        }
+        if (source != null) {
+            listCommandSources.put(key, source);
+        }
+        putSource(key, source);
+    }
+
+    /** Слой настроек команд списка; null — слой не задан. */
+    public ListCommandLayout getListCommandLayout(Class<?> entityClass, String variant) {
+        return listCommandLayouts.get(new FormKey(entityClass, FormType.LIST, variant));
+    }
+
+    public boolean hasListCommandLayout(Class<?> entityClass, String variant) {
+        return listCommandLayouts.containsKey(new FormKey(entityClass, FormType.LIST, variant));
     }
 
     /**

@@ -164,12 +164,37 @@ public class FormAutoConfiguration {
                                      ServiceLocator serviceLocator,
                                      GroupingValuesProviderFactory groupingValuesProviderFactory,
                                      ObjectProvider<FormNavigator> formNavigators,
+                                     org.ipro.form.registry.EmbeddedListFactory embeddedListFactory,
                                      List<org.ipro.form.builder.FormTypeCustomization> typeCustomizations) {
         FormResolver resolver = new FormResolver(formRegistry, metadataResolver, fieldFactory, applicationContext,
             tableSectionFactory, selectionFormAssembler, serviceLocator,
             groupingValuesProviderFactory, formNavigators);
         resolver.setTypeCustomizations(typeCustomizations);
+        resolver.setEmbeddedListFactory(embeddedListFactory);
         return resolver;
+    }
+
+    /** No UI-scoped navigator is resolved until the runtime host actually creates a list. */
+    @Bean
+    @ConditionalOnMissingBean
+    public org.ipro.form.registry.EmbeddedListFactory embeddedListFactory(ObjectProvider<FormNavigator> navigators,
+            ObjectProvider<org.ipro.rls.RlsReadGate> readGates, ObjectProvider<RlsCurrentUser> currentUsers,
+            ObjectProvider<org.ipro.rls.c5.C5PermissionEvaluator> entityReads) {
+        return new org.ipro.form.registry.EmbeddedListFactory() {
+            @Override public boolean canRead(Class<?> entity) {
+                String username = currentUsers.getObject().requireAuthenticatedUsername();
+                return entityReads.getObject().isEntityReadPermitted(username, entity)
+                    && readGates.getObject().canRead(entity, username);
+            }
+            @Override public org.ipro.form.builtin.ListForm<?, ?> create(
+                    Class<? extends org.ipro.identity.IdentifiableEntity<Long>> entity, String selectedVariant,
+                    java.util.Map<String, Object> filters) {
+                if (!canRead(entity)) throw new org.springframework.security.access.AccessDeniedException(
+                    "Нет права чтения встроенного списка");
+                return navigators.getObject().createListForm(entity, selectedVariant,
+                    java.util.Map.of("contextFilters", java.util.Map.copyOf(filters)));
+            }
+        };
     }
 
     @Bean

@@ -67,6 +67,33 @@ public final class ApplyHarness {
         Fixture full = fixture(fullDraft());
         Fixture empty = fixture(emptyDraft());
 
+        resultCase(results, workRoot, "form-configuration-applied-then-noop", ApplyStatus.APPLIED, "APPLIED", () -> {
+            var fixture = formsFixture(workRoot); var project = projectV2(workRoot, fixture);
+            var result = applyV2(project, fixture); expect(result, ApplyStatus.APPLIED, "APPLIED");
+            assertAppliedV2(project, fixture, result);
+            expect(applyV2(project, fixture), ApplyStatus.NOOP, "NOOP");
+            return outcome(result, project, fixture.fixture);
+        });
+        resultCase(results, workRoot, "form-configuration-conflict-before-first-write", ApplyStatus.CONFLICT, "CONFLICT_UNOWNED", () -> {
+            var fixture = formsFixture(workRoot); var project = projectV2(workRoot, fixture);
+            Path config = project.root.resolve("src/main/java").resolve(fixture.fixture.plan.files().getLast().relativePath());
+            Files.createDirectories(config.getParent()); Files.writeString(config, "foreign configuration");
+            var result = applyV2(project, fixture); expect(result, ApplyStatus.CONFLICT, "CONFLICT_UNOWNED");
+            if (Files.exists(project.root.resolve("src/main/java").resolve(fixture.fixture.plan.files().getFirst().relativePath())))
+                throw new AssertionError("Entity written before configuration conflict");
+            if (!Files.readString(config).equals("foreign configuration")) throw new AssertionError("Changed foreign config");
+            return outcome(result, project, fixture.fixture);
+        });
+        resultCase(results, workRoot, "form-configuration-partial-write-rollback", ApplyStatus.ROLLED_BACK, "APPLY_IO", () -> {
+            var fixture = formsFixture(workRoot); var project = projectV2(workRoot, fixture);
+            var result = new GenerationApplyAdapter(new ApplyHooks() {
+                @Override public void afterPublish(Path target) throws IOException { throw new IOException("after entity publication"); }
+            }).apply(v2Request(project, fixture), fixture.fixture.plan, fixture.fixture.draft, fixture.fixture.context);
+            expect(result, ApplyStatus.ROLLED_BACK, "APPLY_IO");
+            for (var file : fixture.fixture.plan.files())
+                if (Files.exists(project.root.resolve("src/main/java").resolve(file.relativePath()))) throw new AssertionError("Partial output retained");
+            return outcome(result, project, fixture.fixture);
+        });
         resultCase(results, workRoot, "empty-catalog-applied", ApplyStatus.APPLIED, "APPLIED",
                 () -> {
                     Project project = project(workRoot, empty);
@@ -1284,6 +1311,15 @@ public final class ApplyHarness {
         System.exit(result.exitCode());
     }
 
+    private static V2Fixture formsFixture(Path workRoot) throws IOException {
+        var old = documentDraft();
+        var draft = new EntityDraft(old.schemaVersion(), RecipeCatalog.STANDARD_DOCUMENT_V2, old.draftId(), old.entity(), old.fields(), old.sections());
+        var generated = fixture(draft, documentContext());
+        Path jar = Files.createTempFile(workRoot, "platform-fixture-", ".jar");
+        Files.writeString(jar, "selftest-platform-jar-v1", StandardCharsets.UTF_8);
+        return new V2Fixture(generated, jar, "org.ipro:fixture-platform:jar::1.0-SELFTEST", ApplyHash.sha256(jar));
+    }
+
     private static V2Fixture v2Fixture(Path workRoot) throws IOException {
         Fixture fixture = documentFixture();
         Path jar = Files.createTempFile(workRoot, "platform-fixture-", ".jar");
@@ -1691,7 +1727,7 @@ public final class ApplyHarness {
                 ? "com.example.generated.harness.RegisterScenarioTest"
                 : !fixture.draft.sections().isEmpty()
                 ? "com.example.generated.harness.SectionsScenarioTest"
-                : fixture.plan.files().size() > 1
+                : fixture.plan.files().size() > (RecipeCatalog.formConfigurationRecipe(fixture.plan.recipe()) ? 2 : 1)
                 ? "com.example.generated.harness.MultiFileScenarioTest"
                 : "com.example.generated.harness.GenerationScenarioTest");
         suite.put("required", true);

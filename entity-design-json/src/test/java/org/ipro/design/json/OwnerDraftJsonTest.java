@@ -21,7 +21,7 @@ class OwnerDraftJsonTest {
     private void reject(ObjectNode tree) { assertThrows(DraftJsonException.class, () -> codec.decode(tree.toString())); }
 
     @Test void ownerV2PreservesRawInvalidInputIdsAndModesForBothRecipes() {
-        for (var recipe : List.of(RecipeCatalog.STANDARD_CATALOG_V2, RecipeCatalog.STANDARD_DOCUMENT)) {
+        for (var recipe : List.of(RecipeCatalog.STANDARD_CATALOG_V2, RecipeCatalog.STANDARD_DOCUMENT, RecipeCatalog.STANDARD_CATALOG_V3, RecipeCatalog.STANDARD_DOCUMENT_V2)) {
             var d = draft(recipe, owner()); var bytes = codec.encode(d); var decoded = codec.decode(bytes);
             assertEquals(d, decoded); assertArrayEquals(bytes, codec.encode(decoded));
             assertEquals(" RAW COLUMN ", decoded.owner().columnName().text());
@@ -29,7 +29,7 @@ class OwnerDraftJsonTest {
         }
     }
     @Test void explicitNullIsRequiredInV2AndForbiddenInV1() throws Exception {
-        for (var recipe : List.of(RecipeCatalog.STANDARD_CATALOG_V2, RecipeCatalog.STANDARD_DOCUMENT)) {
+        for (var recipe : List.of(RecipeCatalog.STANDARD_CATALOG_V2, RecipeCatalog.STANDARD_DOCUMENT, RecipeCatalog.STANDARD_CATALOG_V3, RecipeCatalog.STANDARD_DOCUMENT_V2)) {
             var d = draft(recipe, null); var tree = tree(d);
             assertTrue(tree.has("owner")); assertTrue(tree.get("owner").isNull()); assertEquals(d, codec.decode(codec.encode(d)));
             tree.remove("owner"); reject(tree);

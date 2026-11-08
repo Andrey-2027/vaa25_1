@@ -33,6 +33,7 @@ public class FormContext {
     private final EntityLookup entityLookup;
     private final BaseService<?, ?> service;
     private final FormNavigator formNavigator;
+    private final EmbeddedListFactory embeddedListFactory;
     private final Map<String, Object> parameters;
 
     public FormContext(Class<?> entityClass, Object id,
@@ -47,6 +48,13 @@ public class FormContext {
                        EntityLookup entityLookup,
                        BaseService<?, ?> service, FormNavigator formNavigator,
                        Map<String, Object> parameters) {
+        this(entityClass, id, metadataResolver, fieldFactory, entityLookup, service, formNavigator, null, parameters);
+    }
+
+    public FormContext(Class<?> entityClass, Object id,
+                       MetadataResolver metadataResolver, FieldFactory fieldFactory, EntityLookup entityLookup,
+                       BaseService<?, ?> service, FormNavigator formNavigator,
+                       EmbeddedListFactory embeddedListFactory, Map<String, Object> parameters) {
         this.entityClass = entityClass;
         this.id = id;
         this.metadataResolver = metadataResolver;
@@ -54,6 +62,7 @@ public class FormContext {
         this.entityLookup = entityLookup;
         this.service = service;
         this.formNavigator = formNavigator;
+        this.embeddedListFactory = embeddedListFactory;
         this.parameters = parameters != null ? new HashMap<>(parameters) : new HashMap<>();
     }
 
@@ -95,6 +104,9 @@ public class FormContext {
         return formNavigator;
     }
 
+    /** Infrastructure for nested lists, separate from business parameters; null in legacy manual contexts. */
+    public EmbeddedListFactory embeddedListFactory() { return embeddedListFactory; }
+
     public Map<String, Object> getParameters() {
         return parameters;
     }
@@ -128,6 +140,7 @@ public class FormContext {
         private EntityLookup entityLookup;
         private BaseService<?, ?> service;
         private FormNavigator formNavigator;
+        private EmbeddedListFactory embeddedListFactory;
         private Map<String, Object> parameters = new HashMap<>();
 
         private Builder(Class<?> entityClass) {
@@ -164,6 +177,11 @@ public class FormContext {
             return this;
         }
 
+        public Builder embeddedListFactory(EmbeddedListFactory factory) {
+            this.embeddedListFactory = factory;
+            return this;
+        }
+
         public Builder parameter(String key, Object value) {
             this.parameters.put(key, value);
             return this;
@@ -178,7 +196,7 @@ public class FormContext {
 
         public FormContext build() {
             return new FormContext(entityClass, id, metadataResolver, fieldFactory, entityLookup,
-                service, formNavigator, parameters);
+                service, formNavigator, embeddedListFactory, parameters);
         }
     }
 }

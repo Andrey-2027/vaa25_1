@@ -4,15 +4,15 @@ import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.menubar.MenuBarVariant;
 import org.ipro.filtergrid.FilterGrid;
+import org.ipro.form.builder.ListUiCommand;
 
 /**
  * Кнопка «Ещё» над гридом (как в 1С): меню дополнительных действий списка,
  * реализованных библиотекой FilterGrid, — общий поиск и условное форматирование.
  *
- * <p>Используется и в {@code ListForm} (через {@code ListForm.installMoreMenu()}),
- * и в {@code SelectionForm} (строка над гридом). Работает с любым экземпляром
- * {@link FilterGrid} (JPA/in-memory/projection) — состояние пунктов читается
- * из грида, переключения применяются к нему же.</p>
+ * <p>{@link #create(FilterGrid)} сохранён для совместимости, но рабочие формы
+ * используют {@link #populate(CommandBar, FilterGrid)}: поиск, условия и форматирование
+ * получают те же ключи и состояние, что и остальные команды.</p>
  */
 public final class FilterGridMoreMenu {
 
@@ -20,7 +20,32 @@ public final class FilterGridMoreMenu {
     }
 
     /**
-     * Строит MenuBar «Ещё» для переданного грида.
+     * Наполнить общее «Ещё» настройками переданного грида. Повторный вызов не создаёт
+     * дублей: команды регистрируются по стабильным ключам {@link ListUiCommand}.
+     */
+    public static void populate(CommandBar bar, FilterGrid<?> grid) {
+        if (!bar.hasCommand(ListUiCommand.QUICK_SEARCH.id())) {
+            bar.addCheckItem(ListUiCommand.QUICK_SEARCH.id(), "Общий поиск",
+                grid::isQuickSearchEnabled, grid::setQuickSearchEnabled, CommandBar.Group.SETTINGS);
+        }
+        if (grid.visualFilterButton() != null
+                && !bar.hasCommand(ListUiCommand.CONDITIONS.id())) {
+            bar.addMenuCommand(ListUiCommand.CONDITIONS.id(),
+                "Открыть «+ Условия»…", grid::openVisualFilterDialog, CommandBar.Group.SETTINGS);
+        }
+        if (!bar.hasCommand(ListUiCommand.FORMATTING.id())) {
+            bar.addMenuCommand(ListUiCommand.FORMATTING.id(), "Условное форматирование…",
+                () -> grid.enableConditionalFormatting().openConditionalFormatDialog(),
+                CommandBar.Group.SETTINGS);
+        }
+    }
+
+    /**
+     * Строит совместимый MenuBar «Ещё» для переданного грида.
+     *
+     * <p>Рабочие ListForm и SelectionForm используют общий
+     * {@link #populate(CommandBar, FilterGrid)}; этот вход сохранён для прикладного кода,
+     * который ещё возвращает самостоятельный MenuBar.</p>
      *
      * <p>Пункты меню:</p>
      * <ul>
