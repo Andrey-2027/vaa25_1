@@ -48,6 +48,7 @@ class ContractsModuleCompositionTest {
         "org.ipro.metadata.annotation.FieldType",
         "org.ipro.metadata.annotation.GridColumn",
         "org.ipro.metadata.annotation.FormConfigurationFor",
+        "org.ipro.metadata.annotation.FormSettingsOnly",
         "org.ipro.metadata.annotation.ListColumns",
         "org.ipro.metadata.annotation.SelectionColumns",
         "org.ipro.metadata.annotation.Lookup",
@@ -118,7 +119,7 @@ class ContractsModuleCompositionTest {
                 + " расширяет публичную поверхность платформы, а пропавший — незаметно"
                 + " возвращает контракт в дерево приложения")
             .isEqualTo(new TreeSet<>(REVIEWED_TYPES));
-        assertThat(actual).hasSize(40);
+        assertThat(actual).hasSize(41);
     }
 
     @Test

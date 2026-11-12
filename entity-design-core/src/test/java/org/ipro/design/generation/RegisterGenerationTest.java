@@ -35,14 +35,14 @@ class RegisterGenerationTest {
     private static final UUID RESOURCE = new UUID(1, 20);
     private static final UUID SECOND_RESOURCE = new UUID(1, 21);
 
-    private static EntityDraft rlsDraft(boolean periodic) {
+    static EntityDraft rlsDraft(boolean periodic) {
         var plain = periodic ? dayDraft() : registerDraft(entity("RegionScopedRate", "Ставки по регионам", "region_scoped_rate"),
             List.of(reference(DIMENSION, "region", "Регион", "com.example.Region"), decimal(RESOURCE,"rate","Ставка")),
             RegisterDraft.NONE,List.of(DIMENSION),List.of(RESOURCE));
         return new EntityDraft(4,RecipeCatalog.INDEPENDENT_REGISTER_RLS,plain.draftId(),plain.entity(),plain.fields(),plain.sections(),null,
             plain.register().withRls(new RegisterRlsDraft(periodic ? "REGISTER_ITEM" : "REGISTER_REGION", DIMENSION)));
     }
-    private static ProjectDesignContext rlsContext(boolean periodic) {
+    static ProjectDesignContext rlsContext(boolean periodic) {
         var ref=target(periodic ? "com.example.Item" : "com.example.Region");
         var context=context(Map.of(ref.typeId(),ref));
         var facts=new LinkedHashMap<>(context.runtimeSnapshot().prerequisites());
@@ -331,7 +331,7 @@ class RegisterGenerationTest {
         return result.checkedStructure().orElseThrow();
     }
 
-    private static ProjectDesignContext context(Map<String, ReferenceTargetDescriptor> targets) {
+    static ProjectDesignContext context(Map<String, ReferenceTargetDescriptor> targets) {
         var names = ProjectDesignContext.Names.known(Set.of());
         var snapshot = new RuntimeDesignSnapshot("runtime:register-1", true, Map.of(), Map.of(
                 "REGISTER_FACTS", new RuntimeDesignSnapshot.Prerequisite(
@@ -355,14 +355,14 @@ class RegisterGenerationTest {
                 EntityProperties.Titles.auto(), DraftText.explicit(table), null, "MONEY");
     }
 
-    private static EntityDraft noneDraft() {
+    static EntityDraft noneDraft() {
         return registerDraft(entity("RegionRate", "Региональные ставки", "region_rate"),
                 List.of(string(DIMENSION, "regionCode", "Код региона", "20"),
                         decimal(RESOURCE, "rate", "Ставка")),
                 RegisterDraft.NONE, List.of(DIMENSION), List.of(RESOURCE));
     }
 
-    private static EntityDraft dayDraft() {
+    static EntityDraft dayDraft() {
         return registerDraft(entity("ItemRate", "Ставки по номенклатуре", "item_rate"),
                 List.of(reference(DIMENSION, "item", "Номенклатура", "com.example.Item"),
                         decimal(RESOURCE, "rate", "Ставка")),

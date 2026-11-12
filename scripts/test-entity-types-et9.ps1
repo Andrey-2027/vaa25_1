@@ -68,7 +68,6 @@ try {
             'org.ip.views.admin.EntityDraftJsonTransferTest','org.ip.views.admin.EntityDraftUxCompatibilityTest',
             'org.ip.views.admin.EntityDraftWorkspaceTest','org.ip.views.workspace.EntityDraftWorkspaceContractTest',
             'org.ip.views.workspace.WorkspaceDirtyGuardTest','org.ip.views.workspace.WorkspaceRouteStateTest',
-            'org.ip.views.admin.EntityExplorerViewSpringCreationTest',
             'org.ipro.WorkspaceManifestTest#manifestOrderIsATopologicalOrderOfItsOwnDependencies',
             'org.ipro.WorkspaceManifestTest#everyDeclaredDependencyMatchesTheRealMavenWorkspaceEdges',
             'org.ipro.WorkspaceManifestTest#everyPublishedCoordinateHasASingleOwner')

@@ -10,6 +10,9 @@ import org.ip.Application;
 import org.ip.config.DataInitializer;
 import org.ip.model.Journal;
 import org.ip.model.ReceivingDocument;
+import org.ip.model.ReceivingDocumentItem;
+import org.ip.model.Nomenclature;
+import org.ip.model.UnitOfMeasurement;
 import org.ip.model.Workshop;
 import org.ipro.crud.MetadataDrivenAggregateSaveService;
 import org.ipro.data.EntityDataAccess;
@@ -76,6 +79,7 @@ class EmbeddedListRuntimeIT {
     @Autowired AccessGrantRepository grants;
     @Autowired EntityManager em;
     @Autowired ActionProbe action;
+    @Autowired org.ipro.form.registry.FormResolver forms;
     private UI ui, previousUi;
     private VaadinSession previousSession;
     private int created;
@@ -128,7 +132,8 @@ class EmbeddedListRuntimeIT {
 
     @BeforeEach void setup() {
         String user=RlsTestFixture.authenticateAsSuperuser(grants);
-        RlsTestFixture.grantC5EntityRead(grants,user,Workshop.class,ReceivingDocument.class,Journal.class);
+        RlsTestFixture.grantC5EntityRead(grants,user,Workshop.class,ReceivingDocument.class,Journal.class,
+            ReceivingDocumentItem.class,Nomenclature.class,UnitOfMeasurement.class);
         suffix=UUID.randomUUID().toString().substring(0,8);
         action.last=null; action.child=null;
         previousUi=UI.getCurrent(); previousSession=VaadinSession.getCurrent();
@@ -269,5 +274,100 @@ class EmbeddedListRuntimeIT {
     private java.util.stream.Stream<com.vaadin.flow.component.button.Button> buttons(com.vaadin.flow.component.Component root) {
         return java.util.stream.Stream.concat(root instanceof com.vaadin.flow.component.button.Button button
             ? java.util.stream.Stream.of(button) : java.util.stream.Stream.empty(), root.getChildren().flatMap(this::buttons));
+    }
+
+    private java.util.stream.Stream<com.vaadin.flow.component.Component> components(com.vaadin.flow.component.Component root) {
+        if(root instanceof TabSheet sheet) return java.util.stream.Stream.concat(java.util.stream.Stream.of(root),
+            java.util.stream.IntStream.range(0,sheet.getTabCount())
+                .mapToObj(index->sheet.getComponent(sheet.getTabAt(index))).flatMap(this::components));
+        return java.util.stream.Stream.concat(java.util.stream.Stream.of(root),root.getChildren().flatMap(this::components));
+    }
+    private ItemForm<Workshop> workshop(Workshop parent) {
+        var form=forms.resolveItemForm(Workshop.class,null,null,Map.of());
+        assertThat(form).isExactlyInstanceOf(org.ip.views.forms.WorkshopItemForm.class);
+        form.setSaveHandler(saveHandler);
+        if(parent==null) form.initializeNewEntity(Map.of("code","P"+suffix,"name","Pilot"));
+        else form.setEntity(parent);
+        ui.add(form); return form;
+    }
+    private TabSheet workshopTabs(ItemForm<Workshop> form) {
+        return components(form).filter(TabSheet.class::isInstance).map(TabSheet.class::cast).findFirst().orElseThrow();
+    }
+    @SuppressWarnings("unchecked") private ListForm<ReceivingDocument,Long> incoming(ItemForm<Workshop> form) {
+        return (ListForm<ReceivingDocument,Long>)components(form).filter(ListForm.class::isInstance).findFirst().orElseThrow();
+    }
+
+    @Test void workshopPilotCreatesAndReadsBackAnIncomingDocumentWithoutDirtyingTheCard() {
+        var parent=data.save(Workshop.class,new Workshop("P"+suffix,"Pilot receiving"));
+        var sender=data.save(Workshop.class,new Workshop("Q"+suffix,"Pilot sender"));
+        var journal=new Journal(); journal.setCode("P"+suffix); journal.setName("Pilot journal");
+        journal=data.save(Journal.class,journal);
+        var outgoing=document(sender,parent,journal); em.flush();
+        var form=workshop(parent);
+        assertThat(components(form).filter(ListForm.class::isInstance)).isEmpty();
+        var tabs=workshopTabs(form);
+        assertThat(tabs.getTabAt(0).getLabel()).isEqualTo("Основное");
+        assertThat(tabs.getTabAt(1).getLabel()).isEqualTo("Входящие накладные");
+        tabs.setSelectedIndex(1); var list=incoming(form);
+        assertThat(list.getGrid().getColumns()).extracting(column->column.getKey())
+            .containsExactly("number","date","journal","transferringWorkshop");
+        assertThat(list.getAddButton().getText()).isEqualTo("Создать накладную");
+        assertThat(list.getAddButton().isEnabled()).isFalse();
+        assertThat(list.getGrid().getDataProvider().fetch(new Query<>()).toList()).isEmpty();
+        list.setContextFilter("journal",journal);
+        assertThat(list.getAddButton().isEnabled()).isTrue();
+        Long childId;
+        try(var dialogs=mockConstruction(com.vaadin.flow.component.dialog.Dialog.class)) {
+            list.getAddButton().click(); assertThat(dialogs.constructed()).hasSize(1);
+            var child=action.child; assertThat(child).isNotNull();
+            assertThat(child.<Workshop>entityField("receivingWorkshop").getValue().getId()).isEqualTo(parent.getId());
+            assertThat(child.<Journal>entityField("journal").getValue().getId()).isEqualTo(journal.getId());
+            child.<Workshop>entityField("transferringWorkshop").setValue(sender);
+            child.getEntityField("date",LocalDate.class).setValue(LocalDate.of(2026,11,8));
+            var unit=data.save(UnitOfMeasurement.class,new UnitOfMeasurement(suffix.substring(0,4),"Pilot unit","U"+suffix));
+            var material=data.save(Nomenclature.class,new Nomenclature("N"+suffix,"Pilot material",unit));
+            var row=new ReceivingDocumentItem(material,java.math.BigDecimal.ONE);
+            row.setDocument(child.peekEntity());
+            var positions=child.<ReceivingDocumentItem>tableSection(ReceivingDocumentItem.class);
+            positions.applyPersistedRows(child.peekEntity(),List.of(row)); positions.markDirty();
+            var result=child.save(); assertThat(result).isInstanceOf(FormSaveResult.Success.class);
+            assertThat(positions.getRows()).singleElement().satisfies(value->assertThat(value.getId()).isNotNull());
+            childId=((FormSaveResult.Success<ReceivingDocument>)result).saved().getId();
+        }
+        em.flush(); list.refresh();
+        assertThat(list.getGrid().getDataProvider().fetch(new Query<>()).toList())
+            .extracting(ReceivingDocument::getId).containsExactly(childId).doesNotContain(outgoing.getId());
+        list.clearContextFilter();
+        list.applyViewState(new GridViewState(List.of(new ColumnPath.Spec("number",null)),List.of()));
+        assertThat(list.getOpeningContextFilters()).containsEntry("receivingWorkshop",parent);
+        assertThat(list.getGrid().getDataProvider().fetch(new Query<>()).toList())
+            .extracting(ReceivingDocument::getId).containsExactly(childId);
+        assertThat(list.getAddButton().isEnabled()).isFalse();
+        var ordinary=factory.create(ReceivingDocument.class,null,Map.of());
+        assertThat(ordinary.getGrid().getColumns()).extracting(column->column.getKey())
+            .contains("receivingWorkshop.code","journal.code");
+        assertThat(ordinary.getAddButton().getText()).isNotEqualTo("Создать накладную");
+        assertThat(ordinary.captureViewState().toJson()).isNotEqualTo(list.captureViewState().toJson());
+        assertThat(form.isDirty()).isFalse();
+    }
+
+    @Test void workshopPilotWaitsForFirstSaveAndReusesTheLazyList() {
+        var form=workshop(null); var tabs=workshopTabs(form); tabs.setSelectedIndex(1);
+        assertThat(components(form).filter(ListForm.class::isInstance)).isEmpty();
+        assertThat(form.save()).isInstanceOf(FormSaveResult.Success.class);
+        var list=incoming(form);
+        assertThat(list.getOpeningContextFilters()).containsEntry("receivingWorkshop",form.peekEntity());
+        tabs.setSelectedIndex(0); tabs.setSelectedIndex(1);
+        assertThat(incoming(form)).isSameAs(list); assertThat(form.isDirty()).isFalse();
+    }
+
+    @Test void workshopPilotHidesIncomingTabWithoutDocumentReadPermission() {
+        String denied="pilot-denied-"+suffix;
+        RlsTestFixture.grantC5EntityRead(grants,denied,Workshop.class);
+        SecurityContextHolder.getContext().setAuthentication(
+            new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(denied,"n/a",List.of()));
+        var form=workshop(null);
+        assertThat(workshopTabs(form).getTabAt(1).isVisible()).isFalse();
+        assertThat(components(form).filter(ListForm.class::isInstance)).isEmpty();
     }
 }

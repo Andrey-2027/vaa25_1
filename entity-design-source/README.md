@@ -60,6 +60,35 @@ A label is changed with `--set-label <field>=<new label>`.
 
 ## The plan directory
 
+### Legacy form-column migration
+
+```powershell
+.\scripts\entity-modify.ps1 migrate-forms -Project C:\work\consumer -Type com.example.model.Material -Out C:\work\forms-plan
+.\scripts\entity-modify.ps1 apply -Project C:\work\consumer -Plan C:\work\forms-plan
+```
+
+`migrate-forms` only writes a plan. It transfers literal `listColumns` / `selectColumns` from
+`@EntityMetadata` to `@ListColumns` / `@SelectionColumns` in an existing configuration bound by
+`@FormConfigurationFor`, or creates `<Entity>FormConfig` in the entity package. Explicit lists stay
+explicit, including those matching automatic columns. Legacy selection fallback is materialized when
+necessary to preserve its columns. Empty legacy arrays remain automatic. There is no AUTO conversion option.
+Other configuration annotations, column properties and method bodies are preserved; conflicting defaults,
+multiple destination configurations, unsupported expressions and occupied destinations are refused.
+
+This command does not need the consumer classpath. Its plan contains `changes.diff` and
+`form-migration.properties` (paths, hashes, original/new UTF-8 contents encoded as Base64, and a manifest
+fingerprint). `apply` checks both files, every destination and all base hashes before writing. It also
+rebuilds the migration plan to detect changed bindings or composition. All replacements are staged first;
+any caught write/verification failure restores existing files and removes files created by this apply.
+If restoration itself fails, the error identifies the files to restore from the manifest. A fully applied
+plan is a no-op; a partially applied or changed plan is a conflict. There are no database changes.
+
+Migration is parsed and checked by the static form reader, without compiling the consumer. Build the
+consumer after applying. As with the single-file command, concurrent writes after the final check and
+abrupt process/machine termination are outside the rollback guarantee.
+
+### Entity modification plan
+
 | File | Content |
 | --- | --- |
 | `changes.diff` | the change as a unified diff, for reading |

@@ -45,7 +45,16 @@ public class EntityModificationService {
 
     /** True when the file of the class lies under the source root; checked cheaply, without reading it. */
     public boolean canModify(Class<?> type) {
-        return available() && Files.isRegularFile(sourceRoot.resolve(type.getName().replace('.', '/') + ".java"));
+        return refusalToModify(type).isEmpty();
+    }
+
+    String refusalToModify(Class<?> type) {
+        if (!access.allows()) return "Редактор структуры недоступен";
+        if (sourceRoot == null || !Files.isDirectory(sourceRoot)) return "Каталог исходников не настроен или недоступен";
+        if (type == null || !Files.isRegularFile(sourceRoot.resolve(type.getName().replace('.', '/') + ".java"))) {
+            return "Файл сущности отсутствует в каталоге исходников";
+        }
+        return "";
     }
 
     /** Reads the class's file and returns a session for changing it; a refusal says why it cannot be changed. */

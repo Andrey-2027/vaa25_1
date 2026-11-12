@@ -9,9 +9,7 @@ import org.ipro.metadata.HasDisplayName;
 
 @Entity
 @Table(name = "consumer_material", uniqueConstraints = @UniqueConstraint(columnNames = "code"))
-@EntityMetadata(kind = EntityKind.CATALOG, listFormTitle = "Материалы", itemFormTitle = "Материал",
-        selectionFormTitle = "Выбор материала", subsystem = MaterialsSubsystem.class,
-        listColumns = {"code", "name"})
+@EntityMetadata(kind = EntityKind.CATALOG, listFormTitle = "Материалы", itemFormTitle = "Материал", selectionFormTitle = "Выбор материала", subsystem = MaterialsSubsystem.class)
 @InstanceName(value = {"code", "name"}, separator = " — ")
 public class Material extends BaseEntity implements HasDisplayName {
     @NotBlank @Column(nullable = false, length = 40)

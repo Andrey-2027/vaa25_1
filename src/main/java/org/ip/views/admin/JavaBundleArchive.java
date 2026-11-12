@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import org.ipro.design.RecipeCatalog;
 import org.ipro.design.generation.EntityJavaGenerator;
 import org.ipro.design.generation.GenerationFile;
 import org.ipro.design.generation.GenerationManifest;
@@ -22,7 +23,8 @@ final class JavaBundleArchive {
     static String fileName(GenerationPlan plan) {
         return plan.files().size() == 1
                 ? plan.source().entity().className() + ".java"
-                : plan.source().entity().className() + "-java.zip";
+                : plan.source().entity().className()
+                    + (RecipeCatalog.CUSTOM_PLAIN_V2.equals(plan.recipe()) ? "-java-ddl.zip" : "-java.zip");
     }
 
     static String contentType(GenerationPlan plan) {

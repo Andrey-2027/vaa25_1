@@ -58,6 +58,7 @@ public @interface Lookup {
      * Поле выбирает среди вариантов, определённых на цели; сами варианты на цели и живут,
      * поэтому несколько полей, ссылающихся на одну сущность, делят варианты без дублирования.
      */
+    @Deprecated(since = "AF7", forRemoval = false)
     String variant() default "";
 
     /**
@@ -74,5 +75,6 @@ public @interface Lookup {
      * <p>Пути валидируются при старте приложения: неизвестный путь — отказ старта, а не
      * тихий runtime fallback.</p>
      */
+    @Deprecated(since = "AF7", forRemoval = false)
     String[] fetch() default {};
 }

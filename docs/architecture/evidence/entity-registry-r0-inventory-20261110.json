@@ -1,0 +1,290 @@
+{
+  "schemaVersion": 1,
+  "measuredAtUtc": "2026-11-10T18:31:59.9920549+00:00",
+  "head": "4b0ff3bb424b657ff8560e38112504ca9d55c004",
+  "dirty": true,
+  "checkoutStatusBeforeMeasurement": [
+    " M .gitignore",
+    " M docs/architecture/decisions/ADR-0010-explorer-type-address.md",
+    " M entity-design-core/README.md",
+    " M entity-design-core/src/main/java/org/ipro/design/RecipeCatalog.java",
+    " M entity-design-core/src/main/java/org/ipro/design/RecipeDescriptors.java",
+    " M entity-design-core/src/main/java/org/ipro/design/RecipeGenerationProfile.java",
+    " M entity-design-core/src/main/java/org/ipro/design/generation/FormConfigurationSourceBuilder.java",
+    " M entity-design-core/src/main/java/org/ipro/design/generation/GenerationDiagnostic.java",
+    " M entity-design-core/src/main/java/org/ipro/design/generation/IndependentRegisterJavaGenerator.java",
+    " M entity-design-core/src/main/java/org/ipro/design/generation/JavaSourceBuilder.java",
+    " M entity-design-core/src/main/java/org/ipro/design/generation/RegisterJavaSourceBuilder.java",
+    " M entity-design-core/src/main/java/org/ipro/design/generation/StandardRootJavaGenerator.java",
+    " M entity-design-core/src/test/java/org/ipro/design/RecipeDescriptionTest.java",
+    " M entity-design-core/src/test/java/org/ipro/design/RecipeHandoffTest.java",
+    " M entity-design-core/src/test/java/org/ipro/design/generation/RegisterGenerationTest.java",
+    " M entity-design-source/README.md",
+    " M entity-design-source/src/main/java/org/ipro/design/source/EntityModifyCli.java",
+    " M entity-design-source/src/main/java/org/ipro/design/source/FormColumnReader.java",
+    " M entity-design-source/src/main/java/org/ipro/design/source/ModificationApply.java",
+    " M examples/platform-consumer/src/main/java/com/example/materialrequests/model/Material.java",
+    " M examples/platform-consumer/src/main/java/com/example/materialrequests/model/MaterialRequest.java",
+    " M examples/platform-consumer/src/main/java/com/example/materialrequests/model/MaterialRequestLine.java",
+    " M examples/platform-consumer/src/main/java/com/example/materialrequests/ui/RequestFormCustomization.java",
+    " M examples/platform-consumer/src/test/java/com/example/materialrequests/acceptance/FormsTest.java",
+    " M examples/platform-consumer/src/test/java/com/example/materialrequests/architecture/ConsumerBoundaryTest.java",
+    " M platform-contracts/src/main/java/org/ipro/metadata/annotation/FieldMetadata.java",
+    " M platform-contracts/src/main/java/org/ipro/metadata/annotation/Lookup.java",
+    " M platform-contracts/src/test/java/org/ipro/contracts/ContractsModuleCompositionTest.java",
+    " M platform-core/src/main/java/org/ipro/data/PresentationResolver.java",
+    " M platform-core/src/main/java/org/ipro/data/SearchFieldResolver.java",
+    " M platform-core/src/main/java/org/ipro/metadata/FormColumnDeclarations.java",
+    " M platform-core/src/main/java/org/ipro/metadata/MetadataConsistencyValidator.java",
+    " M platform-core/src/main/java/org/ipro/metadata/MetadataDiagnosticCodes.java",
+    " M platform-core/src/test/java/org/ipro/data/PresentationResolverTest.java",
+    " M platform-core/src/test/java/org/ipro/metadata/EntityContractConsistencyTest.java",
+    " M platform-vaadin/src/main/java/org/ipro/form/EntityField.java",
+    " M platform-vaadin/src/main/java/org/ipro/form/builder/ContextFilterPanel.java",
+    " M platform-vaadin/src/test/java/org/ipro/form/EntityFieldSelectionFilterTest.java",
+    " M scripts/entity-modify.ps1",
+    " M scripts/local-dependencies.json",
+    " M src/main/java/org/ip/views/forms/ReceivingDocumentListFormConfig.java",
+    " M src/main/java/org/ip/views/forms/WorkshopItemForm.java",
+    " M src/test/java/org/ip/form/EmbeddedListRuntimeIT.java",
+    " M src/test/java/org/ip/form/ItemFormConstructionTest.java",
+    " M src/test/java/org/ipro/FormDeadApiTest.java",
+    " M src/test/resources/platform-api-baseline/platform-contracts.api",
+    " M src/test/resources/platform-api-baseline/platform-core.api",
+    " M src/test/resources/platform-core-surface.txt",
+    " M src/test/resources/platform-package-matrix.txt",
+    " M src/test/resources/platform-vaadin-surface.txt",
+    "?? docs/architecture/evidence/form-settings-af38-final-compact-20261109.md",
+    "?? docs/architecture/evidence/form-settings-af44-20261109.md",
+    "?? docs/architecture/evidence/form-settings-af6-stage4-20261108.md",
+    "?? docs/architecture/evidence/form-settings-af6-stage5-20261108.md",
+    "?? docs/architecture/evidence/form-settings-af71-20261109.md",
+    "?? docs/architecture/evidence/form-settings-af72-20261109.md",
+    "?? docs/architecture/evidence/form-settings-b1-acceptance-20261109.md",
+    "?? docs/architecture/evidence/form-settings-final-fixes-20261109.md",
+    "?? docs/plans/mockups/entity-registry-empty.png",
+    "?? docs/plans/mockups/entity-registry-filters.png",
+    "?? docs/plans/mockups/entity-registry-narrow-list.png",
+    "?? docs/plans/mockups/entity-registry-narrow-overview.png",
+    "?? docs/plans/mockups/entity-registry-states.json",
+    "?? docs/plans/mockups/entity-registry-subsystems.png",
+    "?? docs/plans/mockups/entity-registry-tree-overview-20261110.png",
+    "?? docs/plans/mockups/entity-registry-tree.fragment.html",
+    "?? docs/plans/mockups/entity-registry-tree.html",
+    "?? docs/plans/mockups/entity-registry-wide.png",
+    "?? entity-design-core/src/main/java/org/ipro/design/generation/FormSettingsGenerationGuard.java",
+    "?? entity-design-core/src/main/resources/org/ipro/design/recipes/independent-register-v5.json",
+    "?? entity-design-core/src/main/resources/org/ipro/design/recipes/independent-register-v6.json",
+    "?? entity-design-core/src/main/resources/org/ipro/design/recipes/standard-catalog-v4.json",
+    "?? entity-design-core/src/main/resources/org/ipro/design/recipes/standard-document-v3.json",
+    "?? entity-design-core/src/test/java/org/ipro/design/generation/StrictFormSettingsGenerationTest.java",
+    "?? entity-design-source/src/main/java/org/ipro/design/source/FormSettingsMigration.java",
+    "?? entity-design-source/src/main/java/org/ipro/design/source/MigrationApply.java",
+    "?? entity-design-source/src/main/java/org/ipro/design/source/MigrationPlanDirectory.java",
+    "?? entity-design-source/src/test/java/org/ipro/design/source/FormSettingsMigrationTest.java",
+    "?? examples/platform-consumer/src/main/java/com/example/materialrequests/model/MaterialFormConfig.java",
+    "?? examples/platform-consumer/src/main/java/com/example/materialrequests/model/MaterialRequestFormConfig.java",
+    "?? platform-contracts/src/main/java/org/ipro/metadata/annotation/FormSettingsOnly.java",
+    "?? platform-core/src/test/java/org/ipro/metadata/FormSettingsPolicyTest.java",
+    "?? scripts/entity-explorer-pilot/EntityRegistryInventory.java",
+    "?? scripts/measure-entity-explorer-catalog.ps1",
+    "?? src/test/java/org/ipro/form/config/StrictGeneratedFormSettingsTest.java",
+    "?? src/test/resources/forms/legacy-form-declarations.txt"
+  ],
+  "command": "& ./scripts/measure-entity-explorer-catalog.ps1 -JavaHome 'C:\\Program Files\\Axiom\\AxiomJDK-21' -Maven 'C:\\Program Files\\JetBrains\\IntelliJ IDEA Community Edition 2025.2.3\\plugins\\maven\\lib\\maven3\\bin\\mvn.cmd' -LocalRepository 'C:\\Users\\strim\\.m2\\repository' -Output 'docs/architecture/evidence/entity-registry-r0-inventory-20261110.json'",
+  "sourceHashes": [
+    {
+      "path": "scripts/entity-explorer-pilot/EntityRegistryInventory.java",
+      "sha256": "42758bdf3ab391c1c32eb4c8568add8651280faed47054bfe87d0f4087ed2276"
+    },
+    {
+      "path": "scripts/measure-entity-explorer-catalog.ps1",
+      "sha256": "b5556efb710af0733a7615f6ebebfe550e2dbd85ecff692b3467652e511fe4f7"
+    }
+  ],
+  "inventory": {
+    "scope": "bounded-real-model-fixture; NOT a production persistence-unit inventory",
+    "limitations": [
+      "Explicit eight-type set; references outside the set are not managed here",
+      "Empty FormRegistry; derived routes only; no application route aliases or form registrations",
+      "Validated independent-register contributor; no recorded-register/recorder metamodel validation",
+      "No startup diagnostics, lifecycle, action, fetch or RLS services",
+      "Subsystem marker discovery in org.ip.subsystem; no entity classpath scan; no database"
+    ],
+    "counts": {
+      "managed": 8,
+      "entries": 6,
+      "roots": 5,
+      "managedOwned": 2,
+      "explorerOwned": 1,
+      "managedService": 1,
+      "explorerService": 0,
+      "unknownExposure": 0,
+      "summarizeAttempts": 6,
+      "summarizeFailures": 0,
+      "unassignedDiagnostics": 1
+    },
+    "managedTypes": [
+      {
+        "type": "org.ip.model.GroupNom",
+        "exposure": "STANDARD_ROOT",
+        "inExplorer": true
+      },
+      {
+        "type": "org.ip.model.NomAttributeValue",
+        "exposure": "OWNED_ROW",
+        "inExplorer": true
+      },
+      {
+        "type": "org.ip.model.Nomenclature",
+        "exposure": "STANDARD_ROOT",
+        "inExplorer": true
+      },
+      {
+        "type": "org.ip.model.NomenclaturePrice",
+        "exposure": "STANDARD_ROOT",
+        "inExplorer": true
+      },
+      {
+        "type": "org.ip.model.ReceivingDocument",
+        "exposure": "STANDARD_ROOT",
+        "inExplorer": true
+      },
+      {
+        "type": "org.ip.model.ReceivingDocumentItem",
+        "exposure": "OWNED_ROW",
+        "inExplorer": false
+      },
+      {
+        "type": "org.ip.model.SklNomOpa",
+        "exposure": "STANDARD_ROOT",
+        "inExplorer": true
+      },
+      {
+        "type": "org.ipro.settings.SettingValue",
+        "exposure": "INTERNAL_STORE",
+        "inExplorer": false
+      }
+    ],
+    "entries": [
+      {
+        "type": "org.ip.model.NomAttributeValue",
+        "label": "Атрибуты номенклатуры",
+        "root": false,
+        "kind": "PLAIN",
+        "exposure": "OWNED_ROW",
+        "subsystem": null,
+        "publishedKey": null,
+        "ownedSections": [],
+        "state": "READY",
+        "failureReason": "",
+        "countsKnown": false,
+        "errors": null,
+        "warnings": null,
+        "diagnostics": []
+      },
+      {
+        "type": "org.ip.model.GroupNom",
+        "label": "Группы номенклатуры",
+        "root": true,
+        "kind": "CATALOG",
+        "exposure": "STANDARD_ROOT",
+        "subsystem": "org.ip.subsystem.Subsystems$Directories",
+        "publishedKey": "group-nom",
+        "ownedSections": [],
+        "state": "READY",
+        "failureReason": "",
+        "countsKnown": false,
+        "errors": null,
+        "warnings": null,
+        "diagnostics": []
+      },
+      {
+        "type": "org.ip.model.SklNomOpa",
+        "label": "Наборы атрибутов КСУ",
+        "root": true,
+        "kind": "PLAIN",
+        "exposure": "STANDARD_ROOT",
+        "subsystem": "org.ip.subsystem.Subsystems$Directories",
+        "publishedKey": "skl-nom-opa",
+        "ownedSections": [],
+        "state": "READY",
+        "failureReason": "",
+        "countsKnown": false,
+        "errors": null,
+        "warnings": null,
+        "diagnostics": []
+      },
+      {
+        "type": "org.ip.model.Nomenclature",
+        "label": "Номенклатура",
+        "root": true,
+        "kind": "CATALOG",
+        "exposure": "STANDARD_ROOT",
+        "subsystem": "org.ip.subsystem.Subsystems$Directories",
+        "publishedKey": "nomenclature",
+        "ownedSections": [
+          "org.ip.model.Nomenclature#nomenclature#org.ip.model.NomAttributeValue"
+        ],
+        "state": "READY",
+        "failureReason": "",
+        "countsKnown": false,
+        "errors": null,
+        "warnings": null,
+        "diagnostics": []
+      },
+      {
+        "type": "org.ip.model.ReceivingDocument",
+        "label": "Приёмно-сдаточные накладные",
+        "root": true,
+        "kind": "DOCUMENT",
+        "exposure": "STANDARD_ROOT",
+        "subsystem": "org.ip.subsystem.Subsystems$Production",
+        "publishedKey": "receiving-document",
+        "ownedSections": [
+          "org.ip.model.ReceivingDocument#document#org.ip.model.ReceivingDocumentItem"
+        ],
+        "state": "READY",
+        "failureReason": "",
+        "countsKnown": false,
+        "errors": null,
+        "warnings": null,
+        "diagnostics": []
+      },
+      {
+        "type": "org.ip.model.NomenclaturePrice",
+        "label": "Цены номенклатуры",
+        "root": true,
+        "kind": "INFORMATION_REGISTER",
+        "exposure": "STANDARD_ROOT",
+        "subsystem": "org.ip.subsystem.Subsystems$Directories",
+        "publishedKey": "nomenclature-price",
+        "ownedSections": [],
+        "state": "READY",
+        "failureReason": "",
+        "countsKnown": false,
+        "errors": null,
+        "warnings": null,
+        "diagnostics": []
+      }
+    ],
+    "diagnosticsAvailable": false,
+    "unassignedDiagnostics": [
+      {
+        "severity": "INFO",
+        "code": "DIAGNOSTICS_UNAVAILABLE",
+        "entityFqn": "",
+        "fieldName": "",
+        "caption": "Диагностика недоступна",
+        "key": null,
+        "value": {
+          "value": "Стартовая проверка не подключена",
+          "source": "CODE",
+          "origin": "PLATFORM_DEFAULT",
+          "symbol": ""
+        },
+        "source": ""
+      }
+    ]
+  }
+}

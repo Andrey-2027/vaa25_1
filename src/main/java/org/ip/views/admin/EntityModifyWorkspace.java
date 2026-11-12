@@ -27,17 +27,32 @@ public class EntityModifyWorkspace {
     /** True when the card of this class gets the «Изменить» action. */
     public boolean allows(Class<?> type) { return service.canModify(type); }
 
+    String refusal(Class<?> type) { return service.refusalToModify(type); }
+
     public void open(Class<?> type) {
+        if (type == null) return;
+        open(new EntityStructureTabTitle(type, type.getSimpleName()));
+    }
+
+    void open(EntityStructureTabTitle title) {
+        Class<?> type = title.type();
         if (!service.canModify(type)) return;
         String id = ENTRY_PREFIX + type.getName();
-        workspace.open(EntityModifyView.class, id, "Изменение · " + type.getSimpleName(), view -> {
+        String caption = title.caption("Изменение");
+        workspace.open(EntityModifyView.class, id, caption, view -> {
             views.put(id, view);
+            view.setStructureTitle(title);
             view.initialize(type, () -> {
                 workspace.updateTitle(id, view.tabTitle());
                 workspace.refreshUnloadGuard();
             });
         });
         var view = views.get(id);
-        if (view != null) { view.activate(); workspace.updateTitle(id, view.tabTitle()); }
+        if (view != null) {
+            view.setStructureTitle(title);
+            view.activate();
+            workspace.updateTitle(id, view.tabTitle());
+            workspace.describeTab(id, title.fullName());
+        }
     }
 }

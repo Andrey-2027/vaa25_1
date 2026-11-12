@@ -62,6 +62,193 @@ class EntityDraftEditorViewTest {
         assertThat(text(view, "constraints.length").getValue()).isEqualTo("12x");
         assertThat(view.tabTitle()).isEqualTo("Черновик · Материалы *");
     }
+    @Test void plainEditorProducesCompilableJavaAndExecutableDdl(@org.junit.jupiter.api.io.TempDir java.nio.file.Path output)
+            throws Exception {
+        var ui = uiWithResources();
+        com.vaadin.flow.component.UI.setCurrent(ui);
+        var view = new EntityDraftEditorView(new EntityDraftAccess(true, new EntityExplorerAccess()));
+        view.setContextSource(() -> DraftEditorSessionTest.context("v1"));
+        view.initialize(() -> {});
+        ui.add(view);
+        button(view, "Простая сущность").click();
+        text(view, "className").setValue("RejectionReason");
+        text(view, "label").setValue("Причина отказа");
+        button(view, "Данные").click();
+        button(view, "+ Реквизит").click();
+        text(view, "name").setValue("caption");
+        text(view, "field.label").setValue("Подпись");
+        button(view, "Назначить именем экземпляра").click();
+        assertThat(view.session().draft().presentationFieldId()).isEqualTo(view.session().selectedField().id());
+        assertThat(view.session().selectedField().serverRequired()).isTrue();
+        text(view, "name").setValue("reasonText");
+        button(view, "Показать Java и DDL").click();
+
+        var plan = view.javaExport().plan();
+        assertThat(plan.files()).extracting(org.ipro.design.generation.GenerationFile::relativePath)
+            .containsExactly("org/example/RejectionReason.java", "org/example/RejectionReasonFormConfiguration.java",
+                "schema/RejectionReason.sql");
+        assertThat(plan.files().getFirst().content()).contains("@InstanceName(\"reasonText\")");
+        try (var zip = new java.util.zip.ZipInputStream(new java.io.ByteArrayInputStream(JavaBundleArchive.bytes(plan)))) {
+            var entries = new ArrayList<String>();
+            for (var entry = zip.getNextEntry(); entry != null; entry = zip.getNextEntry()) entries.add(entry.getName());
+            assertThat(entries).contains("schema/RejectionReason.sql", JavaBundleArchive.MANIFEST_ENTRY);
+        }
+        compilePlainJava(plan, output);
+        try (var connection = java.sql.DriverManager.getConnection("jdbc:h2:mem:plain_editor_contract");
+             var statement = connection.createStatement()) {
+            statement.execute(plan.files().getLast().content());
+            assertThat(statement.executeUpdate("INSERT INTO rejection_reason (reason_text) VALUES ('Проверка')")).isEqualTo(1);
+            org.junit.jupiter.api.Assertions.assertThrows(java.sql.SQLException.class,
+                () -> statement.executeUpdate("INSERT INTO rejection_reason (reason_text) VALUES (NULL)"));
+        }
+    }
+
+    @Test void plainDdlMatchesHibernateForEveryScalarAndInheritedColumn(
+            @org.junit.jupiter.api.io.TempDir java.nio.file.Path output) throws Exception {
+        var context = DraftEditorSessionTest.context("v1");
+        var ops = new DraftOperations();
+        var draft = ops.create(RecipeCatalog.CUSTOM_PLAIN_V2).withEntity(new EntityProperties(
+            "ScalarReason", DraftText.explicit("org.example"), "Причина отказа", EntityProperties.Titles.auto(),
+            DraftText.explicit("scalar_reason"), null, "FILE"));
+        var fields = List.of(
+            scalar("caption", "STRING", true, new ConstraintDraft("120", "", "")),
+            scalar("itemCount", "INTEGER", false, ConstraintDraft.empty()),
+            scalar("externalId", "LONG", true, ConstraintDraft.empty()),
+            scalar("amount", "DECIMAL", false, new ConstraintDraft("", "12", "3")),
+            scalar("wholeAmount", "DECIMAL", false, new ConstraintDraft("", "14", "0")),
+            scalar("active", "BOOLEAN", false, ConstraintDraft.empty()),
+            scalar("effectiveDate", "DATE", false, ConstraintDraft.empty()),
+            scalar("receivedAt", "DATETIME", false, ConstraintDraft.empty()));
+        draft = draft.withFields(fields).withPresentationField(fields.getFirst().id());
+        var checked = new DraftValidator().validate(draft, context).checkedStructure().orElseThrow();
+        var plan = new org.ipro.design.generation.EntityJavaGenerator().generate(checked, draft, context).plan().orElseThrow();
+        compilePlainJava(plan, output);
+        String suffix = UUID.randomUUID().toString().replace("-", "");
+        String database = "jdbc:h2:mem:plain_mapping_" + suffix + ";MODE=PostgreSQL";
+        String ddlDatabase = "jdbc:h2:mem:plain_ddl_" + suffix + ";MODE=PostgreSQL";
+        Integer postgresPort = Integer.getInteger("plain.acceptance.postgresPort");
+        if (postgresPort != null) {
+            String base = "jdbc:postgresql://127.0.0.1:" + postgresPort + "/postgres?user=plain_stage4";
+            String mappingSchema = "plain_mapping_" + suffix;
+            String ddlSchema = "plain_ddl_" + suffix;
+            try (var connection = java.sql.DriverManager.getConnection(base); var statement = connection.createStatement()) {
+                statement.execute("CREATE SCHEMA " + mappingSchema);
+                statement.execute("CREATE SCHEMA " + ddlSchema);
+            }
+            database = base + "&currentSchema=" + mappingSchema;
+            ddlDatabase = base + "&currentSchema=" + ddlSchema;
+        }
+        try (var loader = new java.net.URLClassLoader(new java.net.URL[]{output.toUri().toURL()}, getClass().getClassLoader());
+             var mapping = java.sql.DriverManager.getConnection(database)) {
+            Class<?> entity = loader.loadClass("org.example.ScalarReason");
+            var bootstrap = new org.hibernate.boot.registry.BootstrapServiceRegistryBuilder()
+                .applyClassLoader(loader).build();
+            var registry = new org.hibernate.boot.registry.StandardServiceRegistryBuilder(bootstrap)
+                .applySetting("hibernate.connection.url", database)
+                .applySetting("hibernate.physical_naming_strategy", "org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy")
+                .applySetting("hibernate.hbm2ddl.auto", "create")
+                .build();
+            try (var factory = new org.hibernate.boot.MetadataSources(registry)
+                    .addAnnotatedClass(entity).buildMetadata().buildSessionFactory();
+                 var ddl = java.sql.DriverManager.getConnection(ddlDatabase);
+                 var statement = ddl.createStatement();
+                 var validatorFactory = jakarta.validation.Validation.buildDefaultValidatorFactory()) {
+                statement.execute(plan.files().getLast().content());
+                assertThat(columns(ddl)).isEqualTo(columns(mapping));
+                assertThat(primaryKeys(ddl)).containsExactly("id").isEqualTo(primaryKeys(mapping));
+                Object row = entity.getConstructor().newInstance();
+                entity.getMethod("setCaption", String.class).invoke(row, "   ");
+                entity.getMethod("setExternalId", Long.class).invoke(row, 42L);
+                assertThat(validatorFactory.getValidator().validate(row)).anyMatch(violation ->
+                    violation.getPropertyPath().toString().equals("caption")
+                        && violation.getConstraintDescriptor().getAnnotation() instanceof jakarta.validation.constraints.NotBlank);
+                entity.getMethod("setCaption", String.class).invoke(row, "Проверка");
+                assertThat(validatorFactory.getValidator().validate(row)).isEmpty();
+                verifyWrites(factory, ddl, entity, row);
+            } finally {
+                org.hibernate.boot.registry.StandardServiceRegistryBuilder.destroy(registry);
+            }
+        }
+    }
+
+    private static void verifyWrites(org.hibernate.SessionFactory factory, java.sql.Connection ddl, Class<?> entity,
+                                     Object row) throws ReflectiveOperationException {
+        try (var session = factory.withOptions().connection(ddl).openSession()) {
+            var transaction = session.beginTransaction();
+            session.persist(row);
+            session.flush();
+            var id = entity.getMethod("getId").invoke(row);
+            assertThat(id).isNotNull();
+            long originalVersion = (long) entity.getMethod("getVersion").invoke(row);
+            session.clear();
+
+            var stored = session.find(entity, id);
+            assertThat(entity.getMethod("getCaption").invoke(stored)).isEqualTo("Проверка");
+            entity.getMethod("setCaption", String.class).invoke(stored, "Изменено");
+            session.flush();
+            assertThat(entity.getMethod("getVersion").invoke(stored)).isEqualTo(originalVersion + 1);
+            session.clear();
+
+            var updated = session.find(entity, id);
+            assertThat(entity.getMethod("getCaption").invoke(updated)).isEqualTo("Изменено");
+            session.remove(updated);
+            session.flush();
+            assertThat(session.find(entity, id)).isNull();
+            transaction.commit();
+        }
+    }
+
+    private static FieldDraft scalar(String name, String type, boolean required, ConstraintDraft constraints) {
+        return new FieldDraft(UUID.randomUUID(), name, name, type, DraftText.auto(), required, FieldDraft.UiRequired.AUTO,
+            constraints, null, FieldApplications.root());
+    }
+
+    private record SqlColumn(int jdbcType, int size, int scale, int nullable, String identity) {}
+
+    private static Map<String, SqlColumn> columns(java.sql.Connection connection) throws java.sql.SQLException {
+        var columns = new LinkedHashMap<String, SqlColumn>();
+        var metadata = connection.getMetaData();
+        String table = metadata.storesUpperCaseIdentifiers() ? "SCALAR_REASON" : "scalar_reason";
+        try (var rows = metadata.getColumns(null, connection.getSchema(), table, null)) {
+            while (rows.next()) {
+                int type = rows.getInt("DATA_TYPE");
+                int size = switch (type) {
+                    case java.sql.Types.VARCHAR, java.sql.Types.DECIMAL, java.sql.Types.NUMERIC -> rows.getInt("COLUMN_SIZE");
+                    default -> 0;
+                };
+                if (type == java.sql.Types.DECIMAL) type = java.sql.Types.NUMERIC;
+                columns.put(rows.getString("COLUMN_NAME"), new SqlColumn(type, size,
+                    rows.getInt("DECIMAL_DIGITS"), rows.getInt("NULLABLE"), rows.getString("IS_AUTOINCREMENT")));
+            }
+        }
+        return columns;
+    }
+
+    private static List<String> primaryKeys(java.sql.Connection connection) throws java.sql.SQLException {
+        var names = new ArrayList<String>();
+        var metadata = connection.getMetaData();
+        String table = metadata.storesUpperCaseIdentifiers() ? "SCALAR_REASON" : "scalar_reason";
+        try (var rows = metadata.getPrimaryKeys(null, connection.getSchema(), table)) {
+            while (rows.next()) names.add(rows.getString("COLUMN_NAME").toLowerCase(Locale.ROOT));
+        }
+        return names;
+    }
+
+    private static void compilePlainJava(org.ipro.design.generation.GenerationPlan plan, java.nio.file.Path output)
+            throws Exception {
+        var javac = new ArrayList<>(List.of("-encoding", "UTF-8", "-proc:none",
+            "-cp", System.getProperty("java.class.path"), "-d", output.toString()));
+        for (var file : plan.files().subList(0, 2)) {
+            var source = output.resolve(file.relativePath());
+            java.nio.file.Files.createDirectories(source.getParent());
+            java.nio.file.Files.writeString(source, file.content());
+            javac.add(source.toString());
+        }
+        var diagnostics = new java.io.ByteArrayOutputStream();
+        int exitCode = javax.tools.ToolProvider.getSystemJavaCompiler()
+            .run(null, null, diagnostics, javac.toArray(String[]::new));
+        assertThat(exitCode).as(diagnostics.toString(java.nio.charset.StandardCharsets.UTF_8)).isZero();
+    }
     @Test void typeSwitchShowsConflictingInputAndExplicitCleanupInsteadOfDiscardingIt() {
         var view = view(); button(view, "+ Реквизит").click();
         @SuppressWarnings("unchecked") Select<String> type = (Select<String>) all(view).filter(c -> c instanceof Select<?> && "type".equals(c.getElement().getAttribute("data-draft-input"))).findFirst().orElseThrow();

@@ -76,7 +76,7 @@
       8. platform-spring-boot-autoconfigure — PlatformProperties (Entity Explorer) и
          @AutoConfigureAfter на MetadataAutoConfiguration/GlobalSearchAutoConfiguration:
          порядок применения конфигураций — часть контракта, а не деталь;
-      9. filtergrid-core/grouping/jpa — FilterGrid/FilterTreeEditor/EntityOptionLabel,
+      9. filtergrid-core/grouping/jpa/inmemory — FilterGrid/FilterTreeEditor/EntityOptionLabel,
          группировка и JpaFilterGrid: список форм собирается поверх библиотеки грида;
       10. Vaadin — flow-server/flow-data/... и vaadin-spring (SpringComponent, UIScope).
 
@@ -141,6 +141,12 @@
         <dependency>
             <groupId>org.ipro</groupId>
             <artifactId>filtergrid-jpa</artifactId>
+            <version>${filtergrid.version}</version>
+        </dependency>
+        <!-- R2: snapshot-only detailed Explorer tables; the application is not their dependency owner. -->
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>filtergrid-inmemory</artifactId>
             <version>${filtergrid.version}</version>
         </dependency>
 

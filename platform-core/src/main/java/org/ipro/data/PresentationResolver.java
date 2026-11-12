@@ -2,6 +2,7 @@ package org.ipro.data;
 
 import org.ipro.fetch.instance.InstanceNameBridge;
 import org.ipro.fetch.instance.InstanceNameResolver;
+import org.ipro.crud.StandardDocumentEntity;
 import org.ipro.metadata.ColumnPath;
 import org.ipro.metadata.FetchGraphs;
 import org.ipro.metadata.MetadataResolver;
@@ -35,7 +36,7 @@ public final class PresentationResolver {
         return names == null ? InstanceNameBridge.displayName(value) : names.resolve(value);
     }
 
-    /** @SearchFields → строковые части @InstanceName → существующие строковые code/name. */
+    /** @SearchFields → строковые части @InstanceName → номер стандартного документа / code/name. */
     public List<String> searchFields(Class<?> type) {
         Objects.requireNonNull(type, "type must not be null");
         boolean knownMetadata = metadata.find(type).isPresent(); // ошибки декларации не маскируются
@@ -59,6 +60,7 @@ public final class PresentationResolver {
             .filter(path -> ColumnPath.resolve(type, path).getJavaType() == String.class).toList();
         if (!named.isEmpty()) return named;
         if (!knownMetadata) return List.of();
+        if (StandardDocumentEntity.class.isAssignableFrom(type)) return List.of("number");
         return List.of("code", "name").stream().filter(path -> {
             ColumnPath resolved = optionalPath(type, path);
             return resolved != null && resolved.getJavaType() == String.class;

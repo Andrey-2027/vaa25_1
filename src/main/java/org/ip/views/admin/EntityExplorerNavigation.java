@@ -7,12 +7,11 @@ import org.ipro.form.link.EntityStructureNavigation;
 import org.ipro.form.link.FormRouteCatalog;
 import org.ipro.form.link.PublishedFormRoute;
 import org.ipro.vaadin.explorer.ExplorerSnapshot;
-import org.springframework.beans.factory.ObjectProvider;
+import org.ipro.vaadin.explorer.ui.EntityExplorerCardPlace;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
 /** Общий UI-local adapter структуры: правило доступа, снимок Explorer и текущий route host. */
@@ -26,28 +25,29 @@ public class EntityExplorerNavigation implements EntityStructureNavigation {
     private final EntityExplorerAccess access;
     private final FormRouteCatalog routes;
     private final Supplier<ExplorerTreeModel.CatalogView> catalog;
-    private final java.util.function.Consumer<String> detail;
     private Object hostOwner;
-    private BiFunction<Class<?>, String, Boolean> host;
+    @FunctionalInterface
+    public interface CardHost {
+        boolean open(Class<?> type, String anchor, String detail);
+    }
+
+    private CardHost host;
 
     @org.springframework.beans.factory.annotation.Autowired
     public EntityExplorerNavigation(EntityExplorerAccess access, FormRouteCatalog routes,
-                                     ObjectProvider<EntityExplorerView> views) {
-        this(access, routes, () -> views.getObject().structureCatalog(),
-            text -> views.getObject().showStructureDetail(text));
+                                     EntityExplorerCatalog catalog) {
+        this(access, routes, () -> catalog.current().view());
     }
 
     EntityExplorerNavigation(EntityExplorerAccess access, FormRouteCatalog routes,
-                               Supplier<ExplorerTreeModel.CatalogView> catalog,
-                               java.util.function.Consumer<String> detail) {
+                               Supplier<ExplorerTreeModel.CatalogView> catalog) {
         this.access = Objects.requireNonNull(access);
         this.routes = Objects.requireNonNull(routes);
         this.catalog = Objects.requireNonNull(catalog);
-        this.detail = Objects.requireNonNull(detail);
     }
 
     /** Host принадлежит этому UI; поздний detach прежнего layout не снимает новую привязку. */
-    public void bindHost(Object owner, BiFunction<Class<?>, String, Boolean> open) {
+    public void bindCardHost(Object owner, CardHost open) {
         hostOwner = Objects.requireNonNull(owner);
         host = Objects.requireNonNull(open);
     }
@@ -91,11 +91,8 @@ public class EntityExplorerNavigation implements EntityStructureNavigation {
             return new OpenResult.Unavailable(resolved.refusal());
         }
         Destination target = resolved.destination();
-        if (!access.allows() || !Boolean.TRUE.equals(host.apply(target.type(), target.anchor()))) {
+        if (!access.allows() || !host.open(target.type(), target.anchor(), target.detail())) {
             return new OpenResult.Unavailable(EntityExplorerAccess.REFUSAL_TEXT);
-        }
-        if (!target.detail().isEmpty()) {
-            detail.accept(target.detail());
         }
         return new OpenResult.Opened(target.type(), address(target));
     }
@@ -106,7 +103,7 @@ public class EntityExplorerNavigation implements EntityStructureNavigation {
     }
 
     private Resolution resolve(Class<?> type, String anchor) {
-        if (type == null || anchor != null && CardAnchor.of(anchor).isEmpty()) {
+        if (type == null || anchor != null && EntityExplorerCardPlace.parse(anchor).isEmpty()) {
             return refused(EntityExplorerAccess.REFUSAL_TEXT);
         }
         ExplorerTreeModel.CatalogView facts;

@@ -16,7 +16,7 @@ try {
     New-Item -ItemType Directory -Force -Path $draftOutput | Out-Null
     & $Maven -o "-Dmaven.repo.local=$LocalRepository" -f entity-design-core/pom.xml clean install *> "$draftOutput/core-install.log"
     if ($LASTEXITCODE -ne 0) { throw 'Fresh core build failed; see core-install.log.' }
-    $tests = 'DraftEditorSessionTest,EntityDraftEditorViewTest,EntityDraftWorkspaceTest,EntityDraftWorkspaceContractTest,WorkspaceDirtyGuardTest,WorkspaceRouteStateTest,MainLayoutLeaveGateTest,EntityExplorerViewAddressTest,EntityExplorerViewSpringCreationTest,EntityExplorerAddressWiringTest,EntityExplorerRouteGateTest,EntityExplorerPilotPanelTest,EntityExplorerPilotBoundaryTest,ExplorerFormPreviewTest'
+    $tests = 'DraftEditorSessionTest,EntityDraftEditorViewTest,EntityDraftWorkspaceTest,EntityDraftWorkspaceContractTest,WorkspaceDirtyGuardTest,WorkspaceRouteStateTest,MainLayoutLeaveGateTest,EntityExplorerAddressWiringTest,EntityExplorerRouteGateTest,EntityExplorerPilotPanelTest,EntityExplorerPilotBoundaryTest,ExplorerFormPreviewTest'
     & $Maven -o "-Dmaven.repo.local=$LocalRepository" '-Dvaadin.skip=true' "-Dtest=$tests" test dependency:build-classpath '-Dmdep.includeScope=runtime' '-Dmdep.outputFile=outputs/entity-explorer-p8-2/runtime-classpath.txt' *> "$draftOutput/maven-tests.log"
     if ($LASTEXITCODE -ne 0) { throw 'Application/editor checks failed; see maven-tests.log.' }
     Write-Output 'P8.2: fresh core install, application compile, selected editor/host/Explorer/preview tests and runtime classpath passed.'

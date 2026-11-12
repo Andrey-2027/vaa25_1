@@ -48,6 +48,61 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class FormDeadApiTest {
 
+    /** Only the reviewed, pre-transition declarations may remain; new application/example code is strict. */
+    @Test
+    void noNewLegacyFormDeclarations() throws Exception {
+        var actual = new java.util.TreeSet<String>();
+        var files = new java.util.ArrayList<java.nio.file.Path>();
+        for (var root : java.util.List.of(java.nio.file.Path.of("src/main/java"), java.nio.file.Path.of("examples"))) {
+            try (var walk = java.nio.file.Files.walk(root)) {
+                files.addAll(walk.filter(p -> p.toString().endsWith(".java"))
+                    .filter(p -> !p.toString().replace('\\', '/').contains("/target/"))
+                    .filter(p -> !root.endsWith("examples") || p.toString().replace('\\', '/').contains("/src/main/java/"))
+                    .toList());
+            }
+        }
+        var compiler = javax.tools.ToolProvider.getSystemJavaCompiler();
+        try (var manager = compiler.getStandardFileManager(null, null, java.nio.charset.StandardCharsets.UTF_8)) {
+            var task = (com.sun.source.util.JavacTask) compiler.getTask(null, manager, null,
+                java.util.List.of("-proc:none"), null, manager.getJavaFileObjectsFromPaths(files));
+            for (var unit : task.parse()) {
+                String path = java.nio.file.Path.of("").toAbsolutePath().relativize(java.nio.file.Path.of(unit.getSourceFile().toUri()))
+                    .toString().replace('\\', '/');
+                new com.sun.source.util.TreeScanner<Void, Void>() {
+                    String type = "", field = "";
+                    @Override public Void visitClass(com.sun.source.tree.ClassTree node, Void ignored) {
+                        String previous = type; type = previous + "." + node.getSimpleName();
+                        super.visitClass(node, ignored); type = previous; return null;
+                    }
+                    @Override public Void visitVariable(com.sun.source.tree.VariableTree node, Void ignored) {
+                        String previous = field; field = node.getName().toString();
+                        super.visitVariable(node, ignored); field = previous; return null;
+                    }
+                    @Override public Void visitAnnotation(com.sun.source.tree.AnnotationTree node, Void ignored) {
+                        String name = node.getAnnotationType().toString().replaceAll(".*\\.", "");
+                        if (name.equals("GridColumn")) add("@GridColumn");
+                        for (var argument : node.getArguments()) {
+                            String key = argument instanceof com.sun.source.tree.AssignmentTree pair ? pair.getVariable().toString() : "value";
+                            if (name.equals("EntityMetadata") && Set.of("listColumns", "selectColumns").contains(key)
+                                    || name.equals("FieldMetadata") && Set.of("grid", "readOnly").contains(key)
+                                    || name.equals("Lookup") && Set.of("entity", "variant", "fetch").contains(key)) add("@" + name + "." + key);
+                        }
+                        return super.visitAnnotation(node, ignored);
+                    }
+                    void add(String declaration) { actual.add(path + "#" + type + "#" + field + " " + declaration); }
+                }.scan(unit, null);
+            }
+        }
+        var baseline = java.nio.file.Path.of("src/test/resources/forms/legacy-form-declarations.txt");
+        if (Boolean.getBoolean("forms.legacy.baseline.write")) {
+            java.nio.file.Files.writeString(baseline, "# Reviewed compatibility declarations before AF7.2; new declarations are forbidden.\n"
+                + String.join("\n", actual) + "\n");
+        }
+        var reviewed = java.nio.file.Files.readAllLines(baseline).stream().filter(s -> !s.startsWith("#") && !s.isBlank()).toList();
+        assertThat(actual).as("new code must put settings in forms; captured declarations remain compatibility input").isSubsetOf(reviewed);
+        assertThat(actual).noneMatch(s -> s.startsWith("examples/"));
+    }
+
     /**
      * Ожидаемое число записей whitelist'а. Меняется только осознанно —
      * сознательная помеха тихому списку.

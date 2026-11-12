@@ -139,10 +139,22 @@ public class Workspace extends VerticalLayout implements WorkspaceGateway {
         Entry entry = entries.get(entryId);
         if (entry == null) return;
         entry.setTitle(java.util.Objects.requireNonNull(title));
+        entry.getTab().getElement().setAttribute("aria-label", title);
         entry.getTab().getChildren().flatMap(Component::getChildren)
             .filter(component -> component instanceof Span && component.getElement().hasAttribute("data-entry-caption"))
             .map(component -> (Span) component).findFirst().ifPresent(span -> span.setText(title));
         if (entryId.equals(activeId) && transientContent == null) titleLabel.setText(title);
+    }
+
+    public void describeTab(String entryId, String description) {
+        Entry entry = entries.get(entryId);
+        if (entry == null) return;
+        Tab tab = entry.getTab();
+        if (description.equals(tab.getElement().getAttribute("aria-description"))) return;
+        tab.getElement().setAttribute("aria-description", description);
+        var tooltip = com.vaadin.flow.component.shared.Tooltip.forComponent(tab);
+        tooltip.setText(description);
+        tooltip.setFocusDelay(0);
     }
 
     public <T extends Component> void open(Class<T> viewType, String entryId,
@@ -454,18 +466,19 @@ public class Workspace extends VerticalLayout implements WorkspaceGateway {
      * при следующем входе возвращались бы в том числе те, правки которых пользователь отказался
      * сохранять. Поэтому «вкладки принадлежат экрану» — не украшение описания, а контракт.</p>
      *
-     * <p><b>Уведомления о закрытии здесь не рассылаются.</b> Мост адреса решает по закрытию, чем
-     * должна стать текущая запись истории, а в момент ухода писать адрес нельзя: адрес уже меняет
-     * навигация. Следующее открытие вкладки начинается для моста с чистого листа.</p>
+     * <p>Закрытия сообщаются после удаления вкладок. На этом пути нет события активации
+     * соседней вкладки, поэтому мост освобождает адреса без записи в историю.</p>
      */
     public void closeAll() {
         clearTransientContent();
-        for (Entry entry : entries.values()) {
+        var closed = List.copyOf(entries.values());
+        entries.clear();
+        for (Entry entry : closed) {
             manager.remove(entry.getId());
             tabs.remove(entry.getTab());
             content.remove(entry.getView());
         }
-        entries.clear();
+        for (Entry entry : closed) notifyEntryClosed(entry.getId());
         activeId = null;
         notifiedActiveId = null;
         titleLabel.setText("");
@@ -485,6 +498,15 @@ public class Workspace extends VerticalLayout implements WorkspaceGateway {
         Span caption = new Span(title);
         caption.getElement().setAttribute("data-entry-caption", "");
         Button closeBtn = new Button(VaadinIcon.CLOSE_SMALL.create(), e -> close(entryId));
+        closeBtn.setAriaLabel("Закрыть вкладку");
+        closeBtn.getElement().executeJs("""
+            this.addEventListener('click', event => event.stopPropagation());
+            for (const type of ['keydown', 'keyup']) {
+                this.addEventListener(type, event => {
+                    if (event.key === 'Enter' || event.key === ' ') event.stopPropagation();
+                });
+            }
+            """);
         closeBtn.getStyle().set("margin", "0").set("padding", "0");
         closeBtn.setWidth("16px");
         closeBtn.setHeight("16px");
@@ -493,6 +515,7 @@ public class Workspace extends VerticalLayout implements WorkspaceGateway {
             caption, closeBtn
         ));
         tab.setId(entryId);
+        tab.getElement().setAttribute("aria-label", title);
         tab.getStyle().set("border", "1px solid var(--lumo-contrast-10pct)");
         tab.getStyle().set("border-bottom", "none");
         tab.getStyle().set("border-left", "none");

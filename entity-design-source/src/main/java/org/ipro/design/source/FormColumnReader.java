@@ -189,7 +189,7 @@ final class FormColumnReader {
             if (!(item instanceof Literal literal && literal.value() instanceof String && stringToken(config.source().source(literal.tree()))))
                 throw refusal(config, annotation, name, "Expected a single string literal; expressions are unsupported");
     }
-    private static boolean stringToken(String raw) {
+    static boolean stringToken(String raw) {
         String text = raw.trim();
         if (text.startsWith("\"\"\"")) return text.endsWith("\"\"\"") && text.indexOf("\"\"\"", 3) == text.length() - 3;
         if (text.length() < 2 || text.charAt(0) != '"') return false;
@@ -265,6 +265,11 @@ final class FormColumnReader {
         return new SourceRefusal(SourceRefusal.Code.FORM_COLUMNS_UNSUPPORTED,
             config.description().typeId() + (annotation == null ? "" : ":" + config.source().line(annotation)) + "#" + property,
             config.description().relativePath() + ": " + reason);
+    }
+
+    static void validateMigrationPaths(String entity, List<String> paths, ProjectSources project) {
+        var facts = new ExistingFormColumns(CompositionMode.EXPLICIT, paths, paths, entity, "", "");
+        for (String path : paths) validatePath(entity, path, project, fields(entity, project), facts);
     }
 
     private static void validatePath(String entity, String path, ProjectSources project,

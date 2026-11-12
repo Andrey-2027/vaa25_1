@@ -12,15 +12,31 @@ public final class RecipeCatalog {
     public static final RecipeRef STANDARD_DOCUMENT_V2 = new RecipeRef("standard-document-v2", 2);
     public static final RecipeRef INDEPENDENT_REGISTER_V3 = new RecipeRef("independent-register-v3", 3);
     public static final RecipeRef INDEPENDENT_REGISTER_RLS_V4 = new RecipeRef("independent-register-v4", 4);
+    public static final RecipeRef STANDARD_CATALOG_V4 = new RecipeRef("standard-catalog-v4", 4);
+    public static final RecipeRef STANDARD_DOCUMENT_V3 = new RecipeRef("standard-document-v3", 3);
+    public static final RecipeRef INDEPENDENT_REGISTER_V5 = new RecipeRef("independent-register-v5", 5);
+    public static final RecipeRef INDEPENDENT_REGISTER_RLS_V6 = new RecipeRef("independent-register-v6", 6);
+    public static final RecipeRef CUSTOM_PLAIN_V2 = new RecipeRef("custom-plain-v2", 2);
+    public static final int PLAIN_SCHEMA_VERSION = 5;
+    public static boolean strictFormSettingsRecipe(RecipeRef ref) {
+        return Set.of(STANDARD_CATALOG_V4, STANDARD_DOCUMENT_V3, INDEPENDENT_REGISTER_V5, INDEPENDENT_REGISTER_RLS_V6,
+            CUSTOM_PLAIN_V2).contains(ref);
+    }
     /** Structural predecessor only; generation keeps the exact selected version. */
     public static RecipeRef structuralRecipe(RecipeRef ref) {
+        if (STANDARD_CATALOG_V4.equals(ref)) return STANDARD_CATALOG_V2;
+        if (STANDARD_DOCUMENT_V3.equals(ref)) return STANDARD_DOCUMENT;
+        if (INDEPENDENT_REGISTER_V5.equals(ref)) return INDEPENDENT_REGISTER;
+        if (INDEPENDENT_REGISTER_RLS_V6.equals(ref)) return INDEPENDENT_REGISTER_RLS;
         if (STANDARD_CATALOG_V3.equals(ref)) return STANDARD_CATALOG_V2;
         if (STANDARD_DOCUMENT_V2.equals(ref)) return STANDARD_DOCUMENT;
         if (INDEPENDENT_REGISTER_V3.equals(ref)) return INDEPENDENT_REGISTER;
         if (INDEPENDENT_REGISTER_RLS_V4.equals(ref)) return INDEPENDENT_REGISTER_RLS;
         return ref;
     }
-    public static boolean formConfigurationRecipe(RecipeRef ref) { return !structuralRecipe(ref).equals(ref); }
+    public static boolean formConfigurationRecipe(RecipeRef ref) {
+        return CUSTOM_PLAIN_V2.equals(ref) || !structuralRecipe(ref).equals(ref);
+    }
     public static boolean isRlsRegisterRecipe(RecipeRef ref) { return INDEPENDENT_REGISTER_RLS.equals(structuralRecipe(ref)); }
     public static boolean isStandardExtension(RecipeRef ref) {
         return STANDARD_CATALOG_V2.equals(structuralRecipe(ref)) || STANDARD_DOCUMENT.equals(structuralRecipe(ref));
@@ -50,6 +66,7 @@ public final class RecipeCatalog {
     }
     /** Metadata contract only: this does not enable draft creation or generation. */
     public static List<InheritedField> inheritedFields(RecipeRef recipe) {
+        if (CUSTOM_PLAIN_V2.equals(recipe)) return List.of();
         recipe = structuralRecipe(recipe);
         if (STANDARD_CATALOG.equals(recipe) || STANDARD_CATALOG_V2.equals(recipe)) return inheritedFields();
         if (STANDARD_DOCUMENT.equals(recipe)) return List.of(
@@ -60,7 +77,8 @@ public final class RecipeCatalog {
         throw new IllegalArgumentException("No inherited field contract for recipe: " + recipe);
     }
     public static String baseType(RecipeRef recipe) {
-        inheritedFields(recipe); // Restrict this API to the two standard base contracts.
+        if (CUSTOM_PLAIN_V2.equals(recipe)) return "org.ipro.crud.BaseEntity";
+        inheritedFields(recipe); // Restrict this API to supported root base contracts.
         return STANDARD_DOCUMENT.equals(structuralRecipe(recipe)) ? "org.ipro.crud.StandardDocumentEntity" : BASE_TYPE;
     }
     /**
@@ -167,6 +185,25 @@ public final class RecipeCatalog {
         all.add(formsRecipe(STANDARD_DOCUMENT_V2, STANDARD_DOCUMENT));
         all.add(formsRecipe(INDEPENDENT_REGISTER_V3, INDEPENDENT_REGISTER));
         all.add(formsRecipe(INDEPENDENT_REGISTER_RLS_V4, INDEPENDENT_REGISTER_RLS));
+        all.add(formsRecipe(STANDARD_CATALOG_V4, STANDARD_CATALOG_V2));
+        all.add(formsRecipe(STANDARD_DOCUMENT_V3, STANDARD_DOCUMENT));
+        all.add(formsRecipe(INDEPENDENT_REGISTER_V5, INDEPENDENT_REGISTER));
+        all.add(formsRecipe(INDEPENDENT_REGISTER_RLS_V6, INDEPENDENT_REGISTER_RLS));
+        all.add(new Recipe(CUSTOM_PLAIN_V2, "PLAIN", "org.ipro.crud.BaseEntity", "APP_SPI",
+            Phase.DRAFT_READY, Set.of("LIST", "DETAIL", "LOOKUP"), Set.of("CREATE", "UPDATE", "DELETE"),
+            List.of("ET0_ET7_RUNTIME"),
+            List.of("explicit entity identity, table and label",
+                "explicit required string field as InstanceName and default search path",
+                "standard item, list and selection forms with explicit FieldApplications",
+                "STANDARD_ROOT canonical CRUD; no automatic permissions or RLS rules"),
+            List.of("root entity Java with FormSettingsOnly", "separate FormConfigurationFor Java",
+                "root table DDL", "compile and runtime acceptance fixture"),
+            List.of("at least one own scalar field; no implicit code, name, numbering or uniqueness",
+                "required nonblank string presentation field published in item, list and selection",
+                "no reference fields, owned sections or owner",
+                "DDL matches Java mapping, inherited identity/version/audit and declared nullability"),
+            List.of("Reason with one required caption: JSON, Java, forms, DDL and canonical CRUD"),
+            List.of()));
         return List.copyOf(all);
     }
     private static List<Recipe> legacyRecipes() {

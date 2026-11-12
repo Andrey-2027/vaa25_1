@@ -89,6 +89,10 @@ final class StandardRootJavaGenerator {
         }
         if (RecipeCatalog.formConfigurationRecipe(source.recipe()))
             files.add(FormConfigurationSourceBuilder.file(checked, projection));
+        if (RecipeCatalog.CUSTOM_PLAIN_V2.equals(source.recipe()))
+            files.add(PlainSchemaSource.file(checked));
+        var policyFailures = FormSettingsGenerationGuard.check(source.recipe(), source.draftId(), files);
+        if (!policyFailures.isEmpty()) return GenerationResult.rejected(policyFailures);
         var planId = PlanFingerprint.planId(fingerprintProfile, source.recipe(), generatorVersion, currentDraft, currentContext, files, checked.owner(), projection.owner());
         return GenerationResult.generated(new GenerationPlan(planId, source.recipe(), generatorVersion,
                 currentDraft, currentContext, files));

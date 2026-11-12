@@ -16,9 +16,10 @@ public final class FormColumnDeclarations {
     /** Composition and property overrides are separate; property insertion never reorders columns. */
     public static final class Columns {
         private final List<String> paths;
+        private boolean explicitlyEmpty;
         private final Map<String, Properties> properties = new LinkedHashMap<>();
         private Columns(List<String> paths) { this.paths = List.copyOf(paths); }
-        public Mode mode() { return paths.isEmpty() ? Mode.AUTO : Mode.EXPLICIT; }
+        public Mode mode() { return paths.isEmpty() && !explicitlyEmpty ? Mode.AUTO : Mode.EXPLICIT; }
         public List<String> paths() { return paths; }
         public Properties column(String path) {
             if (path == null || path.isBlank()) throw new IllegalArgumentException("Blank column path");
@@ -49,6 +50,12 @@ public final class FormColumnDeclarations {
     }
 
     public static Columns auto() { return new Columns(List.of()); }
+    /** Explicit empty table composition, distinct from automatic fields. */
+    public static Columns none() {
+        var columns = new Columns(List.of());
+        columns.explicitlyEmpty = true;
+        return columns;
+    }
     public static Columns explicit(String... paths) {
         if (paths.length == 0) throw new IllegalArgumentException("Explicit columns must not be empty");
         return new Columns(List.of(paths));

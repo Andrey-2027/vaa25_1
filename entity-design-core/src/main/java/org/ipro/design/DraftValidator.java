@@ -29,6 +29,13 @@ public final class DraftValidator {
     }
 
     private static final class Run {
+        private static final Set<String> PLAIN_GENERATED_TYPE_NAMES = Set.of(
+            "BaseEntity", "Entity", "Table", "Column", "EntityMetadata", "EntityKind", "InstanceName",
+            "FormSettingsOnly", "FieldMetadata", "RequiredMode", "NotBlank", "NotNull", "Size", "Digits",
+            "String", "Integer", "Long", "BigDecimal", "Boolean", "LocalDate", "LocalDateTime",
+            "Configuration", "FormConfigurationFor", "ListColumns", "SelectionColumns");
+        private static final int POSTGRES_MAX_VARCHAR_LENGTH = 10_485_760;
+        private static final int POSTGRES_MAX_NUMERIC_PRECISION = 1_000;
         private final EntityDraft draft;
         private final ProjectDesignContext context;
         private final List<DraftProblem> problems = new ArrayList<>();
@@ -37,6 +44,7 @@ public final class DraftValidator {
         private final Set<String> newTypes = new HashSet<>();
         private final Set<String> foldedTypes = new HashSet<>();
         private boolean extension() { return RecipeCatalog.isStandardExtension(draft.recipe()); }
+        private boolean plain() { return RecipeCatalog.CUSTOM_PLAIN_V2.equals(draft.recipe()); }
         /** The captured recipe keeps its original semantic checks; every later recipe also gets the accessor rules. */
         private boolean capturedCatalog() { return draft.recipe().equals(RecipeCatalog.STANDARD_CATALOG); }
         private UUID sectionId, fieldId;
@@ -44,7 +52,10 @@ public final class DraftValidator {
 
         ValidationResult validate() {
             boolean registerRecipe = RecipeCatalog.isRegisterRecipe(draft.recipe());
+            boolean plain = plain();
             var recipe = RecipeCatalog.find(draft.recipe());
+            if (!plain && draft.presentationFieldId() != null)
+                error(UNSUPPORTED_VERSION, "presentationFieldId", draft.recipe().id());
             if (registerRecipe) {
                 int envelope = RecipeCatalog.isRlsRegisterRecipe(draft.recipe()) ? 4 : 3;
                 if (draft.schemaVersion() != envelope) error(UNSUPPORTED_VERSION, "schemaVersion", Integer.toString(draft.schemaVersion()));
@@ -57,14 +68,15 @@ public final class DraftValidator {
                     error(facts.status()==RuntimeDesignSnapshot.Status.UNKNOWN ? PROJECT_FACT_UNKNOWN : RECIPE_PREREQUISITE_UNAVAILABLE,
                         "recipe.prerequisites.REGISTER_FACTS",facts.evidence());
             } else {
-                if (draft.schemaVersion() != 1 && draft.schemaVersion() != 2 || draft.schemaVersion() == 1 && draft.owner() != null)
+                if (plain ? draft.schemaVersion() != RecipeCatalog.PLAIN_SCHEMA_VERSION :
+                    (draft.schemaVersion() != 1 && draft.schemaVersion() != 2 || draft.schemaVersion() == 1 && draft.owner() != null))
                     error(UNSUPPORTED_VERSION, "schemaVersion", Integer.toString(draft.schemaVersion()));
                 if (draft.schemaVersion() == 2 && !RecipeCatalog.isStandardExtension(draft.recipe()))
                     error(UNSUPPORTED_VERSION, "recipe", draft.recipe().toString());
                 if (recipe.isEmpty()) error(UNSUPPORTED_VERSION, "recipe", draft.recipe().toString());
                 else if (!recipe.get().draftSupported()) error(RECIPE_DRAFT_UNSUPPORTED,"recipe",draft.recipe().toString());
                 // Capture v1 keeps its original semantic checks. Opting into v2 requires current runtime facts.
-                else if (RecipeCatalog.isStandardExtension(draft.recipe())) {
+                else if (extension() || plain) {
                     if (!context.runtimeSnapshot().complete()) error(PROJECT_FACT_UNKNOWN,"context.runtimeSnapshot","incomplete");
                     for (String prerequisite : recipe.get().runtimePrerequisites()) {
                         var fact=context.runtimeSnapshot().prerequisite(prerequisite);
@@ -84,6 +96,8 @@ public final class DraftValidator {
             if (e.packageName().mode() == DraftText.Mode.AUTO && context.defaultPackage() == null)
                 error(PROJECT_FACT_UNKNOWN, "packageName", "defaultPackage");
             type(e.className(), pkg);
+            if (plain && PLAIN_GENERATED_TYPE_NAMES.contains(e.className()))
+                error(INVALID_JAVA_IDENTIFIER, "className", e.className());
             newTypes.add(pkg + "." + e.className());
             if (RecipeCatalog.formConfigurationRecipe(draft.recipe())) {
                 type(e.className() + "FormConfiguration", pkg);
@@ -109,6 +123,7 @@ public final class DraftValidator {
             var rootColumns = storageNames(rootReserved);
             var owner = owner(rootReserved, rootColumns);
             var fields = fields(draft.fields(), rootReserved, rootColumns);
+            if (plain) validatePlain();
             var sections = new ArrayList<CheckedStructure.Section>();
             if (!registerRecipe) for (var s : draft.sections()) {
                 sectionId = s.id(); fieldId = null;
@@ -134,6 +149,23 @@ public final class DraftValidator {
                     new CheckedStructure.Root(e.className(), pkg, e.label(), list, item, selection, table, e.subsystemId(), e.icon()),
                     fields, sections, owner, register);
             return new ValidationResult(problems, checked);
+        }
+
+        private void validatePlain() {
+            if (!draft.sections().isEmpty()) error(PLAIN_SECTION_UNSUPPORTED, "sections", draft.recipe().id());
+            var presentation = draft.fields().stream()
+                .filter(field -> field.id().equals(draft.presentationFieldId())).findFirst().orElse(null);
+            if (presentation == null || !"STRING".equals(presentation.type()) || !presentation.serverRequired()
+                    || !FieldApplications.root().equals(presentation.applications())) {
+                error(PLAIN_PRESENTATION_INVALID, "presentationFieldId", "");
+            }
+            for (var field : draft.fields()) {
+                if ("REFERENCE".equals(field.type())) {
+                    fieldId = field.id();
+                    error(UNSUPPORTED_FIELD_TYPE, "type", field.type());
+                }
+            }
+            fieldId = null;
         }
 
         ValidationResult validateChange(ExistingEntity existing) {
@@ -329,10 +361,13 @@ public final class DraftValidator {
 
         private List<CheckedStructure.Field> fields(List<FieldDraft> input, Set<String> reserved, Set<String> columns) {
             var names = new HashSet<String>();
+            var accessors = new HashSet<String>();
+            boolean plain = plain();
             var checked = new ArrayList<CheckedStructure.Field>();
             for (var f : input) {
                 fieldId = f.id(); id(f.id()); identifier(f.name(), "name"); required(f.label(), "label");
-                if (!f.name().isEmpty() && !names.add(f.name())) error(DUPLICATE_NAME, "name", f.name());
+                if (!f.name().isEmpty() && (!names.add(f.name()) || plain && !accessors.add(accessorSuffix(f.name()))))
+                    error(DUPLICATE_NAME, "name", f.name());
                 if (reserved.contains(f.name())) error(RESERVED_FIELD, "name", f.name());
                 else if (!capturedCatalog() && (accessorSuffix(f.name()).equals("Class")
                         || reserved.stream().anyMatch(name -> accessorSuffix(name).equals(accessorSuffix(f.name()))))) error(RESERVED_FIELD, "name", f.name());
@@ -347,6 +382,10 @@ public final class DraftValidator {
                 Integer precision = constraint(c.precision(), "constraints.precision", type == FieldType.DECIMAL, true);
                 Integer scale = constraint(c.scale(), "constraints.scale", type == FieldType.DECIMAL, false);
                 if (precision != null && scale != null && scale > precision) error(INVALID_CONSTRAINT, "constraints.scale", c.scale());
+                if (plain && length != null && length > POSTGRES_MAX_VARCHAR_LENGTH)
+                    error(INVALID_CONSTRAINT, "constraints.length", c.length());
+                if (plain && precision != null && precision > POSTGRES_MAX_NUMERIC_PRECISION)
+                    error(INVALID_CONSTRAINT, "constraints.precision", c.precision());
                 String reference = null;
                 if (type == FieldType.REFERENCE) {
                     if (f.reference() == null || f.reference().typeId().isBlank()) error(REFERENCE_REQUIRED, "reference.typeId", "");

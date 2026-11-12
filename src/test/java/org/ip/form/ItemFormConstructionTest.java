@@ -35,6 +35,8 @@ class ItemFormConstructionTest {
     // Nomenclature and User eagerly load dictionaries in their factories. Construction
     // uses empty lookup results, as in ExplorerFormPreview; data access is tested separately.
     @MockitoBean LookupService lookups;
+    // Construction has no authenticated UI; runtime permissions are covered by EmbeddedListRuntimeIT.
+    @MockitoBean org.ipro.form.registry.EmbeddedListFactory embeddedLists;
     @Autowired ManagedEntityCatalog entities;
     @Autowired MetadataResolver metadata;
     @Autowired FormRegistry registry;

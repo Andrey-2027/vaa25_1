@@ -2,7 +2,12 @@ package org.ip.views.admin;
 
 import com.vaadin.flow.spring.annotation.UIScope;
 import org.ip.views.workspace.Workspace;
+import org.ipro.design.RecipeCatalog;
+import org.ipro.design.RecipeDescriptor;
+import org.ipro.metadata.annotation.EntityKind;
 import org.springframework.stereotype.Component;
+import java.util.Comparator;
+import java.util.Optional;
 
 /** UI-owned host adapter; entry identity never depends on a draft name or UUID. */
 @Component
@@ -42,5 +47,28 @@ public class EntityDraftWorkspace {
             editor.activate();
             workspace.updateTitle(ENTRY_ID, editor.tabTitle());
         }
+    }
+
+    static Optional<RecipeDescriptor> creationRecipe(EntityKind kind) {
+        return RecipeCatalog.descriptors().stream()
+            .filter(recipe -> recipe.kind().equals(kind.name()) && recipe.draftSupported() && recipe.generatorImplemented())
+            .filter(recipe -> !RecipeCatalog.isRlsRegisterRecipe(recipe.ref()))
+            .max(Comparator.comparingInt(recipe -> recipe.ref().version()));
+    }
+
+    String creationRefusal(EntityKind kind) {
+        if (!access.allows()) return "Редактор черновика недоступен";
+        if (creationRecipe(kind).isPresent()) return "";
+        return RecipeCatalog.descriptors().stream().filter(recipe -> recipe.kind().equals(kind.name()))
+            .flatMap(recipe -> recipe.unavailableReasons().stream()).findFirst()
+            .orElse("Для этого вида пока нет рецепта создания");
+    }
+
+    void open(EntityKind kind) {
+        if (!access.allows()) return;
+        creationRecipe(kind).ifPresent(recipe -> {
+            open();
+            if (editor != null) editor.requestNewDraft(recipe);
+        });
     }
 }

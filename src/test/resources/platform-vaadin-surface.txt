@@ -145,7 +145,7 @@ INTERNAL org.ipro.form.CatalogOwnerForms
 #     литералом в приложении разъехалось бы при первом изменении политики загрузки.
 #
 #   * Explorer DTO и assemblers -> APP_API. `EntitySummary`/`EntitySummaryAssembler`/
-#     `SubsystemSummaryAssembler` читаются прикладными views (`EntityExplorerView`,
+#     `SubsystemSummaryAssembler` читаются прикладными views (`EntityExplorerWorkspace`,
 #     `SubsystemStructureView`, `EntitySummaryPanel`, `JpqlRunService`). План D3.5 (D3.5.4)
 #     переносит весь `org.ipro.vaadin` в модуль, поэтому «оставить в дереве» не вариант:
 #     DTO обязан получить роль, и это роль API — приложение их только читает.
@@ -223,7 +223,17 @@ INTERNAL org.ipro.form.CatalogOwnerForms
 # сегмент, а резерв первого сегмента — политика приложения (список `reserved` в baseline
 # маршрутов), не свойство URL. Baseline `.api` обновлён этим же срезом.
 
-# ---- APP_API (67)
+# ---- APP_API (77)
+APP_API org.ipro.vaadin.explorer.ui.EntityExplorerCardPanel
+APP_API org.ipro.vaadin.explorer.ui.EntityExplorerCardPlace
+APP_API org.ipro.vaadin.explorer.ui.EntityExplorerCardState
+APP_API org.ipro.vaadin.explorer.ui.EntityExplorerDiagnosticsPanel
+APP_API org.ipro.vaadin.explorer.ui.EntityExplorerLabels
+APP_API org.ipro.vaadin.explorer.ui.EntityExplorerRegistryActions
+APP_API org.ipro.vaadin.explorer.ui.EntityExplorerRegistryModel
+APP_API org.ipro.vaadin.explorer.ui.EntityExplorerRegistryPanel
+APP_API org.ipro.vaadin.explorer.ui.EntityExplorerRegistryState
+APP_API org.ipro.vaadin.explorer.ui.ExplorerActionAvailability
 APP_API org.ipro.form.builder.layout.SelectionValue
 APP_API org.ipro.form.builder.layout.FieldRelations
 APP_API org.ipro.form.ValueChangeSource
@@ -296,7 +306,9 @@ APP_API org.ipro.vaadin.explorer.ExplorerSnapshot
 APP_API org.ipro.vaadin.explorer.SubsystemSummaryAssembler
 APP_API org.ipro.vaadin.search.GlobalSearchHeader
 
-# ---- APP_SPI (14)
+# ---- APP_SPI (16)
+APP_SPI org.ipro.vaadin.explorer.ui.ExplorerFormPreviewPort
+APP_SPI org.ipro.vaadin.explorer.ui.ExplorerSourcePort
 APP_SPI org.ipro.form.builder.FormTypeCustomization
 APP_SPI org.ipro.form.Dirtyable
 APP_SPI org.ipro.form.FormSaveHandler
@@ -352,7 +364,17 @@ MODULE_API org.ipro.form.registry.FormRegistry
 MODULE_API org.ipro.form.registry.FormResolver
 MODULE_API org.ipro.vaadin.search.GlobalSearchNavigationAdapter
 
-# ---- INTERNAL (60)
+# ---- INTERNAL (70)
+INTERNAL org.ipro.vaadin.explorer.ui.ExplorerCardAnchor
+INTERNAL org.ipro.vaadin.explorer.ui.ExplorerCardSection
+INTERNAL org.ipro.vaadin.explorer.ui.ExplorerCardTab
+INTERNAL org.ipro.vaadin.explorer.ui.CompactCardPlace
+INTERNAL org.ipro.vaadin.explorer.ui.CompactEntityPanel
+INTERNAL org.ipro.vaadin.explorer.ui.DetailedEntityPanel
+INTERNAL org.ipro.vaadin.explorer.ui.ExplorerCardBehaviorPanel
+INTERNAL org.ipro.vaadin.explorer.ui.ExplorerCardPropertyList
+INTERNAL org.ipro.vaadin.explorer.ui.ExplorerCardSequentialLayout
+INTERNAL org.ipro.vaadin.explorer.ui.ExplorerCardSourceView
 INTERNAL org.ipro.form.builtin.EmbeddedListHost
 INTERNAL org.ipro.form.builder.layout.FormReadDependencies
 INTERNAL org.ipro.form.action.CopyLinkAction
@@ -417,7 +439,7 @@ INTERNAL org.ipro.vaadin.search.config.GlobalSearchVaadinAutoConfiguration
 
 # ---- test-usage overlay (26)
 # AF6 stage 2: test-only card exercises the real nested-list factory and read boundary.
-test-usage org.ipro.form.registry.EmbeddedListFactory org/ip/form/EmbeddedListRuntimeIT.java
+test-usage org.ipro.form.registry.EmbeddedListFactory org/ip/form/EmbeddedListRuntimeIT.java org/ip/form/ItemFormConstructionTest.java
 # AF5.3: compare the generic renderer with the new remaining-fields node.
 test-usage org.ipro.form.builder.layout.RemainingFieldsNode org/ip/form/ItemFormRenderParityTest.java org/ipro/form/config/MigratedApplicationColumnsTest.java
 # D3.5.8: ссылки тестов приложения на не-API типы модуля. Формат: test-usage <fqn> <файлы тестов>.
@@ -434,7 +456,7 @@ test-usage org.ipro.form.FieldRenderer org/ipro/fetch/instance/InstanceNamePilot
 # П.2: снимок сверяет поля поиска панели отборов с двумя другими путями автокомплита.
 test-usage org.ipro.form.builder.ContextFilterPanel org/ip/form/FormSettingsSnapshotTest.java org/ip/form/AutoformFilterPanelTest.java
 # TableSectionFactory: startup-валидация секций проверяется на реальной метаданных приложения.
-test-usage org.ipro.form.TableSectionFactory org/ip/form/TableSectionFactoryStartupValidationTest.java org/ip/form/builtin/PrdSpecHiddenSectionSkipsValidationAndSaveTest.java org/ip/form/coordinator/FormCoordinatorUiIsolationTest.java org/ip/form/coordinator/FormRouteOpenOutcomeTest.java org/ip/form/coordinator/ItemFormWorkspaceOpenGuardTest.java org/ip/routes/DeepLinkTwoUserAccessIT.java org/ip/form/FormReadDependenciesIT.java org/ip/form/FormSettingsSnapshotTest.java
+test-usage org.ipro.form.TableSectionFactory org/ip/form/TableSectionFactoryStartupValidationTest.java org/ip/form/builtin/PrdSpecHiddenSectionSkipsValidationAndSaveTest.java org/ip/form/coordinator/FormCoordinatorUiIsolationTest.java org/ip/form/coordinator/FormRouteOpenOutcomeTest.java org/ip/form/coordinator/ItemFormWorkspaceOpenGuardTest.java org/ip/routes/DeepLinkTwoUserAccessIT.java org/ip/form/FormReadDependenciesIT.java org/ip/form/FormSettingsSnapshotTest.java org/ip/application/register/AccountingObjectPilotIT.java
 # SelectionColumnResolver: архитектурный забор ссылается на тип в правиле ArchUnit.
 test-usage org.ipro.form.builder.SelectionColumnResolver org/ipro/FormAssemblyPurityTest.java
 # RowDraft снят из overlay в самом D3.5.8: тест переехал из пакета модуля в org.ip.form.builtin и
@@ -478,7 +500,7 @@ test-usage org.ipro.form.coordinator.ListFormWrapper org/ip/form/coordinator/For
 # вместе с самим реестром.)
 test-usage org.ipro.form.registry.FormRegistry org/ip/config/ActionPolicyConfigTest.java org/ip/form/FormRegistryEnumVariantTest.java org/ip/form/ItemFormConstructionTest.java org/ip/form/TableSectionFactoryStartupValidationTest.java org/ip/form/coordinator/DialogWorkspaceResolutionIT.java org/ip/form/coordinator/FormCoordinatorUiIsolationTest.java org/ip/form/coordinator/FormRouteOpenOutcomeTest.java org/ip/form/registry/FormRegistryDuplicateTest.java org/ip/form/registry/FormRegistryLifecycleTest.java org/ip/vaadin/explorer/EntitySummaryAccessPilotTest.java org/ip/vaadin/explorer/EntitySummaryActionPilotTest.java org/ip/vaadin/explorer/EntitySummaryAssemblerTest.java org/ip/vaadin/explorer/EntitySummaryReadPlanPilotTest.java org/ip/vaadin/explorer/LookupTargetFactsIT.java org/ip/vaadin/explorer/SubsystemSummaryAssemblerTest.java org/ip/views/admin/EntityExplorerPilotPanelTest.java org/ip/views/admin/EntitySummaryDiagnosticPilotTest.java org/ipro/FormAssemblyPurityTest.java org/ipro/PlatformVaadinModuleTest.java org/ipro/PlatformVaadinWiringIT.java org/ipro/form/config/SourceFormColumnsPlatformParityTest.java org/ip/form/FormReadDependenciesIT.java org/ip/form/builtin/PrdSpecHiddenSectionSkipsValidationAndSaveTest.java org/ipro/form/config/MigratedApplicationColumnsTest.java
 # Существующий тест непериодического регистра проверяет штатное открытие через resolver.
-test-usage org.ipro.form.registry.FormResolver org/ip/application/catalog/AttributeTypeWriteBoundaryIT.java org/ip/application/register/AccountingObjectPilotIT.java org/ip/form/TableSectionFactoryStartupValidationTest.java org/ip/form/builtin/PrdSpecHiddenSectionSkipsValidationAndSaveTest.java org/ip/form/coordinator/DialogWorkspaceResolutionIT.java org/ip/form/coordinator/FormCoordinatorUiIsolationTest.java org/ip/form/coordinator/FormRouteOpenOutcomeTest.java org/ip/form/coordinator/ItemFormWorkspaceOpenGuardTest.java org/ip/form/coordinator/PrdSpecSectionCompositionTest.java org/ipro/FormAssemblyPurityTest.java org/ip/routes/DeepLinkTwoUserAccessIT.java org/ip/application/register/NomenclaturePriceFormTest.java org/ip/service/UserAdministrationFlowIT.java org/ip/application/register/RegisterListFormToolbarTest.java org/ip/config/PilotRegisterListToolbarIT.java org/ip/application/register/IndependentNoneRegisterFormTest.java org/ip/form/AutoformFilterPanelTest.java org/ip/form/ItemFormConstructionTest.java org/ip/views/forms/WorkshopItemFormTest.java org/ip/form/CustomEditorPlatformIT.java org/ip/form/FormReadDependenciesIT.java org/ip/form/ReceivingDocumentAutoformIT.java org/ipro/fetch/plan/FetchPlanLookupHydrationIT.java
+test-usage org.ipro.form.registry.FormResolver org/ip/application/catalog/AttributeTypeWriteBoundaryIT.java org/ip/application/register/AccountingObjectPilotIT.java org/ip/form/TableSectionFactoryStartupValidationTest.java org/ip/form/builtin/PrdSpecHiddenSectionSkipsValidationAndSaveTest.java org/ip/form/coordinator/DialogWorkspaceResolutionIT.java org/ip/form/coordinator/FormCoordinatorUiIsolationTest.java org/ip/form/coordinator/FormRouteOpenOutcomeTest.java org/ip/form/coordinator/ItemFormWorkspaceOpenGuardTest.java org/ip/form/coordinator/PrdSpecSectionCompositionTest.java org/ipro/FormAssemblyPurityTest.java org/ip/routes/DeepLinkTwoUserAccessIT.java org/ip/application/register/NomenclaturePriceFormTest.java org/ip/service/UserAdministrationFlowIT.java org/ip/application/register/RegisterListFormToolbarTest.java org/ip/config/PilotRegisterListToolbarIT.java org/ip/application/register/IndependentNoneRegisterFormTest.java org/ip/form/AutoformFilterPanelTest.java org/ip/form/ItemFormConstructionTest.java org/ip/views/forms/WorkshopItemFormTest.java org/ip/form/CustomEditorPlatformIT.java org/ip/form/FormReadDependenciesIT.java org/ip/form/ReceivingDocumentAutoformIT.java org/ipro/fetch/plan/FetchPlanLookupHydrationIT.java org/ip/form/EmbeddedListRuntimeIT.java
 test-usage org.ipro.form.registry.SelectionColumnsDef org/ip/form/registry/FormRegistryDuplicateTest.java org/ip/form/registry/FormRegistryLifecycleTest.java org/ip/vaadin/explorer/EntitySummaryAssemblerTest.java
 # GlobalSearchNavigationAdapter / TelemetryErrorHandler / TelemetryVaadinInitListener: проверяется,
 # что бин создан и приходит из артефакта (PlatformVaadinWiringIT), а не что приложение знает тип.

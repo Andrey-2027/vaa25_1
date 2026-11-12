@@ -57,7 +57,8 @@ class FormConfigurationGenerationTest {
 
     @Test void recipeResourcesMatchExactExecutableVersions() throws Exception {
         var json = new com.fasterxml.jackson.databind.ObjectMapper();
-        for (var recipe : RecipeCatalog.recipes().stream().filter(r -> RecipeCatalog.formConfigurationRecipe(r.ref())).toList()) {
+        for (var recipe : RecipeCatalog.recipes().stream()
+                .filter(r -> !RecipeCatalog.structuralRecipe(r.ref()).equals(r.ref())).toList()) {
             try (var stream = getClass().getResourceAsStream("/org/ipro/design/recipes/" + recipe.ref().id() + ".json")) {
                 var data = json.readTree(stream);
                 assertEquals(recipe.ref().version(), data.path("version").asInt());

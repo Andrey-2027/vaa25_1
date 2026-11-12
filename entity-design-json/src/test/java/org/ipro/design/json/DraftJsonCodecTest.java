@@ -13,6 +13,22 @@ import static org.junit.jupiter.api.Assertions.*;
 class DraftJsonCodecTest {
     final DraftJsonCodec codec = new DraftJsonCodec();
     final ObjectMapper mapper = new ObjectMapper();
+    @Test void plainDraftKeepsItsPresentationFieldAndOwnEnvelope() throws Exception {
+        var operations = new DraftOperations();
+        var draft = operations.addField(operations.create(RecipeCatalog.CUSTOM_PLAIN_V2), null, "STRING");
+        assertEquals(draft, codec.decode(codec.encode(draft)));
+        var selected = draft.withPresentationField(draft.fields().getFirst().id());
+        assertEquals(selected, codec.decode(codec.encode(selected)));
+        var plain = (ObjectNode) mapper.readTree(codec.encode(selected));
+        var missing = plain.deepCopy();
+        missing.remove("presentationFieldId");
+        reject(missing);
+        plain.withObject("recipe").put("id", "custom-plain-v1").put("version", 1);
+        reject(plain);
+        var captured = tree();
+        captured.put("presentationFieldId", selected.presentationFieldId().toString());
+        reject(captured);
+    }
     @Test void referenceInputRoundTripsForBothRecipes() {
         for(var recipe:List.of(RecipeCatalog.STANDARD_CATALOG_V2,RecipeCatalog.STANDARD_DOCUMENT)) {
             var draft=new DraftOperations().create(recipe);

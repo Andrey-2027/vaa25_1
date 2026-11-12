@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import org.ipro.design.RecipeRef;
+import org.ipro.design.RecipeCatalog;
 
 /** Shared A/C/D transport metadata; content stays in the reviewable plan. No filesystem IO. */
 public record GenerationManifest(String kind, String planId, RecipeRef recipe, String generatorVersion,
@@ -25,7 +26,7 @@ public record GenerationManifest(String kind, String planId, RecipeRef recipe, S
     public record Entry(GenerationFile.Operation operation, String relativePath, String sha256, long bytes) {
         public Entry {
             Objects.requireNonNull(operation);
-            // Reuse the canonical Java path and digest syntax without accepting source content here.
+            // Reuse the canonical artifact path and digest syntax.
             new GenerationFile(operation, relativePath, "// manifest\n", sha256);
             if (bytes <= 0) throw new IllegalArgumentException("Source bytes must be positive");
         }
@@ -42,8 +43,11 @@ public record GenerationManifest(String kind, String planId, RecipeRef recipe, S
         entries = List.copyOf(entries);
         var paths = new HashSet<String>();
         if (entries.isEmpty()) throw new IllegalArgumentException("Empty manifest");
-        for (var entry : entries)
+        for (var entry : entries) {
+            if (entry.relativePath().endsWith(".sql") && !RecipeCatalog.CUSTOM_PLAIN_V2.equals(recipe))
+                throw new IllegalArgumentException("SQL is only supported for PLAIN plans");
             if (!paths.add(entry.relativePath().toLowerCase(Locale.ROOT))) throw new IllegalArgumentException("Duplicate source path");
+        }
         if (!hash(entries).equals(manifestSha256)) throw new IllegalArgumentException("Manifest hash mismatch");
     }
 

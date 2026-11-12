@@ -47,14 +47,14 @@ public final class RecipeDescriptors {
                     Set.of(RecipeDescriptor.EditorConstruction.FIELDS, RecipeDescriptor.EditorConstruction.SECTIONS),
                     recipe.schemaConstraints(), recipe.draftSupported(), RecipeGenerationProfile.find(recipe.ref()).isPresent(),
                     List.of("Генератор Java для этого захваченного контракта не реализован"));
-            case "standard-catalog-v2" -> new RecipeDescriptor(recipe.ref(), RecipeCatalog.formConfigurationRecipe(recipe.ref()) ? "Справочник (v3)" : "Справочник (v2)",
+            case "standard-catalog-v2" -> new RecipeDescriptor(recipe.ref(), RecipeCatalog.formConfigurationRecipe(recipe.ref()) ? ("Справочник (v" + recipe.ref().version() + ")") : "Справочник (v2)",
                     RecipeCatalog.formConfigurationRecipe(recipe.ref()) ? "Стандартный справочник с отдельной конфигурацией форм." : "Стандартный справочник с разделами и владельцем; из корня генерируется один Java-файл.",
                     "CATALOG", recipe.baseType(), recipe.baseApiRoleAtCapture(), recipe.phase(),
                     "STANDARD_CATALOG_ROOT", "CANONICAL_CRUD", RecipeCatalog.inheritedFields(),
                     Set.of(RecipeDescriptor.EditorConstruction.FIELDS, RecipeDescriptor.EditorConstruction.OWNER,
                             RecipeDescriptor.EditorConstruction.SECTIONS),
                     recipe.schemaConstraints(), recipe.draftSupported(), RecipeGenerationProfile.find(recipe.ref()).isPresent(), List.of());
-            case "standard-document-v1" -> new RecipeDescriptor(recipe.ref(), RecipeCatalog.formConfigurationRecipe(recipe.ref()) ? "Документ (v2)" : "Документ",
+            case "standard-document-v1" -> new RecipeDescriptor(recipe.ref(), RecipeCatalog.formConfigurationRecipe(recipe.ref()) ? ("Документ (v" + recipe.ref().version() + ")") : "Документ",
                     "Стандартный документ с унаследованными номером и датой и принадлежащими разделами.",
                     "DOCUMENT", recipe.baseType(), recipe.baseApiRoleAtCapture(), recipe.phase(),
                     "STANDARD_DOCUMENT_ROOT", "CANONICAL_CRUD",
@@ -68,6 +68,13 @@ public final class RecipeDescriptors {
                     Set.of(RecipeDescriptor.EditorConstruction.FIELDS),
                     recipe.schemaConstraints(), recipe.draftSupported(), RecipeGenerationProfile.find(recipe.ref()).isPresent(),
                     List.of("Контракт черновика и генератор для простой сущности не реализованы"));
+            case "custom-plain-v2" -> new RecipeDescriptor(recipe.ref(), "Простая сущность (v2)",
+                    "Самостоятельная сущность со скалярными реквизитами и явным именем экземпляра.",
+                    recipe.kind(), recipe.baseType(), recipe.baseApiRoleAtCapture(), recipe.phase(),
+                    "BASE_ENTITY_EXPLICIT", "CANONICAL_CRUD", List.of(),
+                    Set.of(RecipeDescriptor.EditorConstruction.FIELDS),
+                    recipe.schemaConstraints(), recipe.draftSupported(), RecipeGenerationProfile.find(recipe.ref()).isPresent(),
+                    List.of());
             case "interned-catalog-v1" -> new RecipeDescriptor(recipe.ref(), "Интернируемый справочник",
                     "Справочник с естественным ключом, нормализацией и именованными операциями.",
                     "CATALOG", recipe.baseType(), recipe.baseApiRoleAtCapture(), recipe.phase(),
@@ -77,7 +84,7 @@ public final class RecipeDescriptors {
                     List.of("Контракт интернирования и генератор не реализованы"));
             case "independent-register-v1", "independent-register-v2" -> new RecipeDescriptor(recipe.ref(),
                     RecipeCatalog.formConfigurationRecipe(recipe.ref())
-                        ? (RecipeCatalog.isRlsRegisterRecipe(recipe.ref()) ? "Независимый регистр с RLS (v4)" : "Независимый регистр (v3)")
+                        ? (RecipeCatalog.isRlsRegisterRecipe(recipe.ref()) ? ("Независимый регистр с RLS (v" + recipe.ref().version() + ")") : ("Независимый регистр (v" + recipe.ref().version() + ")"))
                         : (RecipeCatalog.isRlsRegisterRecipe(recipe.ref()) ? "Независимый регистр с RLS" : "Независимый регистр"),
                     "Информационный регистр без регистратора: измерения, ресурсы и необязательный период DAY.",
                     "INFORMATION_REGISTER", recipe.baseType(), recipe.baseApiRoleAtCapture(), recipe.phase(),

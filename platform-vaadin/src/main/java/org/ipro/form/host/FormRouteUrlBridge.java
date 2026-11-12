@@ -78,8 +78,8 @@ public class FormRouteUrlBridge {
      */
     private final Map<String, String> explorerAddressOfEntry = new LinkedHashMap<>();
 
-    /** Ключ последней активной вкладки без адреса: адресу {@code "/"} нужно куда-то вернуться. */
-    private String addresslessEntryId;
+    /** Живые безадресные вкладки в порядке последней активации. */
+    private final java.util.SequencedSet<String> addresslessEntries = new java.util.LinkedHashSet<>();
 
     /** Активная вкладка по нашей записи: нужна, чтобы отличить закрытие активной от фоновой. */
     private String currentEntryId;
@@ -137,6 +137,7 @@ public class FormRouteUrlBridge {
             return;
         }
         routeOfEntry.put(entryId, route);
+        addresslessEntries.remove(entryId);
     }
 
     /**
@@ -167,8 +168,10 @@ public class FormRouteUrlBridge {
             listening = true;
         }
         String active = workspace.activeEntryId();
+        currentEntryId = active;
+        replaceNextWrite = false;
         if (active != null && addressOf(active) == null) {
-            addresslessEntryId = active;
+            addresslessEntries.addLast(active);
         }
     }
 
@@ -197,6 +200,7 @@ public class FormRouteUrlBridge {
             return;
         }
         explorerAddressOfEntry.put(entryId, address);
+        addresslessEntries.remove(entryId);
     }
 
     /**
@@ -217,6 +221,7 @@ public class FormRouteUrlBridge {
         if (address == null) {
             explorerAddressOfEntry.remove(entryId);
             if (entryId.equals(currentEntryId)) {
+                addresslessEntries.addLast(entryId);
                 write(ADDRESSLESS, true);
             }
             return;
@@ -225,6 +230,7 @@ public class FormRouteUrlBridge {
             return;
         }
         explorerAddressOfEntry.put(entryId, address);
+        addresslessEntries.remove(entryId);
         if (entryId.equals(currentEntryId)) {
             write(address, false);
         }
@@ -241,14 +247,12 @@ public class FormRouteUrlBridge {
         // закрытие действительно активной принималось бы за закрытие фоновой — следующий адрес
         // добавился бы шагом истории вместо замены (измерено тестом «Back → закрыть активную»).
         currentEntryId = entryId;
+        String address = addressOf(entryId);
+        if (address == null && entryId != null) addresslessEntries.addLast(entryId);
         if (applyingHistory) {
             return;
         }
-        String address = addressOf(entryId);
         if (address == null) {
-            if (entryId != null) {
-                addresslessEntryId = entryId;
-            }
             // Вкладка без адреса: адреса этой формы не существует, поэтому шага в истории не
             // делаем — заменяем текущую запись, как и при закрытии.
             write(ADDRESSLESS, true);
@@ -280,6 +284,8 @@ public class FormRouteUrlBridge {
         // Адрес карточки типа принадлежит открытой вкладке. После закрытия меню может открыть
         // вкладку с тем же entryId без выбранного типа — старый адрес не должен ожить снова.
         explorerAddressOfEntry.remove(entryId);
+        routeOfEntry.remove(entryId);
+        addresslessEntries.remove(entryId);
     }
 
     /**
@@ -314,8 +320,8 @@ public class FormRouteUrlBridge {
             }
             if (!claimsAFormSection(target)) {
                 WorkspaceGateway workspace = workspace();
-                if (workspace != null && addresslessEntryId != null) {
-                    workspace.activate(addresslessEntryId);
+                if (workspace != null && !addresslessEntries.isEmpty()) {
+                    workspace.activate(addresslessEntries.getLast());
                 }
                 return;
             }

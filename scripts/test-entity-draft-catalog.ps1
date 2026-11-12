@@ -16,7 +16,7 @@ try {
     New-Item -ItemType Directory -Force -Path $catalogOutput | Out-Null
     & $Maven -o "-Dmaven.repo.local=$LocalRepository" -f entity-design-core/pom.xml clean install *> "$catalogOutput/core-install.log"
     if ($LASTEXITCODE -ne 0) { throw 'Fresh core build failed; see core-install.log.' }
-    $tests = 'EntityDraftCatalogAdapterTest,EntityDraftSectionsTest,DraftEditorSessionTest,EntityDraftEditorViewTest,EntityDraftWorkspaceTest,EntityDraftWorkspaceContractTest,WorkspaceDirtyGuardTest,WorkspaceRouteStateTest,MainLayoutLeaveGateTest,EntityExplorerViewAddressTest,EntityExplorerViewSpringCreationTest,EntityExplorerAddressWiringTest,EntityExplorerRouteGateTest,EntityExplorerPilotPanelTest,EntityExplorerPilotBoundaryTest,ExplorerTreeModelTest,ExplorerFormPreviewTest'
+    $tests = 'EntityDraftCatalogAdapterTest,EntityDraftSectionsTest,DraftEditorSessionTest,EntityDraftEditorViewTest,EntityDraftWorkspaceTest,EntityDraftWorkspaceContractTest,WorkspaceDirtyGuardTest,WorkspaceRouteStateTest,MainLayoutLeaveGateTest,EntityExplorerAddressWiringTest,EntityExplorerRouteGateTest,EntityExplorerPilotPanelTest,EntityExplorerPilotBoundaryTest,ExplorerTreeModelTest,ExplorerFormPreviewTest'
     & $Maven -o "-Dmaven.repo.local=$LocalRepository" '-Dvaadin.skip=true' "-Dtest=$tests" test dependency:build-classpath '-Dmdep.includeScope=runtime' '-Dmdep.outputFile=outputs/entity-explorer-p8-3/runtime-classpath.txt' *> "$catalogOutput/maven-tests.log"
     if ($LASTEXITCODE -ne 0) { throw 'P8.3 tests failed; see maven-tests.log.' }
     $results = foreach ($suite in $tests.Split(',')) {

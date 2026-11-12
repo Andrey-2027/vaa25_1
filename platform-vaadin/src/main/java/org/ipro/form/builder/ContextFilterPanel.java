@@ -63,6 +63,8 @@ public class ContextFilterPanel extends VerticalLayout {
             String key = group == null ? "field:" + field.path() : "group:" + group;
             FormLayout row = groups.computeIfAbsent(key, ignored -> {
                 FormLayout layout = new FormLayout(); layout.setWidthFull();
+                // Reference suggestions must paint above the following grid, outside this row.
+                layout.getStyle().set("contain", "none");
                 layout.getStyle().set("--vaadin-form-item-label-width", "10em");
                 layout.setMaxWidth(group == null ? "42em" : "72em");
                 int columns = group == null ? 1 : (int) fields.values().stream()

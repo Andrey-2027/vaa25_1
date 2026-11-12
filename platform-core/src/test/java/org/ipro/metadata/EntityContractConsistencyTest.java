@@ -59,7 +59,9 @@ class EntityContractConsistencyTest {
             });
     }
     @Test void unpublishedManyToOneAndHiddenReferencesDoNotRequireApplicationLookup() {
-        assertThat(validate(List.of(Unpublished.class, Storage.class), Set.of(), List.of())).isEmpty();
+        assertThat(validate(List.of(Unpublished.class, Storage.class), Set.of(), List.of()))
+            .allMatch(d -> d.code().equals(MetadataDiagnosticCodes.LEGACY_FORM_SETTING)
+                && d.severity() == MetadataDiagnostic.Severity.WARNING);
     }
     @Test void missingMetadataLookupUsesTheExistingDiagnostic() {
         assertThat(validate(List.of(MissingTarget.class, Storage.class), Set.of(), List.of()))

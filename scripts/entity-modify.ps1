@@ -5,6 +5,7 @@
 .DESCRIPTION
   plan  reads the entity file, builds a plan for the requested change and writes it to -Out; the project is not touched.
   apply puts a plan from -Plan into the project, if the files are still the ones the plan was made from.
+  migrate-forms plans the transfer of legacy column arrays to a form configuration, preserving composition.
 
   The script only finds Java and Maven, makes sure the tool is built and starts it; the work is done by
   org.ipro.design.source.EntityModifyCli. Exit code: 0 done, 1 wrong usage, 2 files changed after the plan, 3 refused.
@@ -16,7 +17,7 @@
 #>
 [CmdletBinding()]
 param(
-    [Parameter(Mandatory = $true, Position = 0)][ValidateSet('plan', 'apply')][string]$Command,
+    [Parameter(Mandatory = $true, Position = 0)][ValidateSet('plan', 'apply', 'migrate-forms')][string]$Command,
     [Parameter(Mandatory = $true)][string]$Project,
     [string]$Type,
     [string[]]$AddField = @(),
@@ -94,6 +95,11 @@ if ($Command -eq 'plan') {
     $arguments += @('--type', $Type, '--classpath-file', (Resolve-Path -LiteralPath $ClasspathFile).Path, '--out', $Out)
     foreach ($spec in $AddField) { $arguments += @('--add-field', $spec) }
     foreach ($spec in $SetLabel) { $arguments += @('--set-label', $spec) }
+} elseif ($Command -eq 'migrate-forms') {
+    if (-not $Type) { throw '-Type is required for migrate-forms.' }
+    if (-not $Out) { throw '-Out is required for migrate-forms.' }
+    if ($AddField.Count -or $SetLabel.Count -or $ClasspathFile -or $Plan) { throw 'migrate-forms accepts only -Project, -Type, -Out and optional -SourceRoot (plus tool options).' }
+    $arguments += @('--type', $Type, '--out', $Out)
 } else {
     if (-not $Plan) { throw '-Plan is required for apply.' }
     $arguments += @('--plan', $Plan)

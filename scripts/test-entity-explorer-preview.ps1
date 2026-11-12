@@ -8,7 +8,7 @@ Push-Location -LiteralPath $previewRoot
 try {
     # Reuse the existing isolated pilot overlay; no database or application startup in this gate.
     if (!(Test-Path 'outputs/entity-explorer-p1/local-classpath.txt') -or
-        !(Test-Path 'outputs/entity-explorer-p2/classes/org/ip/views/admin/EntityExplorerView.class')) {
+        !(Test-Path 'outputs/entity-explorer-p2/classes/org/ip/views/admin/EntityExplorerWorkspace.class')) {
         throw 'Prepare the existing compact pilot overlay and P1 dependencies first.'
     }
     New-Item -ItemType Directory -Force -Path "$previewOutput/test-classes" | Out-Null

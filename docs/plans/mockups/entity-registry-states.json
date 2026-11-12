@@ -1,0 +1,77 @@
+{
+  "revision": 1,
+  "capturedOn": "2026-11-10",
+  "scope": "Approved mockup baseline; demonstration metadata; not an application runtime inventory.",
+  "appearance": "light",
+  "artifacts": [
+    {
+      "file": "entity-registry-tree.fragment.html",
+      "sha256": "0a55b326d20d81f5fddc822fb8942b12fdfd8ae2d48eb16774f0d230574ac69b"
+    },
+    {
+      "file": "entity-registry-tree.html",
+      "sha256": "4f95d5dd25e00d1bc3aeebe4afcd88bae55500cfbc97c39876c3fd02c0c87952"
+    }
+  ],
+  "states": [
+    {
+      "id": "wide",
+      "file": "entity-registry-wide.png",
+      "width": 1024,
+      "groupBy": "kind",
+      "query": "",
+      "selected": "group-nom",
+      "view": "registry",
+      "sha256": "50e9a4dbcc81675ec5dc4129362a126a834a80c030cf43b6a88693019e164183"
+    },
+    {
+      "id": "filters",
+      "file": "entity-registry-filters.png",
+      "width": 1024,
+      "groupBy": "kind",
+      "query": "nomenclature",
+      "kind": "register",
+      "subsystem": "Производство",
+      "view": "registry",
+      "sha256": "3d6d04e1331e4691fb8dadeac4f6aa36da27926ac6f4b42c32a3668c57350283"
+    },
+    {
+      "id": "empty",
+      "file": "entity-registry-empty.png",
+      "width": 1024,
+      "query": "нет такой сущности",
+      "kind": "register",
+      "subsystem": "Производство",
+      "view": "registry",
+      "sha256": "00da3149225b94f13fce29db6893130b429eb1471f05d3a7e1ce3e26f03b65a4"
+    },
+    {
+      "id": "subsystems",
+      "file": "entity-registry-subsystems.png",
+      "width": 1024,
+      "groupBy": "subsystem",
+      "query": "",
+      "view": "registry",
+      "sha256": "c2d818d7c3c475a469d9d3dbecd1f70faa70bd6fff1e94197214e071be2be469"
+    },
+    {
+      "id": "narrow-list",
+      "file": "entity-registry-narrow-list.png",
+      "width": 320,
+      "groupBy": "kind",
+      "query": "",
+      "view": "registry-list",
+      "sha256": "23532aa62e47ec4830b781e2e9bd705bfd19f59e9b249fbdc2cc17564b719aad"
+    },
+    {
+      "id": "narrow-overview",
+      "file": "entity-registry-narrow-overview.png",
+      "width": 320,
+      "groupBy": "kind",
+      "selected": "nomenclature",
+      "view": "registry-overview",
+      "sha256": "11167d79f8037c563b102020699a982c77befd674e8f1f442ddedd0c86f2e150"
+    }
+  ],
+  "javascriptErrors": []
+}

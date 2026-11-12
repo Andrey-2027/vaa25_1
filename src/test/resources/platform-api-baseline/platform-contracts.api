@@ -64,6 +64,13 @@ annotation public abstract interface org.ipro.metadata.annotation.FormConfigurat
   target [TYPE]
   method public abstract java.lang.Class<?> value()
 
+annotation public abstract interface org.ipro.metadata.annotation.FormSettingsOnly
+  implements java.lang.annotation.Annotation
+  annotation java.lang.annotation.Retention
+  annotation java.lang.annotation.Target
+  retention RUNTIME
+  target [TYPE]
+
 annotation public abstract interface org.ipro.metadata.annotation.GridColumn
   implements java.lang.annotation.Annotation
   annotation java.lang.Deprecated

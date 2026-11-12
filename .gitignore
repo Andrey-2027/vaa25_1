@@ -55,6 +55,7 @@ node_modules/
 ### Documentation & archives ###
 *.md
 *.txt
+!src/test/resources/forms/legacy-form-declarations.txt
 *.zip
 
 # Versioned architecture sources of truth. Local drafts under docs/plans and

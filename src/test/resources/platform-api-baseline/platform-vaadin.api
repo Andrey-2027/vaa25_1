@@ -235,6 +235,70 @@ class public final org.ipro.vaadin.explorer.ExplorerSnapshot
   method public java.util.Optional<org.ipro.vaadin.explorer.ExplorerSnapshot$Entry> entryOf(java.lang.Class<?>)
   method public org.ipro.vaadin.explorer.ExplorerSnapshot$BuildStats stats()
 
+class public final org.ipro.vaadin.explorer.ui.EntityExplorerCardPanel
+  extends com.vaadin.flow.component.html.Div
+  annotation com.vaadin.flow.component.dependency.StyleSheet
+  ctor public(org.ipro.vaadin.explorer.EntitySummary, org.ipro.vaadin.explorer.ui.EntityExplorerCardState, org.ipro.vaadin.explorer.ui.EntityExplorerCardPanel$Mode, org.ipro.vaadin.explorer.ui.EntityExplorerCardPanel$Actions)
+  ctor public(org.ipro.vaadin.explorer.ExplorerSnapshot, java.lang.Class<?>, org.ipro.vaadin.explorer.ui.EntityExplorerCardState, org.ipro.vaadin.explorer.ui.EntityExplorerCardPanel$Mode, org.ipro.vaadin.explorer.ui.EntityExplorerCardPanel$Actions)
+  method public void applyPlace(org.ipro.vaadin.explorer.ui.EntityExplorerCardPlace)
+  method public void chooseCompactTab(java.lang.String)
+
+class public final org.ipro.vaadin.explorer.ui.EntityExplorerCardState
+  ctor public()
+  method public java.lang.String anchor()
+  method public void clear()
+
+class public final org.ipro.vaadin.explorer.ui.EntityExplorerDiagnosticsPanel
+  extends com.vaadin.flow.component.html.Div
+  annotation com.vaadin.flow.component.dependency.StyleSheet
+  ctor public(org.ipro.vaadin.explorer.ExplorerSnapshot)
+  method public void setSnapshot(org.ipro.vaadin.explorer.ExplorerSnapshot)
+
+class public final org.ipro.vaadin.explorer.ui.EntityExplorerLabels
+  method public static java.lang.String entities(int)
+  method public static java.lang.String exposure(java.lang.String)
+  method public static java.lang.String kind(org.ipro.metadata.annotation.EntityKind, boolean)
+
+class public final org.ipro.vaadin.explorer.ui.EntityExplorerRegistryModel
+  method public static boolean service(org.ipro.vaadin.explorer.ExplorerSnapshot$Entry)
+  method public static java.util.List<org.ipro.metadata.annotation.EntityKind> kinds()
+  method public static org.ipro.vaadin.explorer.ui.EntityExplorerRegistryModel$Projection project(org.ipro.vaadin.explorer.ExplorerSnapshot, org.ipro.vaadin.explorer.ui.EntityExplorerRegistryState)
+
+class public final org.ipro.vaadin.explorer.ui.EntityExplorerRegistryPanel
+  extends com.vaadin.flow.component.html.Div
+  annotation com.vaadin.flow.component.dependency.StyleSheet
+  ctor public(org.ipro.vaadin.explorer.ExplorerSnapshot, org.ipro.vaadin.explorer.ui.EntityExplorerRegistryState, org.ipro.vaadin.explorer.ui.EntityExplorerRegistryActions)
+  method public void refresh()
+  method public void setSnapshot(org.ipro.vaadin.explorer.ExplorerSnapshot)
+
+class public final org.ipro.vaadin.explorer.ui.EntityExplorerRegistryState
+  ctor public()
+  field public static final java.lang.String NO_SUBSYSTEM = @none
+  field public static final java.lang.String UNKNOWN_EXPOSURE = UNKNOWN
+  method public boolean collapsed(java.lang.String)
+  method public boolean hasFilters()
+  method public boolean onlyErrors()
+  method public boolean overview()
+  method public boolean showServiceTypes()
+  method public java.lang.String exposure()
+  method public java.lang.String query()
+  method public java.lang.String selectedType()
+  method public java.lang.String subsystem()
+  method public java.util.Set<java.lang.String> collapsedGroups()
+  method public org.ipro.metadata.annotation.EntityKind kind()
+  method public org.ipro.vaadin.explorer.ui.EntityExplorerRegistryState$Grouping grouping()
+  method public void resetFilters()
+  method public void select(java.lang.String)
+  method public void setCollapsed(java.lang.String, boolean)
+  method public void setExposure(java.lang.String)
+  method public void setGrouping(org.ipro.vaadin.explorer.ui.EntityExplorerRegistryState$Grouping)
+  method public void setKind(org.ipro.metadata.annotation.EntityKind)
+  method public void setOnlyErrors(boolean)
+  method public void setOverview(boolean)
+  method public void setQuery(java.lang.String)
+  method public void setShowServiceTypes(boolean)
+  method public void setSubsystem(java.lang.String)
+
 class public final org.ipro.vaadin.search.GlobalSearchNavigationAdapter
   ctor public(org.ipro.search.GlobalSearchCatalog, org.springframework.beans.factory.ObjectProvider<org.ipro.form.coordinator.FormNavigator>)
   method public void open(org.ipro.search.GlobalSearchResult)
@@ -960,6 +1024,22 @@ enum public static final org.ipro.vaadin.explorer.ExplorerSnapshot$SearchKind
   method public static org.ipro.vaadin.explorer.ExplorerSnapshot$SearchKind valueOf(java.lang.String)
   method public static org.ipro.vaadin.explorer.ExplorerSnapshot$SearchKind[] values()
 
+enum public static final org.ipro.vaadin.explorer.ui.EntityExplorerCardPanel$Mode
+  extends java.lang.Enum<org.ipro.vaadin.explorer.ui.EntityExplorerCardPanel$Mode>
+  enum-constants [DETAILED, COMPACT]
+  field public static final org.ipro.vaadin.explorer.ui.EntityExplorerCardPanel$Mode COMPACT = enum-constant
+  field public static final org.ipro.vaadin.explorer.ui.EntityExplorerCardPanel$Mode DETAILED = enum-constant
+  method public static org.ipro.vaadin.explorer.ui.EntityExplorerCardPanel$Mode valueOf(java.lang.String)
+  method public static org.ipro.vaadin.explorer.ui.EntityExplorerCardPanel$Mode[] values()
+
+enum public static final org.ipro.vaadin.explorer.ui.EntityExplorerRegistryState$Grouping
+  extends java.lang.Enum<org.ipro.vaadin.explorer.ui.EntityExplorerRegistryState$Grouping>
+  enum-constants [KIND, SUBSYSTEM]
+  field public static final org.ipro.vaadin.explorer.ui.EntityExplorerRegistryState$Grouping KIND = enum-constant
+  field public static final org.ipro.vaadin.explorer.ui.EntityExplorerRegistryState$Grouping SUBSYSTEM = enum-constant
+  method public static org.ipro.vaadin.explorer.ui.EntityExplorerRegistryState$Grouping valueOf(java.lang.String)
+  method public static org.ipro.vaadin.explorer.ui.EntityExplorerRegistryState$Grouping[] values()
+
 interface public abstract interface org.ipro.form.Dirtyable
   method public abstract boolean isDirty()
   method public abstract java.lang.String getCloseConfirmMessage()
@@ -1140,6 +1220,16 @@ interface public abstract interface org.ipro.form.spi.WorkspaceGateway
   method public abstract void close(java.lang.String)
   method public abstract void openComponent(com.vaadin.flow.component.Component, java.lang.String, java.lang.String)
   method public abstract void showTransientContent(com.vaadin.flow.component.Component)
+
+interface public abstract interface org.ipro.vaadin.explorer.ui.ExplorerFormPreviewPort
+  method public abstract org.ipro.vaadin.explorer.ui.ExplorerActionAvailability availability(org.ipro.vaadin.explorer.EntitySummary, org.ipro.vaadin.explorer.EntitySummary$FormRow)
+  method public abstract void open(org.ipro.vaadin.explorer.EntitySummary, org.ipro.vaadin.explorer.EntitySummary$FormRow)
+  method public static org.ipro.vaadin.explorer.ui.ExplorerFormPreviewPort unavailable()
+
+interface public abstract interface org.ipro.vaadin.explorer.ui.ExplorerSourcePort
+  annotation java.lang.FunctionalInterface
+  method public abstract org.ipro.vaadin.explorer.ui.ExplorerSourcePort$Source read(org.ipro.vaadin.explorer.EntitySummary, org.ipro.vaadin.explorer.ui.ExplorerSourcePort$Target)
+  method public static org.ipro.vaadin.explorer.ui.ExplorerSourcePort unavailable()
 
 interface public abstract static interface org.ipro.form.EntityField$LegacyValueChangeListener
   implements com.vaadin.flow.component.HasValue$ValueChangeListener<com.vaadin.flow.component.HasValue$ValueChangeEvent<?>>
@@ -1555,6 +1645,43 @@ record public final org.ipro.vaadin.explorer.EntitySummary
   method public java.util.List<org.ipro.vaadin.explorer.EntitySummary$SelectionRow> selections()
   method public org.ipro.metadata.facet.ResolvedValue displayName()
   method public org.ipro.vaadin.explorer.EntitySummary$StructureFacts structure()
+
+record public final org.ipro.vaadin.explorer.ui.EntityExplorerCardPlace
+  extends java.lang.Record
+  ctor public(java.lang.String)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String anchor()
+  method public static java.util.List<java.lang.String> knownAnchors()
+  method public static java.util.Optional<org.ipro.vaadin.explorer.ui.EntityExplorerCardPlace> parse(java.lang.String)
+
+record public final org.ipro.vaadin.explorer.ui.EntityExplorerRegistryActions
+  extends java.lang.Record
+  ctor public(java.util.function.Function<java.lang.Class<?>, org.ipro.vaadin.explorer.ui.ExplorerActionAvailability>, java.util.function.Consumer<java.lang.Class<?>>, java.util.function.Function<java.lang.Class<?>, org.ipro.vaadin.explorer.ui.ExplorerActionAvailability>, java.util.function.Consumer<java.lang.Class<?>>, java.util.function.Function<org.ipro.metadata.annotation.EntityKind, org.ipro.vaadin.explorer.ui.ExplorerActionAvailability>, java.util.function.Consumer<org.ipro.metadata.annotation.EntityKind>, org.ipro.vaadin.explorer.ui.ExplorerActionAvailability, java.lang.Runnable)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.Runnable diagnostics()
+  method public java.util.function.Consumer<java.lang.Class<?>> modify()
+  method public java.util.function.Consumer<java.lang.Class<?>> openCard()
+  method public java.util.function.Consumer<org.ipro.metadata.annotation.EntityKind> create()
+  method public java.util.function.Function<java.lang.Class<?>, org.ipro.vaadin.explorer.ui.ExplorerActionAvailability> cardAvailability()
+  method public java.util.function.Function<java.lang.Class<?>, org.ipro.vaadin.explorer.ui.ExplorerActionAvailability> modifyAvailability()
+  method public java.util.function.Function<org.ipro.metadata.annotation.EntityKind, org.ipro.vaadin.explorer.ui.ExplorerActionAvailability> createAvailability()
+  method public org.ipro.vaadin.explorer.ui.ExplorerActionAvailability diagnosticsAvailability()
+  method public static org.ipro.vaadin.explorer.ui.EntityExplorerRegistryActions none()
+
+record public final org.ipro.vaadin.explorer.ui.ExplorerActionAvailability
+  extends java.lang.Record
+  ctor public(boolean, java.lang.String)
+  method public boolean allowed()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String reason()
+  method public static org.ipro.vaadin.explorer.ui.ExplorerActionAvailability ready()
+  method public static org.ipro.vaadin.explorer.ui.ExplorerActionAvailability unavailable(java.lang.String)
 
 record public static final org.ipro.form.EntityField$EntityValueChangeEvent
   extends java.lang.Record
@@ -2466,4 +2593,62 @@ record public static final org.ipro.vaadin.explorer.SubsystemSummaryAssembler$Su
   method public java.lang.Class<?> markerClass()
   method public java.lang.String path()
   method public java.lang.String title()
+
+record public static final org.ipro.vaadin.explorer.ui.EntityExplorerCardPanel$Actions
+  extends java.lang.Record
+  ctor public(java.util.function.Consumer<java.lang.Class<?>>, java.util.function.Consumer<java.lang.Class<?>>, java.util.function.Predicate<java.lang.Class<?>>, java.lang.Runnable, java.util.function.Consumer<java.lang.String>, org.ipro.vaadin.explorer.ui.ExplorerSourcePort, org.ipro.vaadin.explorer.ui.ExplorerFormPreviewPort)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.Runnable registry()
+  method public java.util.function.Consumer<java.lang.Class<?>> openList()
+  method public java.util.function.Consumer<java.lang.Class<?>> openStructure()
+  method public java.util.function.Consumer<java.lang.String> placeChanged()
+  method public java.util.function.Predicate<java.lang.Class<?>> listAvailable()
+  method public org.ipro.vaadin.explorer.ui.ExplorerFormPreviewPort preview()
+  method public org.ipro.vaadin.explorer.ui.ExplorerSourcePort sources()
+  method public static org.ipro.vaadin.explorer.ui.EntityExplorerCardPanel$Actions none()
+
+record public static final org.ipro.vaadin.explorer.ui.EntityExplorerRegistryModel$Group
+  extends java.lang.Record
+  ctor public(java.lang.String, java.lang.String, java.util.List<org.ipro.vaadin.explorer.ExplorerSnapshot$Entry>)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String id()
+  method public java.lang.String label()
+  method public java.util.List<org.ipro.vaadin.explorer.ExplorerSnapshot$Entry> entries()
+
+record public static final org.ipro.vaadin.explorer.ui.EntityExplorerRegistryModel$Projection
+  extends java.lang.Record
+  ctor public(java.util.List<org.ipro.vaadin.explorer.ui.EntityExplorerRegistryModel$Group>, java.util.List<org.ipro.vaadin.explorer.ExplorerSnapshot$Entry>, int)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public int total()
+  method public java.util.List<org.ipro.vaadin.explorer.ExplorerSnapshot$Entry> entries()
+  method public java.util.List<org.ipro.vaadin.explorer.ui.EntityExplorerRegistryModel$Group> groups()
+
+record public static final org.ipro.vaadin.explorer.ui.ExplorerSourcePort$Source
+  extends java.lang.Record
+  ctor public(org.ipro.vaadin.explorer.ui.ExplorerSourcePort$Target, java.util.List<java.lang.String>, int, int, java.lang.String)
+  method public boolean available()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public int firstLine()
+  method public int lastLine()
+  method public java.lang.String reason()
+  method public java.util.List<java.lang.String> lines()
+  method public org.ipro.vaadin.explorer.ui.ExplorerSourcePort$Target target()
+
+record public static final org.ipro.vaadin.explorer.ui.ExplorerSourcePort$Target
+  extends java.lang.Record
+  ctor public(java.lang.String, java.lang.String)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String className()
+  method public java.lang.String method()
+  method public java.lang.String symbol()
 

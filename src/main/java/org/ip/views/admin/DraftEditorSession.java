@@ -5,6 +5,7 @@ import org.ipro.design.DraftValidator;
 import org.ipro.design.EntityDraft;
 import org.ipro.design.EntityProperties;
 import org.ipro.design.FieldDraft;
+import org.ipro.design.FieldApplications;
 import org.ipro.design.ProjectDesignContext;
 import org.ipro.design.RecipeCatalog;
 import org.ipro.design.SectionDraft;
@@ -84,7 +85,9 @@ final class DraftEditorSession {
     }
     boolean dirty() { return revision != checkpointRevision; }
     String title() {
-        String label = draft.entity().label().isBlank() ? "Новый " + rootCaption().toLowerCase(java.util.Locale.ROOT) : draft.entity().label();
+        String label = draft.entity().label().isBlank()
+            ? (plain() ? "Новая простая сущность" : "Новый " + rootCaption().toLowerCase(java.util.Locale.ROOT))
+            : draft.entity().label();
         if (label.codePointCount(0, label.length()) > 80) label = label.substring(0, label.offsetByCodePoints(0, 80)) + "…";
         return "Черновик · " + label + (dirty() ? " *" : "");
     }
@@ -118,7 +121,7 @@ final class DraftEditorSession {
     FieldDraft selectedField() { return fields(place.sectionId()).stream().filter(f -> f.id().equals(place.fieldId())).findFirst().orElseThrow(); }
     void editEntity(UnaryOperator<EntityProperties> edit) { replace(draft.withEntity(edit.apply(draft.entity()))); }
     void editOwner(org.ipro.design.OwnerDraft owner) {
-        if (owner != null && !RecipeCatalog.STANDARD_CATALOG_V2.equals(draft.recipe()))
+        if (owner != null && !RecipeCatalog.STANDARD_CATALOG_V2.equals(RecipeCatalog.structuralRecipe(draft.recipe())))
             throw new IllegalStateException("This recipe does not support a catalog owner");
         replace(new EntityDraft(owner == null ? draft.schemaVersion() : 2, draft.recipe(), draft.draftId(),
                 draft.entity(), draft.fields(), draft.sections(), owner, draft.register()));
@@ -127,6 +130,18 @@ final class DraftEditorSession {
         UUID sectionId = draft.sections().stream().filter(s -> s.fields().stream().anyMatch(f -> f.id().equals(id))).map(SectionDraft::id).findFirst().orElse(null);
         // A late input event from an intentionally removed row cannot resurrect it.
         if (fields(sectionId).stream().anyMatch(f -> f.id().equals(id))) replace(operations.editField(draft, sectionId, id, edit));
+    }
+    void choosePresentationField(UUID id) {
+        if (!plain()) throw new IllegalStateException("PLAIN draft required");
+        if (id == null) {
+            replace(draft.withPresentationField(null));
+            return;
+        }
+        var field = draft.fields().stream().filter(candidate -> candidate.id().equals(id)).findFirst().orElseThrow();
+        if (!"STRING".equals(field.type())) throw new IllegalArgumentException("String presentation field required");
+        var updated = operations.editField(draft, null, id, old -> new FieldDraft(old.id(), old.name(), old.label(),
+            old.type(), old.columnName(), true, FieldDraft.UiRequired.AUTO, old.constraints(), old.reference(), FieldApplications.root()));
+        replace(updated.withPresentationField(id));
     }
     void addField(String type) {
         UUID sectionId = place.sectionId();
@@ -157,7 +172,9 @@ final class DraftEditorSession {
         } else {
             int index = fields(sectionId).indexOf(selectedField());
             if (register()) role(place.fieldId(), "UNASSIGNED");
-            replace(operations.removeField(draft, sectionId, place.fieldId()));
+            var updated = operations.removeField(draft, sectionId, place.fieldId());
+            if (place.fieldId().equals(draft.presentationFieldId())) updated = updated.withPresentationField(null);
+            replace(updated);
             var fields = fields(sectionId);
             if (fields.isEmpty()) place = sectionId == null ? place.builtin(defaultBuiltin()) : place.section(sectionId);
             else selectField(sectionId, fields.get(Math.min(index, fields.size() - 1)).id());
@@ -166,8 +183,9 @@ final class DraftEditorSession {
     void newDraft() {
         newDraft(RecipeCatalog.STANDARD_CATALOG_V2);
     }
-    boolean document() { return RecipeCatalog.STANDARD_DOCUMENT.equals(draft.recipe()); }
-    String rootCaption() { return switch (descriptor().kind()) { case "DOCUMENT" -> "Документ"; case "INFORMATION_REGISTER" -> "Регистр"; default -> "Справочник"; }; }
+    boolean document() { return "DOCUMENT".equals(descriptor().kind()); }
+    boolean plain() { return RecipeCatalog.CUSTOM_PLAIN_V2.equals(draft.recipe()); }
+    String rootCaption() { return switch (descriptor().kind()) { case "DOCUMENT" -> "Документ"; case "INFORMATION_REGISTER" -> "Регистр"; case "PLAIN" -> "Простая сущность"; default -> "Справочник"; }; }
     String defaultBuiltin() { return builtins().isEmpty() ? null : builtins().getLast().key(); }
     void newDraft(RecipeRef recipe) {
         draft = RecipeCatalog.isRegisterRecipe(recipe) ? operations.createRegister(recipe, "NONE") : operations.create(recipe); revision = checkpointRevision = 0;

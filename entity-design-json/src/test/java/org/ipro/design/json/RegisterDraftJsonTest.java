@@ -22,7 +22,8 @@ class RegisterDraftJsonTest {
 
     @Test void separateFormRecipesRoundTripWithoutImplicitUpgrade() throws Exception {
         var old = codec.decode(Files.readString(contracts.resolve("register-draft-day.json")));
-        for (var recipe : List.of(RecipeCatalog.INDEPENDENT_REGISTER_V3, RecipeCatalog.INDEPENDENT_REGISTER_RLS_V4)) {
+        for (var recipe : List.of(RecipeCatalog.INDEPENDENT_REGISTER_V3, RecipeCatalog.INDEPENDENT_REGISTER_RLS_V4,
+                RecipeCatalog.INDEPENDENT_REGISTER_V5, RecipeCatalog.INDEPENDENT_REGISTER_RLS_V6)) {
             boolean rls = RecipeCatalog.isRlsRegisterRecipe(recipe);
             var draft = new EntityDraft(rls ? 4 : 3, recipe, old.draftId(), old.entity(), old.fields(), old.sections(), null,
                 rls ? old.register().withRls(new RegisterRlsDraft("REGISTER_ITEM", old.register().dimensions().getFirst())) : old.register());

@@ -3,11 +3,8 @@ package org.ip.views;
 import com.vaadin.flow.router.Location;
 import com.vaadin.flow.router.QueryParameters;
 import org.ip.model.Nomenclature;
-import org.ip.model.ReceivingDocument;
 import org.ip.views.admin.EntityExplorerAccess;
-import org.ip.views.admin.EntityExplorerView;
 import org.ipro.form.link.EntityExplorerAddress;
-import org.ipro.form.link.OpenResult;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -18,16 +15,7 @@ import java.util.function.Predicate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * E3.0/E3.2.1 §8.2: последовательность host'а по адресу Explorer. Адрес вкладки пишется до её
- * открытия, отказ не создаёт вкладку и не меняет адрес, а выбранный в дереве тип даёт канонический
- * адрес либо «адреса нет». Якорь места (E3.2.1 §8.2) спрашивается последним — после роли, ключа и
- * каталога, — его неизвестное значение отказывает тем же единым отказом, а само место доезжает до
- * карточки: адрес называет не только тип.
- *
- * <p>Проверяется та же функция, которой пользуется {@code MainLayout}: UI и рабочая область
- * подменены списками эффектов, поэтому порядок виден, а не выводится из чтения кода.</p>
- */
+/** URI routing, card place validation and login continuation for Entity Explorer. */
 class EntityExplorerAddressWiringTest {
 
     /** Каталог-заглушка: ключ есть только у одного типа, остальные — «неизвестный ключ». */
@@ -41,90 +29,12 @@ class EntityExplorerAddressWiringTest {
         return "access".equals(anchor) || "access/rules".equals(anchor);
     };
 
-    private final List<String> recorded = new ArrayList<>();
-    private final List<Class<?>> opened = new ArrayList<>();
-    private final List<String> places = new ArrayList<>();
-    private final List<OpenResult> refusals = new ArrayList<>();
-
     @Test
-    void theAddressIsRecordedBeforeTheTabIsOpened() {
-        MainLayout.ExplorerEntry entry =
-            MainLayout.decideExplorerEntry(true, "/entity-explorer/nomenclature", catalog, anchors);
-
-        List<String> effects = new ArrayList<>();
-        MainLayout.applyExplorerEntry(entry,
-            address -> {
-                effects.add("address:" + address);
-                recorded.add(address);
-            },
-            (type, anchor) -> {
-                effects.add("open:" + type.getSimpleName());
-                opened.add(type);
-                places.add(anchor);
-            }, refusals::add);
-
-        assertThat(effects).containsExactly(
-            "address:/entity-explorer/nomenclature", "open:Nomenclature");
-        assertThat(recorded)
-            .as("адрес обязан быть записан до активации: обратный порядок записал бы «/»")
-            .containsExactly("/entity-explorer/nomenclature");
-        assertThat(opened).containsExactly(Nomenclature.class);
-        assertThat(places)
-            .as("адрес без якоря места не называет: карточка открывается как раньше")
-            .containsExactly((String) null);
-        assertThat(refusals).isEmpty();
-        assertThat(askedAnchors)
-            .as("якоря в адресе нет — словарь карточки не спрашивают вовсе")
-            .isEmpty();
-    }
-
-    /** Адрес с якорем: место — отдельная величина, и оно доезжает до карточки вместе с типом. */
-    @Test
-    void theAnchorOfTheAddressReachesTheOpenedCard() {
-        MainLayout.ExplorerEntry entry = MainLayout.decideExplorerEntry(true,
+    void aValidAddressCarriesTheRequestedTypeAndPlace() {
+        var entry = MainLayout.decideExplorerEntry(true,
             "/entity-explorer/nomenclature?view=access/rules", catalog, anchors);
-
-        MainLayout.applyExplorerEntry(entry, recorded::add,
-            (type, anchor) -> {
-                opened.add(type);
-                places.add(anchor);
-            }, refusals::add);
-
-        assertThat(recorded).containsExactly("/entity-explorer/nomenclature?view=access/rules");
-        assertThat(opened).containsExactly(Nomenclature.class);
-        assertThat(places).containsExactly("access/rules");
-        assertThat(refusals).isEmpty();
-    }
-
-    @Test
-    void theRefusalNeitherOpensATabNorTouchesTheAddress() {
-        MainLayout.ExplorerEntry entry =
-            MainLayout.decideExplorerEntry(false, "/entity-explorer/nomenclature", catalog, anchors);
-
-        MainLayout.applyExplorerEntry(entry, recorded::add, (type, anchor) -> opened.add(type),
-            refusals::add);
-
-        assertThat(opened)
-            .as("отказ не заводит вкладку: в баре не должно появляться то, за чем нет карточки")
-            .isEmpty();
-        assertThat(recorded)
-            .as("адрес отказа не меняется: пользователь остаётся на том, что запросил")
-            .isEmpty();
-        assertThat(refusals).hasSize(1);
-        assertThat(refusals.get(0).message()).isEqualTo(EntityExplorerAccess.REFUSAL_TEXT);
-    }
-
-    @Test
-    void anUnknownKeyIsRefusedWithoutTouchingTheTab() {
-        MainLayout.ExplorerEntry entry =
-            MainLayout.decideExplorerEntry(true, "/entity-explorer/nope", catalog, anchors);
-
-        MainLayout.applyExplorerEntry(entry, recorded::add, (type, anchor) -> opened.add(type),
-            refusals::add);
-
-        assertThat(opened).isEmpty();
-        assertThat(recorded).isEmpty();
-        assertThat(refusals).hasSize(1);
+        assertThat(entry).isEqualTo(new MainLayout.ExplorerEntry.Resolved(Nomenclature.class,
+            "nomenclature", "/entity-explorer/nomenclature?view=access/rules", "access/rules"));
     }
 
     /**
@@ -167,13 +77,7 @@ class EntityExplorerAddressWiringTest {
         assertThat(((MainLayout.ExplorerEntry.Denied) entry).refusal().message())
             .isEqualTo(EntityExplorerAccess.REFUSAL_TEXT);
 
-        MainLayout.applyExplorerEntry(entry, recorded::add, (type, anchor) -> opened.add(type),
-            refusals::add);
-
         assertThat(askedAnchors).containsExactly("nope");
-        assertThat(opened).isEmpty();
-        assertThat(recorded).isEmpty();
-        assertThat(refusals).hasSize(1);
     }
 
     /**
@@ -264,47 +168,4 @@ class EntityExplorerAddressWiringTest {
             .isEqualTo("/entity-explorer/nomenclature?view=reading&continue");
     }
 
-    @Test
-    void theSelectedTypeAddressIsCanonicalAndAbsentWithoutAKey() {
-        assertThat(MainLayout.explorerAddressOf(Optional.of("nomenclature")))
-            .as("канонический адрес строится из published-ключа")
-            .isEqualTo("/entity-explorer/nomenclature");
-        assertThat(MainLayout.explorerAddressOf(Optional.of("nomenclature"), "access/rules"))
-            .as("выбор места — тот же канонический адрес плюс якорь, а не вторая сборка адреса")
-            .isEqualTo("/entity-explorer/nomenclature?view=access/rules");
-        assertThat(MainLayout.explorerAddressOf(Optional.empty()))
-            .as("тип без опубликованного ключа безадресен: выдуманная ссылка открыла бы чужой адрес")
-            .isNull();
-        assertThat(MainLayout.explorerAddressOf(Optional.empty(), "access"))
-            .as("якорь не делает безадресный тип адресуемым")
-            .isNull();
-    }
-
-    /**
-     * E3.2.2 §4.4 (замечание №4): меню восстанавливает адрес последнего выбора — но только по
-     * опубликованному ключу и той же грамматикой, что выбор в дереве. Тип без ключа не получает
-     * выдуманную ссылку, пустой выбор (первый вход) адреса не восстанавливает.
-     */
-    @Test
-    void theMenuRestoresOnlyTheAddressWithAPublishedKey() {
-        Function<Class<?>, Optional<String>> keys = type -> type == Nomenclature.class
-            ? Optional.of("nomenclature") : Optional.empty();
-
-        assertThat(MainLayout.explorerMenuAddress(
-                Optional.of(new EntityExplorerView.RestoredSelection(
-                    Nomenclature.class, "access/rules")), keys))
-            .as("место восстановленного выбора — тот же якорь, что у выбора в дереве")
-            .contains("/entity-explorer/nomenclature?view=access/rules");
-        assertThat(MainLayout.explorerMenuAddress(
-                Optional.of(new EntityExplorerView.RestoredSelection(Nomenclature.class, null)), keys))
-            .contains("/entity-explorer/nomenclature");
-        assertThat(MainLayout.explorerMenuAddress(
-                Optional.of(new EntityExplorerView.RestoredSelection(ReceivingDocument.class, null)),
-                keys))
-            .as("тип без опубликованного ключа восстанавливается безадресно, а не чужой ссылкой")
-            .isEmpty();
-        assertThat(MainLayout.explorerMenuAddress(Optional.empty(), keys))
-            .as("первый вход из меню адреса не восстанавливает")
-            .isEmpty();
-    }
 }

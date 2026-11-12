@@ -61,6 +61,48 @@ class PresentationResolverTest {
     @jakarta.persistence.Entity
     public static class StandardDocument extends org.ipro.crud.StandardDocumentEntity { }
 
+    @jakarta.persistence.Entity
+    @EntityMetadata(selectColumns = "caption", displaySortFields = "date")
+    public static class DocumentWithOtherColumns extends StandardDocument {
+        @FieldMetadata String caption;
+    }
+
+    @jakarta.persistence.Entity
+    @SearchFields("caption")
+    public static class DocumentWithSearch extends DocumentWithOtherColumns { }
+
+    @jakarta.persistence.Entity
+    @InstanceName("caption")
+    public static class DocumentWithName extends DocumentWithOtherColumns { }
+
+    @EntityMetadata
+    public static class PlainNumber {
+        @FieldMetadata String number;
+    }
+
+    @Test void standardDocumentSearchUsesItsNumberIndependentlyOfFormColumns() {
+        var metadata = new MetadataResolver();
+        for (Class<?> type : List.of(StandardDocument.class, DocumentWithOtherColumns.class)) {
+            assertThat(new PresentationResolver(metadata).searchFields(type)).containsExactly("number");
+            assertThat(resolver(type).searchFields(type)).containsExactly("number");
+            var search = new SearchFieldResolver(metadata);
+            assertThat(search.resolve(type, List.of())).containsExactly("number");
+            assertThat(search.resolve(type, List.of(), false)).containsExactly("number");
+        }
+        assertThat(metadata.resolve(DocumentWithOtherColumns.class).getSelectColumnPaths())
+            .extracting(org.ipro.metadata.ColumnPath::getKey).containsExactly("caption");
+        assertThat(new PresentationResolver(metadata).sortFields(DocumentWithOtherColumns.class)).containsExactly("date");
+        assertThat(new PresentationResolver(metadata).searchFields(PlainNumber.class)).isEmpty();
+    }
+
+    @Test void explicitSearchAndInstanceNameKeepPriorityOverTheDocumentDefault() {
+        var metadata = new MetadataResolver();
+        for (Class<?> type : List.of(DocumentWithSearch.class, DocumentWithName.class))
+            assertThat(new SearchFieldResolver(metadata).resolve(type, List.of())).containsExactly("caption");
+        assertThat(new SearchFieldResolver(metadata).resolve(DocumentWithOtherColumns.class, List.of("caption")))
+            .containsExactly("caption");
+    }
+
     private PresentationResolver resolver(Class<?>... types) {
         MetadataResolver metadata = new MetadataResolver();
         return new PresentationResolver(metadata, new InstanceNameResolver(List.of(types), metadata));

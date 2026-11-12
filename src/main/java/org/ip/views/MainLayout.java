@@ -35,14 +35,11 @@ import org.ipro.metadata.SubsystemRegistry;
 import org.ip.navigation.NavigationUiSnapshot;
 import org.ipro.navigation.NavigationTree;
 import org.ip.views.admin.AdminView;
-import org.ip.views.admin.CardAnchor;
 import org.ip.views.admin.DiagnosticsView;
 import org.ip.views.admin.EntityExplorerAccess;
-import org.ip.views.admin.EntityExplorerView;
 import org.ip.views.admin.EntityExplorerNavigation;
-import org.ip.views.admin.EntityDraftWorkspace;
-import org.ip.views.admin.EntityModifyWorkspace;
-import org.ip.views.admin.EntityDraftAccess;
+import org.ip.views.admin.EntityExplorerWorkspace;
+import org.ipro.vaadin.explorer.ui.EntityExplorerCardPlace;
 import org.ip.views.admin.SubsystemStructureView;
 import org.ip.views.directory.WorkshopListView;
 import org.ip.views.preferences.DensityToggle;
@@ -54,7 +51,6 @@ import org.ip.views.workspace.SubsystemHomeView;
 import org.ip.views.workspace.Workspace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.core.Authentication;
@@ -62,8 +58,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 
 import java.util.Optional;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -112,9 +106,6 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver, Before
 
     private static final Logger log = LoggerFactory.getLogger(MainLayout.class);
 
-    /** Вкладка Explorer: ключ вкладки один и для меню, и для адреса (E3.0). */
-    private static final String EXPLORER_ENTRY_ID = "entity-explorer";
-
     /** Заголовок вкладки Explorer: один и тот же на обоих входах. */
     private static final String EXPLORER_TAB_TITLE = "Структура сущностей";
 
@@ -135,11 +126,8 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver, Before
     private final FormRouteUrlBridge routeUrlBridge;
     private final EntityExplorerAccess explorerAccess;
     private final FormRouteCatalog routeCatalog;
-    private final ObjectProvider<EntityExplorerView> explorerViews;
     private final EntityExplorerNavigation structureNavigation;
-    private final EntityDraftWorkspace drafts;
-    private final EntityModifyWorkspace modifications;
-    private final EntityDraftAccess draftAccess;
+    private final EntityExplorerWorkspace explorerWorkspace;
     private final QueryWorkbenchAccess queryWorkbenchAccess;
 
     @Autowired
@@ -151,14 +139,10 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver, Before
                       FormRouteUrlBridge routeUrlBridge,
                       EntityExplorerAccess explorerAccess,
                       FormRouteCatalog routeCatalog,
-                      ObjectProvider<EntityExplorerView> explorerViews,
                       EntityExplorerNavigation structureNavigation,
+                      EntityExplorerWorkspace explorerWorkspace,
                       NavigationUiSnapshot navigationSnapshot,
-                      EntityDraftWorkspace drafts, EntityDraftAccess draftAccess, EntityModifyWorkspace modifications,
                       QueryWorkbenchAccess queryWorkbenchAccess) {
-        this.drafts = drafts;
-        this.modifications = modifications;
-        this.draftAccess = draftAccess;
         this.queryWorkbenchAccess = queryWorkbenchAccess;
         this.subsystemRegistry = subsystemRegistry;
         this.navigationSnapshot = navigationSnapshot;
@@ -169,10 +153,10 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver, Before
         this.routeUrlBridge = routeUrlBridge;
         this.explorerAccess = explorerAccess;
         this.routeCatalog = routeCatalog;
-        this.explorerViews = explorerViews;
         this.structureNavigation = structureNavigation;
-        structureNavigation.bindHost(this, this::openExplorerProgrammatically);
-        addAttachListener(event -> structureNavigation.bindHost(this, this::openExplorerProgrammatically));
+        this.explorerWorkspace = explorerWorkspace;
+        bindExplorerNavigation();
+        addAttachListener(event -> bindExplorerNavigation());
         addDetachListener(event -> structureNavigation.unbindHost(this));
         setContent(workspace);
         createHeader();
@@ -182,6 +166,10 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver, Before
 
     private void openHome() {
         workspace.open(MainView.class, "home", "Главная", v -> {});
+    }
+
+    private void bindExplorerNavigation() {
+        structureNavigation.bindCardHost(this, explorerWorkspace::openProgrammatically);
     }
 
     /**
@@ -412,165 +400,19 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver, Before
      * роли отличался бы от отказа по неизвестному ключу строкой в логе (ADR-0010).</p>
      */
     private void enterExplorerAddress(String address) {
-        applyExplorerEntry(
-            decideExplorerEntry(explorerAccess.allows(), address, this::explorerTypeOfKey,
-                MainLayout::explorerAnchorKnown),
-            recorded -> routeUrlBridge.tabAddressed(EXPLORER_ENTRY_ID, explorerTabAddress(recorded)),
-            this::openExplorerTab,
-            refusal -> {
-                workspace.showTransientContent(new RouteStatePage(refusal));
-                log.info("Адрес Explorer не открыт: outcome={}", refusal.outcome());
-            });
+        var entry = decideExplorerEntry(explorerAccess.allows(), address,
+            key -> routeCatalog.find(key).map(PublishedFormRoute::entityClass).filter(explorerWorkspace::hasRoot),
+            MainLayout::explorerAnchorKnown);
+        if (entry instanceof ExplorerEntry.Resolved resolved
+                && explorerWorkspace.openAddress(resolved.type(), resolved.anchor(), resolved.address(),
+                    explorerTabAddress(resolved.address()))) return;
+        var refusal = EntityExplorerAccess.refusal();
+        workspace.showTransientContent(new RouteStatePage(refusal));
+        log.info("Адрес Explorer не открыт: outcome={}", refusal.outcome());
     }
 
-    /**
-     * Последовательность host'а по решению об адресе Explorer — отделена ради проверки: отказ не
-     * должен ни создавать вкладку, ни менять адрес, а успех обязан записать адрес <b>до</b>
-     * открытия вкладки: мост в момент активации ещё не знает адреса и записал бы «/».
-     */
-    static void applyExplorerEntry(ExplorerEntry entry,
-                                   Consumer<String> recordAddress,
-                                   BiConsumer<Class<?>, String> openPlace,
-                                   Consumer<OpenResult> showRefusal) {
-        if (entry instanceof ExplorerEntry.Denied denied) {
-            showRefusal.accept(denied.refusal());
-            return;
-        }
-        ExplorerEntry.Resolved resolved = (ExplorerEntry.Resolved) entry;
-        recordAddress.accept(resolved.address());
-        openPlace.accept(resolved.type(), resolved.anchor());
-    }
-
-    private Optional<Class<?>> explorerTypeOfKey(String key) {
-        return routeCatalog.find(key).map(PublishedFormRoute::entityClass);
-    }
-
-    /**
-     * Причина входа в Explorer (E3.2.2 §4.4). {@code type == null} больше не означает
-     * одновременно «меню» и «сбросить карточку»: меню восстанавливает сохранённый выбор
-     * текущего UI, а адрес и программный запрос применяют названный тип.
-     */
-    enum ExplorerEnterReason {
-        MENU,
-        ADDRESS,
-        PROGRAMMATIC
-    }
-
-    /** Вход из меню: восстановить последний выбор текущего UI либо открыть пустую карточку. */
-    private void openExplorerFromMenu() {
-        openExplorerTab(null, null, ExplorerEnterReason.MENU);
-    }
-
-    /**
-     * Программное открытие структуры из формы/подсистемы (E3.2.2 §10.1): названный тип и место
-     * имеют приоритет над сохранённым выбором; опубликованный ключ даёт вкладке адрес, тип без
-     * ключа открывается безадресно — чужой ключ не подставляется.
-     */
-    private boolean openExplorerProgrammatically(Class<?> type, String anchor) {
-        if (!explorerAccess.allows() || type == null || anchor != null && CardAnchor.of(anchor).isEmpty()) {
-            return false;
-        }
-        openExplorerTab(type, anchor, ExplorerEnterReason.PROGRAMMATIC);
-        return true;
-    }
-
-    /** Вход по адресу Explorer: тот же вид, не второй; якорь применяется к нему (E3.2.1 §8.2). */
-    private void openExplorerTab(Class<?> type, String anchor) {
-        openExplorerTab(type, anchor, ExplorerEnterReason.ADDRESS);
-    }
-
-    private void openExplorerTab(Class<?> type, String anchor, ExplorerEnterReason reason) {
-        EntityExplorerView view = explorerViews.getObject();
-        view.setDraftOpener(drafts::open, draftAccess::allows);
-        view.setModifyOpener(modifications::open, modifications::allows);
-        view.setSelectionListener(this::explorerPlaceSelected);
-        switch (reason) {
-            case MENU -> registerRestoredExplorerEntry(view);
-            case ADDRESS -> view.init(type, anchor);
-            case PROGRAMMATIC -> {
-                view.init(type, anchor);
-                String address = explorerAddressOf(
-                    routeCatalog.find(type).map(PublishedFormRoute::entityKey), anchor);
-                if (address == null) {
-                    // У выбора адреса нет: вкладка безадресна, как при выборе непубликуемого типа
-                    // в дереве, — выдуманная ссылка открыла бы чужую карточку.
-                    routeUrlBridge.tabAddressChanged(EXPLORER_ENTRY_ID, null);
-                } else {
-                    routeUrlBridge.tabAddressed(EXPLORER_ENTRY_ID, address);
-                }
-            }
-        }
-        workspace.openComponent(view, EXPLORER_ENTRY_ID, EXPLORER_TAB_TITLE);
-    }
-
-    /**
-     * Восстановленный выбор меню: адрес регистрируется до активации вкладки, чтобы мост в момент
-     * открытия уже знал ссылку (иначе первая смена активности записала бы «/»). Пустой выбор и тип
-     * без ключа дают действующую безадресную семантику.
-     */
-    private void registerRestoredExplorerEntry(EntityExplorerView view) {
-        Optional<String> address =
-            explorerMenuAddress(view.applyMenuEntry(), this::explorerPublishedKey);
-        if (address.isPresent()) {
-            routeUrlBridge.tabAddressed(EXPLORER_ENTRY_ID, address.orElseThrow());
-        } else {
-            routeUrlBridge.tabAddressChanged(EXPLORER_ENTRY_ID, null);
-        }
-    }
-
-    /** Опубликованный ключ типа: ключ спрашивается у каталога маршрутов, а не у класса. */
-    private Optional<String> explorerPublishedKey(Class<?> type) {
-        return routeCatalog.find(type).map(PublishedFormRoute::entityKey);
-    }
-
-    /**
-     * Адрес, под которым меню повторно открывает сохранённый выбор. Сохранённый тип без
-     * опубликованного ключа адреса не получает: безадресный Explorer — действующая семантика,
-     * а выдуманный ключ подставил бы чужую карточку. Пустой выбор — первый вход из меню.
-     */
-    static Optional<String> explorerMenuAddress(
-            Optional<EntityExplorerView.RestoredSelection> restored,
-            Function<Class<?>, Optional<String>> keyOf) {
-        return restored.flatMap(selection -> Optional.ofNullable(
-            explorerAddressOf(keyOf.apply(selection.type()), selection.anchor())));
-    }
-
-    /**
-     * Знает ли словарь карточек это место (E3.2.1 §8.2). Грамматика адреса отвечает только за форму
-     * якоря, а «существует ли место» — вопрос словаря карточки: неизвестный якорь получает тот же
-     * отказ, что неизвестный ключ типа (ADR-0010 §10).
-     */
     static boolean explorerAnchorKnown(String anchor) {
-        return CardAnchor.of(anchor).isPresent();
-    }
-
-    /**
-     * Пользователь выбрал место: тип или раздел в дереве либо вкладку карточки. Адрес вкладки
-     * меняет host, а не вид. У типа без опубликованного ключа адреса нет — «/» вместо выдуманной
-     * ссылки; место карточки добавляется к адресу якорем ({@code ?view=}).
-     */
-    private void explorerPlaceSelected(Class<?> type, String anchor) {
-        routeUrlBridge.tabAddressChanged(EXPLORER_ENTRY_ID,
-            type == null ? null
-                : explorerAddressOf(routeCatalog.find(type).map(PublishedFormRoute::entityKey),
-                    anchor));
-    }
-
-    /**
-     * Адрес типа для выбора в дереве: канонический адрес по опубликованному ключу либо
-     * {@code null} — «у выбора адреса нет» (owned-строка или непубликуемый тип).
-     */
-    static String explorerAddressOf(Optional<String> publishedKey) {
-        return explorerAddressOf(publishedKey, null);
-    }
-
-    /**
-     * Тот же адрес с якорем места: якорь собирается словарём карточки ({@code CardAnchor.value()}),
-     * а форму адреса знает один {@code EntityExplorerAddress.format} — второй сборки адреса в
-     * приложении не появляется.
-     */
-    static String explorerAddressOf(Optional<String> publishedKey, String anchor) {
-        return publishedKey.map(key -> EntityExplorerAddress.format(key, anchor)).orElse(null);
+        return EntityExplorerCardPlace.parse(anchor).isPresent();
     }
 
     /**
@@ -668,7 +510,7 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver, Before
         if (explorerAccess.allows()) {
             SideNavItem explorerItem = new SideNavItem(EXPLORER_TAB_TITLE);
             explorerItem.setPrefixComponent(new Icon(VaadinIcon.SITEMAP));
-            explorerItem.getElement().addEventListener("click", e -> openExplorerFromMenu());
+            explorerItem.getElement().addEventListener("click", e -> explorerWorkspace.openRegistry());
             nav.addItem(explorerItem);
         }
 

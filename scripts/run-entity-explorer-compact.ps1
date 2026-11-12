@@ -41,7 +41,7 @@ try {
         $arguments += @('platform-vaadin/src/main/java/org/ipro/form/builder/ItemFormVariants.java',
             'platform-vaadin/src/main/java/org/ipro/form/builder/ItemFormCustomizationRegistrar.java',
             'platform-vaadin/src/main/java/org/ipro/form/registry/FormRegistry.java')
-        $arguments += Get-ChildItem platform-vaadin/src/main/java/org/ipro/vaadin/explorer -Filter '*.java' |
+        $arguments += Get-ChildItem platform-vaadin/src/main/java/org/ipro/vaadin/explorer -Recurse -Filter '*.java' |
             ForEach-Object { '"'+$_.FullName.Replace('\','/')+'"' }
         $arguments += Get-ChildItem src/main/java -Recurse -Filter '*.java' |
             ForEach-Object { '"'+$_.FullName.Replace('\','/')+'"' }
@@ -73,8 +73,6 @@ try {
             'platform-vaadin/src/test/java/org/ipro/form/registry/FormRegistrySelectionTest.java',
             'src/test/java/org/ip/views/admin/ExplorerTreeModelTest.java',
             'src/test/java/org/ip/views/admin/EntityExplorerPilotBoundaryTest.java',
-            'src/test/java/org/ip/views/admin/EntityExplorerViewAddressTest.java',
-            'src/test/java/org/ip/views/admin/EntityExplorerViewSpringCreationTest.java',
             'src/test/java/org/ip/views/EntityExplorerAddressWiringTest.java',
             'src/test/java/org/ip/views/EntityExplorerRouteGateTest.java',
             'src/test/java/org/ipro/PlatformVaadinSurfaceTest.java')
@@ -90,7 +88,6 @@ try {
             org.ip.vaadin.explorer.EntitySummaryAssemblerTest org.ip.form.registry.FormRegistryDuplicateTest `
             org.ip.form.registry.FormRegistryLifecycleTest org.ipro.form.registry.FormRegistrySelectionTest `
             org.ip.views.admin.ExplorerTreeModelTest `
-            org.ip.views.admin.EntityExplorerViewAddressTest org.ip.views.admin.EntityExplorerViewSpringCreationTest `
             org.ip.views.EntityExplorerAddressWiringTest org.ip.views.EntityExplorerRouteGateTest `
             org.ipro.PlatformVaadinSurfaceTest *> "$pilotOutput/test.log"
         Get-Content "$pilotOutput/test.log" -Tail 35

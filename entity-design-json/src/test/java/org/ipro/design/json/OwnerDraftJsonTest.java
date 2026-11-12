@@ -8,6 +8,9 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class OwnerDraftJsonTest {
+    private static final List<RecipeRef> RECIPES = List.of(
+        RecipeCatalog.STANDARD_CATALOG_V2, RecipeCatalog.STANDARD_CATALOG_V3, RecipeCatalog.STANDARD_CATALOG_V4,
+        RecipeCatalog.STANDARD_DOCUMENT, RecipeCatalog.STANDARD_DOCUMENT_V2, RecipeCatalog.STANDARD_DOCUMENT_V3);
     private final DraftJsonCodec codec = new DraftJsonCodec();
     private final ObjectMapper mapper = new ObjectMapper();
     private EntityDraft draft(RecipeRef recipe, OwnerDraft owner) {
@@ -20,8 +23,8 @@ class OwnerDraftJsonTest {
     private ObjectNode tree(EntityDraft draft) throws Exception { return (ObjectNode)mapper.readTree(codec.encode(draft)); }
     private void reject(ObjectNode tree) { assertThrows(DraftJsonException.class, () -> codec.decode(tree.toString())); }
 
-    @Test void ownerV2PreservesRawInvalidInputIdsAndModesForBothRecipes() {
-        for (var recipe : List.of(RecipeCatalog.STANDARD_CATALOG_V2, RecipeCatalog.STANDARD_DOCUMENT, RecipeCatalog.STANDARD_CATALOG_V3, RecipeCatalog.STANDARD_DOCUMENT_V2)) {
+    @Test void ownerV2PreservesRawInvalidInputIdsAndModesAcrossRecipes() {
+        for (var recipe : RECIPES) {
             var d = draft(recipe, owner()); var bytes = codec.encode(d); var decoded = codec.decode(bytes);
             assertEquals(d, decoded); assertArrayEquals(bytes, codec.encode(decoded));
             assertEquals(" RAW COLUMN ", decoded.owner().columnName().text());
@@ -29,7 +32,7 @@ class OwnerDraftJsonTest {
         }
     }
     @Test void explicitNullIsRequiredInV2AndForbiddenInV1() throws Exception {
-        for (var recipe : List.of(RecipeCatalog.STANDARD_CATALOG_V2, RecipeCatalog.STANDARD_DOCUMENT, RecipeCatalog.STANDARD_CATALOG_V3, RecipeCatalog.STANDARD_DOCUMENT_V2)) {
+        for (var recipe : RECIPES) {
             var d = draft(recipe, null); var tree = tree(d);
             assertTrue(tree.has("owner")); assertTrue(tree.get("owner").isNull()); assertEquals(d, codec.decode(codec.encode(d)));
             tree.remove("owner"); reject(tree);

@@ -46,6 +46,10 @@ public final class ModificationApply {
         return apply(projectRoot, sourceRoot, plan, new Hooks() {});
     }
 
+    static Result apply(Path projectRoot, Path sourceRoot, FormSettingsMigration.Plan plan) {
+        return MigrationApply.apply(projectRoot, sourceRoot, plan, new Hooks() {});
+    }
+
     static Result apply(Path projectRoot, Path sourceRoot, ModificationPlan plan, Hooks hooks) {
         Path root, target;
         try {

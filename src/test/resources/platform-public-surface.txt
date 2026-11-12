@@ -449,3 +449,17 @@ API org.ipro.unidr.store.UniDrFileStore
 API org.ipro.unidr.ui.UniDrRunDialogFactory
 
 # ET6 semantic classification
+
+# R2: snapshot-only Entity Explorer UI and optional host ports.
+API org.ipro.vaadin.explorer.ui.EntityExplorerCardPanel
+API org.ipro.vaadin.explorer.ui.EntityExplorerCardPlace
+API org.ipro.vaadin.explorer.ui.EntityExplorerCardState
+API org.ipro.vaadin.explorer.ui.EntityExplorerDiagnosticsPanel
+API org.ipro.vaadin.explorer.ui.EntityExplorerLabels
+API org.ipro.vaadin.explorer.ui.EntityExplorerRegistryActions
+API org.ipro.vaadin.explorer.ui.EntityExplorerRegistryModel
+API org.ipro.vaadin.explorer.ui.EntityExplorerRegistryPanel
+API org.ipro.vaadin.explorer.ui.EntityExplorerRegistryState
+API org.ipro.vaadin.explorer.ui.ExplorerActionAvailability
+SPI org.ipro.vaadin.explorer.ui.ExplorerFormPreviewPort
+SPI org.ipro.vaadin.explorer.ui.ExplorerSourcePort

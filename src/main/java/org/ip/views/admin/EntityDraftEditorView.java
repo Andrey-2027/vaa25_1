@@ -26,6 +26,7 @@ import org.ipro.design.FieldApplications;
 import org.ipro.design.FieldDraft;
 import org.ipro.design.ProjectDesignContext;
 import org.ipro.design.RecipeCatalog;
+import org.ipro.design.RecipeDescriptor;
 import org.ipro.design.ReferenceDraft;
 import org.ipro.design.ReferenceTargetDescriptor;
 import org.ipro.design.SectionDraft;
@@ -159,7 +160,7 @@ public class EntityDraftEditorView extends Div implements Dirtyable {
         Button validate = new Button("Проверить", e -> command(() -> session.validate()));
         Button refresh = new Button("Обновить каталог", e -> command(() -> { catalogRefresh.run(); session.refreshContext(contextSource.get()); }));
         Button export = new Button("Выгрузить JSON", e -> exportJson());
-        Button preview = ownedButton("Показать Java", this::showJava);
+        Button preview = ownedButton(session.plain() ? "Показать Java и DDL" : "Показать Java", this::showJava);
         validate.setEnabled(kindChosen); preview.setEnabled(kindChosen); export.setEnabled(kindChosen);
         Upload upload = jsonUpload();
         download.setVisible(false);
@@ -271,7 +272,7 @@ public class EntityDraftEditorView extends Div implements Dirtyable {
     }
     private static String recipeCaption(org.ipro.design.RecipeDescriptor descriptor) {
         if (RecipeCatalog.INDEPENDENT_REGISTER_RLS.equals(descriptor.ref())) return "Регистр сведений с RLS";
-        return switch(descriptor.kind()) { case "DOCUMENT" -> "Документ"; case "INFORMATION_REGISTER" -> "Регистр сведений"; default -> "Справочник"; };
+        return switch(descriptor.kind()) { case "DOCUMENT" -> "Документ"; case "INFORMATION_REGISTER" -> "Регистр сведений"; case "PLAIN" -> "Простая сущность"; default -> "Справочник"; };
     }
     private void renderRls() {
         var policy=session.draft().register().rls();
@@ -360,7 +361,7 @@ public class EntityDraftEditorView extends Div implements Dirtyable {
     }
     private void updateOwner(UUID epoch, String key, String value, DraftText column) {
         var old = session.draft().owner(); if (!ownerPanelEpoch.equals(epoch) || old == null
-            || !RecipeCatalog.STANDARD_CATALOG_V2.equals(session.draft().recipe())) return;
+            || !RecipeCatalog.STANDARD_CATALOG_V2.equals(RecipeCatalog.structuralRecipe(session.draft().recipe()))) return;
         session.editOwner(new OwnerDraft(key.equals("target") ? value : old.targetTypeId(), key.equals("field") ? value : old.fieldName(),
             key.equals("column") ? column : old.columnName(), key.equals("label") ? value : old.label()));
     }
@@ -456,6 +457,7 @@ public class EntityDraftEditorView extends Div implements Dirtyable {
             else indicators = labels.get(3);
             var a = f.applications();
             String role = session.register() ? session.descriptor().fieldRoles().stream().filter(r -> r.id().equals(session.role(f.id()))).map(r -> r.label()).findFirst().orElse("Роль не назначена") : "Реквизит";
+            if (f.id().equals(session.draft().presentationFieldId())) role = "Имя экземпляра";
             String flags = role + " · " + (f.serverRequired() ? "Запись: обязательно" : "Запись: необязательно")
                 + " · Форма " + (a.form() ? "+" : "−") + " · Список " + (a.list() ? "+" : "−")
                 + " · Выбор " + (a.selection() ? "+" : "−") + " · Таблица " + (a.table() ? "+" : "−");
@@ -530,6 +532,19 @@ public class EntityDraftEditorView extends Div implements Dirtyable {
             properties.property("type", "Тип", type); registerInput("type", type);
             type.getElement().setAttribute("data-draft-input", "type");
             boolean string = f.type().equals("STRING"), decimal = f.type().equals("DECIMAL");
+            if (session.plain() && session.place().sectionId() == null) {
+                boolean selected = id.equals(session.draft().presentationFieldId());
+                var presentation = ownedButton(selected ? "Снять назначение" : "Назначить именем экземпляра",
+                    () -> {
+                        if (!id.equals(session.place().fieldId())) return;
+                        session.choosePresentationField(selected ? null : id);
+                        renderInspector();
+                    });
+                presentation.setEnabled(string || selected);
+                registerInput("presentationFieldId", presentation);
+                properties.property("presentationFieldId", "Имя экземпляра", presentation);
+                properties.property("presentation.help", "", "Выбранный строковый реквизит обязателен и показывается во всех трёх формах.");
+            }
             constraint(properties, id, "length", "Длина", f.constraints().length(), string);
             constraint(properties, id, "precision", "Точность", f.constraints().precision(), decimal);
             constraint(properties, id, "scale", "Дробных разрядов", f.constraints().scale(), decimal);
@@ -684,7 +699,7 @@ public class EntityDraftEditorView extends Div implements Dirtyable {
     }
     private void refreshStatus() {
         refreshGeneration();
-        heading.setText("Черновик " + switch(session.descriptor().kind()) { case "DOCUMENT" -> "документа"; case "INFORMATION_REGISTER" -> "регистра"; default -> "справочника"; }
+        heading.setText("Черновик " + switch(session.descriptor().kind()) { case "DOCUMENT" -> "документа"; case "INFORMATION_REGISTER" -> "регистра"; case "PLAIN" -> "простой сущности"; default -> "справочника"; }
             + " · " + session.descriptor().persistenceProfile() + (session.register() ? " / " + session.draft().register().period() : ""));
         if (!kindChosen) heading.setText("Новый черновик · выберите вид");
         catalogNotice.setText(session.context().existingTypes().complete()
@@ -750,7 +765,8 @@ public class EntityDraftEditorView extends Div implements Dirtyable {
             case "register.rls" -> "Доступ к строкам";
             case "titles.list" -> "Заголовок списка"; case "titles.item" -> "Заголовок элемента"; case "titles.selection" -> "Заголовок выбора";
             case "rowClassName" -> "Класс строки"; case "parentFieldName" -> "Связь строки с корнем"; case "parentColumnName" -> "Колонка связи";
-            case "recipe" -> "Рецепт"; case "sections" -> "Табчасть"; default -> "Структура";
+            case "recipe" -> "Рецепт"; case "sections" -> "Табчасть";
+            case "presentationFieldId" -> "Имя экземпляра"; default -> "Структура";
         };
         return target + " / " + property + ": " + message;
     }
@@ -774,6 +790,8 @@ public class EntityDraftEditorView extends Div implements Dirtyable {
             case REGISTER_WRITE_PROFILE_UNSUPPORTED -> "Выбранный профиль записи регистра не поддерживается";
             case REGISTER_SECTION_UNSUPPORTED -> "Выбранный профиль регистра не поддерживает эту конструкцию";
             case OWNER_UNSUPPORTED_RECIPE -> "Владелец разрешён только у справочника";
+            case PLAIN_SECTION_UNSUPPORTED -> "Простая сущность не поддерживает табличные части";
+            case PLAIN_PRESENTATION_INVALID -> "Назначьте обязательный строковый реквизит, включённый в форму, список и выбор";
             case RECIPE_DRAFT_UNSUPPORTED -> "Для этого рецепта ещё не определён контракт черновика";
             case RECIPE_PREREQUISITE_UNAVAILABLE -> "Не выполнено условие рецепта";
             case APPLICATION_PROJECTION_UNREPRESENTABLE -> "Применение реквизита не представимо в этом рецепте";
@@ -786,7 +804,13 @@ public class EntityDraftEditorView extends Div implements Dirtyable {
     private void navigateProblem(DraftProblem.Target target) {
         if (!permitted() || !target.draftId().equals(session.draft().draftId())) return;
         command(() -> {
-            if (target.fieldId() == null && target.sectionId() == null) session.page(DraftPlace.Page.GENERAL);
+            if ("presentationFieldId".equals(target.propertyKey())) {
+                session.page(DraftPlace.Page.DATA);
+                session.draft().fields().stream()
+                    .filter(field -> field.id().equals(session.draft().presentationFieldId()) || "STRING".equals(field.type()))
+                    .findFirst().ifPresent(field -> session.selectField(field.id()));
+                renderRows(); renderInspector(); split.getElement().setAttribute("data-detail", "");
+            } else if (target.fieldId() == null && target.sectionId() == null) session.page(DraftPlace.Page.GENERAL);
             else {
                 if (target.fieldId() == null) session.selectSection(target.sectionId()); else session.selectField(target.sectionId(), target.fieldId());
                 renderRows(); renderInspector(); split.getElement().setAttribute("data-detail", "");
@@ -829,7 +853,7 @@ public class EntityDraftEditorView extends Div implements Dirtyable {
         var first = plan.files().getFirst();
         var dialog = new Dialog(); javaPreview = dialog;
         var exported = new JavaExport(documentEpoch, session.revision(), plan); javaExport = exported;
-        dialog.setHeaderTitle("Java · " + plan.source().entity().className());
+        dialog.setHeaderTitle((session.plain() ? "Java и DDL · " : "Java · ") + plan.source().entity().className());
         dialog.setWidth("900px"); dialog.setMaxWidth("95vw");
         TextArea source = new TextArea("Исходник"); source.setValue(first.content()); source.setReadOnly(true);
         source.setWidthFull(); source.setHeight("60vh"); source.getStyle().set("font-family", "monospace");
@@ -940,6 +964,7 @@ public class EntityDraftEditorView extends Div implements Dirtyable {
     }
     private String generationMessage(GenerationDiagnostic diagnostic) {
         return switch (diagnostic.code()) {
+            case FORBIDDEN_FORM_SETTING -> "Настройки формы должны быть объявлены в конфигурации формы, отдельно от аннотаций сущности";
             case UNSUPPORTED_RECIPE -> "Для выбранного рецепта генератор не реализован";
             case UNSUPPORTED_CONSTRUCT -> {
                 if ("RUNTIME_PREREQUISITE".equals(diagnostic.parameters().get("construct"))) yield switch(diagnostic.parameters().get("prerequisite")) {
@@ -984,6 +1009,12 @@ public class EntityDraftEditorView extends Div implements Dirtyable {
         chooser.addOpenedChangeListener(e -> { if (!e.isOpened()) { if (epoch.equals(documentEpoch)) confirmationOpened = false; remove(chooser); } });
         confirmationOpened = true; add(chooser); chooser.open();
     }
+    void requestNewDraft(RecipeDescriptor recipe) {
+        if (!permitted() || confirmationOpened) return;
+        if (kindChosen && session.descriptor().kind().equals(recipe.kind())) return;
+        confirmNewDraft(recipe.ref());
+    }
+
     private void confirmNewDraft(RecipeRef recipe) {
         if (!session.dirty()) { replaceDraft(recipe); return; }
         ConfirmDialog dialog = new ConfirmDialog(); confirmationOpened = true;

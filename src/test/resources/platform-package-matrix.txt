@@ -3,7 +3,6 @@
 # Перезапись: mvn test -Dplatform.matrix.write=true (см. PlatformPackageDependencyMatrixTest).
 org.ipro.crud -> org.ipro.data
 org.ipro.crud -> org.ipro.events
-org.ipro.crud -> org.ipro.fetch.instance
 org.ipro.crud -> org.ipro.fetch.plan
 org.ipro.crud -> org.ipro.lifecycle
 org.ipro.crud -> org.ipro.metadata
@@ -80,6 +79,7 @@ org.ipro.form -> org.ipro.data
 org.ipro.form -> org.ipro.events
 org.ipro.form -> org.ipro.fetch.instance
 org.ipro.form -> org.ipro.fetch.plan
+org.ipro.form -> org.ipro.form.action
 org.ipro.form -> org.ipro.form.builder
 org.ipro.form -> org.ipro.form.builtin
 org.ipro.form -> org.ipro.form.coordinator
@@ -99,11 +99,13 @@ org.ipro.form.builder -> org.ipro.crud
 org.ipro.form.builder -> org.ipro.data
 org.ipro.form.builder -> org.ipro.fetch.instance
 org.ipro.form.builder -> org.ipro.form
+org.ipro.form.builder -> org.ipro.form.action
 org.ipro.form.builder -> org.ipro.form.builtin
 org.ipro.form.builder -> org.ipro.form.registry
 org.ipro.form.builder -> org.ipro.metadata
 org.ipro.form.builder -> org.ipro.metadata.annotation
 org.ipro.form.builtin -> org.ipro.crud
+org.ipro.form.builtin -> org.ipro.data
 org.ipro.form.builtin -> org.ipro.fetch.instance
 org.ipro.form.builtin -> org.ipro.filter
 org.ipro.form.builtin -> org.ipro.form
@@ -123,18 +125,21 @@ org.ipro.form.config -> org.ipro.data.grouping
 org.ipro.form.config -> org.ipro.form
 org.ipro.form.config -> org.ipro.form.action
 org.ipro.form.config -> org.ipro.form.builder
+org.ipro.form.config -> org.ipro.form.builtin
 org.ipro.form.config -> org.ipro.form.coordinator
 org.ipro.form.config -> org.ipro.form.host
 org.ipro.form.config -> org.ipro.form.link
 org.ipro.form.config -> org.ipro.form.registry
 org.ipro.form.config -> org.ipro.form.spi
 org.ipro.form.config -> org.ipro.metadata
+org.ipro.form.config -> org.ipro.metadata.annotation
 org.ipro.form.config -> org.ipro.metadata.config
 org.ipro.form.config -> org.ipro.rls
 org.ipro.form.config -> org.ipro.rls.c5
 org.ipro.form.coordinator -> org.ipro.crud
 org.ipro.form.coordinator -> org.ipro.form
 org.ipro.form.coordinator -> org.ipro.form.action
+org.ipro.form.coordinator -> org.ipro.form.builder
 org.ipro.form.coordinator -> org.ipro.form.builtin
 org.ipro.form.coordinator -> org.ipro.form.host
 org.ipro.form.coordinator -> org.ipro.form.link
@@ -157,6 +162,7 @@ org.ipro.form.link -> org.ipro.metadata
 org.ipro.form.registry -> org.ipro.crud
 org.ipro.form.registry -> org.ipro.data.grouping
 org.ipro.form.registry -> org.ipro.form
+org.ipro.form.registry -> org.ipro.form.action
 org.ipro.form.registry -> org.ipro.form.builder
 org.ipro.form.registry -> org.ipro.form.builtin
 org.ipro.form.registry -> org.ipro.form.coordinator

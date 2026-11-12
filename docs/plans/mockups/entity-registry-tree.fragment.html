@@ -1,0 +1,448 @@
+<div id="entity-registry-study">
+  <div class="er-app" data-mode="tree" aria-label="Реестр сущностей — дерево и обзор"></div>
+</div>
+<style>
+  #entity-registry-study { color-scheme: light dark; }
+  #entity-registry-study .er-app {
+    --er-bg: light-dark(#ffffff, #202225);
+    --er-chrome: light-dark(#f3f4f6, #292c30);
+    --er-soft: light-dark(#f8f9fb, #25282c);
+    --er-line: light-dark(#d8dde4, #444a53);
+    --er-faint: light-dark(#edf0f3, #34383f);
+    --er-ink: light-dark(#202a38, #e9edf3);
+    --er-muted: light-dark(#616d7c, #aeb9c8);
+    --er-blue: light-dark(#075fca, #91bcff);
+    --er-blue-fill: light-dark(#eaf2fe, #253c58);
+    --er-primary: light-dark(#0864d3, #95bfff);
+    --er-on-primary: light-dark(#ffffff, #14273f);
+    --er-warn: light-dark(#8c5500, #f2c278);
+    --er-warn-fill: light-dark(#fff6e5, #3c3325);
+    --er-error: light-dark(#b02b35, #ffacb1);
+    --er-error-fill: light-dark(#fff0f0, #432a31);
+    --er-row: 43px;
+    font: 13px/1.45 "Segoe UI", Arial, sans-serif;
+    color: var(--er-ink); background: var(--er-bg);
+    min-height: 790px; display: flex; flex-direction: column;
+    border: 1px solid var(--er-line); border-radius: 3px; overflow-wrap: anywhere;
+  }
+  #entity-registry-study .er-app *, #entity-registry-study .er-app *::before, #entity-registry-study .er-app *::after { box-sizing: border-box; }
+  #entity-registry-study .er-app [hidden] { display: none !important; }
+  #entity-registry-study .er-app button, #entity-registry-study .er-app input, #entity-registry-study .er-app select { font: inherit; }
+  #entity-registry-study .er-app button { cursor: var(--cursor-interaction, pointer); }
+  #entity-registry-study .er-app button:focus-visible, #entity-registry-study .er-app summary:focus-visible { outline: 2px solid var(--er-blue); outline-offset: 2px; }
+  #entity-registry-study .er-app input:focus-visible, #entity-registry-study .er-app select:focus-visible { outline: 2px solid var(--er-blue); outline-offset: 1px; }
+  #entity-registry-study .er-app h1, #entity-registry-study .er-app h2, #entity-registry-study .er-app h3, #entity-registry-study .er-app p { margin: 0; }
+  #entity-registry-study .er-app h1 { font-size: 18px; font-weight: 600; line-height: 1.4; }
+  #entity-registry-study .er-app h2 { font-size: 16px; font-weight: 600; line-height: 1.4; }
+  #entity-registry-study .er-app h3 { font-size: 13px; font-weight: 600; }
+  #entity-registry-study .er-app code, #entity-registry-study .er-mono { font: 12px/1.45 Consolas, "Courier New", monospace; color: inherit; background: none; padding: 0; white-space: normal; overflow-wrap: anywhere; }
+  #entity-registry-study .er-app svg { width: 15px; height: 15px; flex: 0 0 15px; }
+  #entity-registry-study .er-muted { color: var(--er-muted); }
+  #entity-registry-study .er-small { font-size: 12px; }
+  #entity-registry-study .er-line { display: flex; align-items: center; gap: 8px; min-width: 0; flex-wrap: wrap; }
+  #entity-registry-study .er-push { margin-left: auto; }
+  #entity-registry-study .er-window { display: flex; align-items: stretch; flex-wrap: wrap; gap: 3px; min-height: 37px; padding: 3px 94px 0 8px; background: var(--er-chrome); border-bottom: 1px solid var(--er-line); }
+  #entity-registry-study .er-work-tab { display: flex; align-items: stretch; min-width: 0; max-width: 100%; border: 1px solid transparent; border-bottom: 2px solid transparent; }
+  #entity-registry-study .er-work-tab[data-active="true"] { background: var(--er-bg); border-color: var(--er-line); border-bottom-color: var(--er-blue); }
+  #entity-registry-study .er-work-tab button { display: flex; align-items: center; justify-content: center; gap: 6px; min-width: 0; padding: 7px 8px; background: transparent; color: var(--er-muted); border: 0; text-align: left; }
+  #entity-registry-study .er-work-tab[data-active="true"] button { color: var(--er-ink); }
+  #entity-registry-study .er-work-tab button:hover { background: var(--er-blue-fill); color: var(--er-blue); }
+  #entity-registry-study .er-work-tab .er-tab-close { flex: 0 0 26px; padding: 4px 7px; }
+  #entity-registry-study .er-window-tab { display: flex; gap: 7px; align-items: center; align-self: stretch; padding: 8px 3px 6px; border-bottom: 2px solid var(--er-blue); font-weight: 600; }
+  #entity-registry-study .er-heading { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; padding: 17px 18px 12px; }
+  #entity-registry-study .er-count { color: var(--er-muted); font-size: 12px; }
+  #entity-registry-study .er-button { display: inline-flex; justify-content: center; align-items: center; gap: 6px; min-height: 30px; padding: 4px 10px; background: var(--er-bg); color: var(--er-ink); border: 1px solid var(--er-line); border-radius: 3px; text-align: left; }
+  #entity-registry-study .er-button:hover { background: var(--er-soft); }
+  #entity-registry-study .er-button[aria-expanded="true"] { background: var(--er-blue-fill); color: var(--er-blue); border-color: var(--er-blue); }
+  #entity-registry-study .er-primary { color: var(--er-on-primary); background: var(--er-primary); border-color: var(--er-primary); }
+  #entity-registry-study .er-primary:hover { background: var(--er-primary); filter: brightness(.96); }
+  #entity-registry-study .er-link { display: inline-flex; align-items: center; gap: 5px; background: transparent; color: var(--er-blue); border: 0; padding: 3px 0; text-align: left; }
+  #entity-registry-study .er-link:hover { text-decoration: underline; }
+  #entity-registry-study .er-toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding: 0 18px 12px; }
+  #entity-registry-study .er-search { display: flex; align-items: center; gap: 7px; border: 1px solid var(--er-line); border-radius: 3px; padding: 0 8px; background: var(--er-bg); flex: 1 1 250px; min-width: 100px; max-width: 440px; color: var(--er-muted); }
+  #entity-registry-study .er-search input { width: 100%; min-width: 0; padding: 6px 0; border: 0; background: transparent; color: var(--er-ink); outline-offset: 0; }
+  #entity-registry-study .er-search input::placeholder { color: var(--er-muted); }
+  #entity-registry-study .er-grouping { display: flex; align-items: center; gap: 7px; font-size: 12px; margin-left: auto; color: var(--er-muted); }
+  #entity-registry-study .er-select { min-height: 30px; padding: 4px 6px; border: 1px solid var(--er-line); border-radius: 3px; background: var(--er-bg); color: var(--er-ink); min-width: 0; max-width: 100%; }
+  #entity-registry-study .er-filter-panel { padding: 12px 18px; border-top: 1px solid var(--er-faint); border-bottom: 1px solid var(--er-line); background: var(--er-soft); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 14px; }
+  #entity-registry-study .er-field { display: flex; flex-direction: column; gap: 4px; min-width: 0; color: var(--er-muted); font-size: 12px; }
+  #entity-registry-study .er-field input { min-width: 0; width: 100%; min-height: 32px; padding: 5px 7px; background: var(--er-bg); border: 1px solid var(--er-line); border-radius: 3px; color: var(--er-ink); }
+  #entity-registry-study .er-check-row { grid-column: 1 / -1; display: flex; gap: 9px 22px; flex-wrap: wrap; align-items: center; }
+  #entity-registry-study .er-check { display: inline-flex; gap: 6px; align-items: center; }
+  #entity-registry-study .er-check input { accent-color: var(--er-primary); margin: 0; }
+  #entity-registry-study .er-active-filters { padding: 0 18px 10px; display: flex; gap: 7px; flex-wrap: wrap; align-items: center; font-size: 12px; }
+  #entity-registry-study .er-chip { display: inline-flex; align-items: center; gap: 6px; padding: 2px 7px; border: 1px solid var(--er-line); border-radius: 3px; background: var(--er-blue-fill); color: var(--er-blue); }
+  #entity-registry-study .er-body { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  #entity-registry-study .er-layout { flex: 1; display: grid; grid-template-columns: minmax(260px, 33%) minmax(0, 1fr); border-top: 1px solid var(--er-line); }
+  #entity-registry-study .er-list { border-right: 1px solid var(--er-line); min-width: 0; }
+  #entity-registry-study .er-group { display: flex; gap: 7px; align-items: center; width: 100%; padding: 7px 11px; border: 0; border-bottom: 1px solid var(--er-faint); background: var(--er-soft); color: var(--er-ink); font-weight: 600; text-align: left; }
+  #entity-registry-study .er-group .er-count { margin-left: auto; font-weight: 400; }
+  #entity-registry-study .er-entity { display: flex; align-items: center; gap: 9px; width: 100%; min-height: var(--er-row); padding: 6px 12px 6px 18px; border: 0; border-bottom: 1px solid var(--er-faint); border-left: 3px solid transparent; background: var(--er-bg); color: var(--er-ink); text-align: left; }
+  #entity-registry-study .er-entity:hover { background: var(--er-soft); }
+  #entity-registry-study .er-entity[aria-pressed="true"] { background: var(--er-blue-fill); border-left-color: var(--er-blue); }
+  #entity-registry-study .er-entity > svg { color: var(--er-muted); }
+  #entity-registry-study .er-entity-text { display: flex; flex-direction: column; min-width: 0; flex: 1; gap: 2px; }
+  #entity-registry-study .er-entity-text .er-mono { font-size: 11px; color: var(--er-muted); }
+  #entity-registry-study .er-diagnostic-mark { display: inline-flex; align-items: center; gap: 3px; font-size: 12px; white-space: nowrap; }
+  #entity-registry-study .er-warning { color: var(--er-warn); }
+  #entity-registry-study .er-error { color: var(--er-error); }
+  #entity-registry-study .er-preview { padding: 22px 24px; min-width: 0; }
+  #entity-registry-study .er-eyebrow { color: var(--er-muted); font-size: 12px; margin-bottom: 6px; }
+  #entity-registry-study .er-subtitle { margin-top: 4px !important; color: var(--er-muted); }
+  #entity-registry-study .er-preview-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 15px; margin-bottom: 23px; }
+  #entity-registry-study .er-ro { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--er-muted); }
+  #entity-registry-study .er-props { display: grid; margin: 0; }
+  #entity-registry-study .er-prop { display: grid; grid-template-columns: minmax(110px, .7fr) minmax(0, 1.3fr); gap: 12px; padding: 7px 0; border-bottom: 1px solid var(--er-faint); }
+  #entity-registry-study .er-prop dt { color: var(--er-muted); }
+  #entity-registry-study .er-prop dd { margin: 0; min-width: 0; }
+  #entity-registry-study .er-section-title { margin-top: 24px !important; margin-bottom: 7px !important; }
+  #entity-registry-study .er-jump { display: flex; gap: 9px; align-items: center; width: 100%; padding: 9px 0; border: 0; border-bottom: 1px solid var(--er-faint); background: transparent; color: var(--er-ink); text-align: left; }
+  #entity-registry-study .er-jump:hover { color: var(--er-blue); }
+  #entity-registry-study .er-jump > span { display: flex; flex: 1; flex-direction: column; min-width: 0; }
+  #entity-registry-study .er-jump small { color: var(--er-muted); font-size: 12px; margin-top: 1px; }
+  #entity-registry-study .er-technical { margin-top: 22px; color: var(--er-muted); font-size: 12px; }
+  #entity-registry-study .er-technical summary { cursor: var(--cursor-interaction, pointer); padding: 5px 0; }
+  #entity-registry-study .er-technical .er-props { margin-top: 6px; }
+  #entity-registry-study .er-footer { display: flex; align-items: center; flex-wrap: wrap; gap: 7px 16px; padding: 8px 13px; border-top: 1px solid var(--er-line); background: var(--er-soft); color: var(--er-muted); font-size: 12px; margin-top: auto; }
+  #entity-registry-study .er-table-wrap { min-width: 0; padding: 0 18px 16px; flex: 1; }
+  #entity-registry-study .er-table { width: 100%; border-collapse: collapse; table-layout: fixed; text-align: left; }
+  #entity-registry-study .er-table th { background: var(--er-soft); color: var(--er-muted); font-size: 12px; font-weight: 400; padding: 8px; border-top: 1px solid var(--er-line); border-bottom: 1px solid var(--er-line); }
+  #entity-registry-study .er-table td { padding: 9px 8px; border-bottom: 1px solid var(--er-faint); vertical-align: middle; min-height: var(--er-row); }
+  #entity-registry-study .er-table .er-link { color: var(--er-ink); }
+  #entity-registry-study .er-table .er-link:hover { color: var(--er-blue); }
+  #entity-registry-study .er-table tr[data-selected="true"] td { background: var(--er-blue-fill); }
+  #entity-registry-study .er-table .er-table-group td { padding: 6px 8px; background: var(--er-soft); font-weight: 600; }
+  #entity-registry-study .er-mobile-meta { display: none; }
+  #entity-registry-study .er-empty { padding: 30px 20px; color: var(--er-muted); }
+  #entity-registry-study .er-card-heading { padding: 13px 18px 15px; border-bottom: 1px solid var(--er-line); }
+  #entity-registry-study .er-card-top { margin-bottom: 12px; }
+  #entity-registry-study .er-tag { display: inline-block; color: var(--er-muted); font-size: 12px; border: 1px solid var(--er-line); padding: 1px 6px; border-radius: 2px; }
+  #entity-registry-study .er-card-body { display: grid; grid-template-columns: 173px minmax(0, 1fr); flex: 1; }
+  #entity-registry-study .er-card-nav { display: flex; flex-direction: column; gap: 3px; padding: 11px 7px; background: var(--er-soft); border-right: 1px solid var(--er-line); }
+  #entity-registry-study .er-nav { border: 0; border-left: 3px solid transparent; background: transparent; color: var(--er-ink); text-align: left; padding: 7px 8px; }
+  #entity-registry-study .er-nav[aria-pressed="true"] { border-left-color: var(--er-blue); color: var(--er-blue); background: var(--er-blue-fill); }
+  #entity-registry-study .er-page { padding: 20px 24px; min-width: 0; }
+  #entity-registry-study .er-page h3 { margin-bottom: 12px; }
+  #entity-registry-study .er-notice { display: flex; align-items: flex-start; gap: 9px; padding: 11px 12px; margin: 12px 0; background: var(--er-warn-fill); color: var(--er-warn); border-left: 3px solid var(--er-warn); }
+  #entity-registry-study .er-notice.er-error { background: var(--er-error-fill); color: var(--er-error); border-left-color: var(--er-error); }
+  #entity-registry-study .er-notice > svg { margin-top: 2px; }
+  #entity-registry-study .er-notice span { display: block; }
+  #entity-registry-study .er-mobile-back { display: none; margin-bottom: 12px; }
+  #entity-registry-study .er-generator { width: 100%; max-width: 570px; padding: 25px 24px; display: flex; flex-direction: column; gap: 16px; }
+  #entity-registry-study .er-generator h2 { margin-bottom: 4px; }
+  #entity-registry-study .er-app[data-code="false"] .er-entity-text .er-mono { display: none; }
+  #entity-registry-study .er-filters { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr); gap: 12px; padding: 0 18px 14px; }
+  #entity-registry-study .er-filters .er-field { font-size: 12px; }
+  #entity-registry-study .er-filters .er-select { min-height: 32px; width: 100%; }
+  #entity-registry-study .er-create { position: relative; margin-left: auto; }
+  #entity-registry-study .er-create-menu { position: absolute; top: calc(100% + 5px); right: 0; width: 226px; max-width: 100%; min-width: 210px; padding: 4px; border: 1px solid var(--er-line); border-radius: 3px; background: var(--er-bg); color: var(--er-ink); box-shadow: 0 5px 16px light-dark(#202a3824, #00000066); z-index: 20; }
+  #entity-registry-study .er-menu-item { display: flex; align-items: center; gap: 8px; padding: 8px 9px; width: 100%; text-align: left; border: 0; border-radius: 2px; background: transparent; color: var(--er-ink); }
+  #entity-registry-study .er-menu-item:hover, #entity-registry-study .er-menu-item:focus-visible { background: var(--er-blue-fill); color: var(--er-blue); }
+  #entity-registry-study .er-tree-tools { padding: 8px 11px; background: var(--er-bg); border-bottom: 1px solid var(--er-line); }
+  #entity-registry-study .er-tree-tools .er-grouping { justify-content: space-between; margin-left: 0; }
+  #entity-registry-study .er-tree-tools .er-select { max-width: 155px; }
+  #entity-registry-study .er-reset { font-size: 12px; }
+  #entity-registry-study .er-modify-body { padding: 20px 24px; max-width: 830px; width: 100%; }
+  #entity-registry-study .er-edit-fields { margin: 12px 0 18px; }
+  #entity-registry-study .er-edit-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 18px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--er-faint); }
+  #entity-registry-study .er-edit-row code { display: block; }
+  #entity-registry-study .er-edit-row .er-field { color: var(--er-muted); }
+  #entity-registry-study .er-change-summary { margin-top: 18px; }
+  @media (max-width: 720px) {
+    #entity-registry-study .er-grouping { margin-left: 0; }
+    #entity-registry-study .er-layout { grid-template-columns: minmax(220px, 40%) minmax(0, 1fr); }
+    #entity-registry-study .er-preview, #entity-registry-study .er-page { padding: 16px; }
+    #entity-registry-study .er-prop { grid-template-columns: minmax(95px, .8fr) minmax(0, 1.2fr); gap: 8px; }
+    #entity-registry-study .er-card-body { grid-template-columns: 150px minmax(0, 1fr); }
+    #entity-registry-study .er-table { display: block; }
+    #entity-registry-study .er-table thead { display: none; }
+    #entity-registry-study .er-table tbody { display: block; }
+    #entity-registry-study .er-table tr:not(.er-table-group) { display: grid; grid-template-columns: minmax(0, 1fr) auto; border-bottom: 1px solid var(--er-line); padding: 8px 0; }
+    #entity-registry-study .er-table td { display: block; border: 0; min-height: auto; padding: 2px 7px; }
+    #entity-registry-study .er-table td[data-col="entity"] { grid-column: 1; grid-row: 1; }
+    #entity-registry-study .er-table td[data-col="code"] { grid-column: 1; grid-row: 2; color: var(--er-muted); }
+    #entity-registry-study .er-table td[data-col="kind"], #entity-registry-study .er-table td[data-col="subsystem"] { display: none; }
+    #entity-registry-study .er-table td[data-col="diagnostics"] { grid-column: 2; grid-row: 1 / 3; }
+    #entity-registry-study .er-mobile-meta { display: block; color: var(--er-muted); font: 12px/1.5 "Segoe UI", Arial, sans-serif; margin-top: 5px; }
+    #entity-registry-study .er-table tr.er-table-group { display: block; }
+  }
+  @media (max-width: 560px) {
+    #entity-registry-study .er-edit-row { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+    #entity-registry-study .er-modify-body { padding: 16px; }
+    #entity-registry-study .er-filters { grid-template-columns: minmax(0, 1fr); padding: 0 12px 14px; gap: 9px; }
+    #entity-registry-study .er-create { margin-left: 0; }
+    #entity-registry-study .er-create-menu { left: 0; right: auto; }
+    #entity-registry-study .er-heading, #entity-registry-study .er-toolbar { padding-left: 12px; padding-right: 12px; }
+    #entity-registry-study .er-heading h1 { font-size: 16px; }
+    #entity-registry-study .er-heading > .er-button { margin-left: 0; }
+    #entity-registry-study .er-filter-panel { grid-template-columns: minmax(0, 1fr); padding: 12px; }
+    #entity-registry-study .er-search { flex-basis: 100%; max-width: none; }
+    #entity-registry-study .er-layout { display: block; }
+    #entity-registry-study .er-list { border-right: 0; }
+    #entity-registry-study .er-layout .er-preview { display: none; }
+    #entity-registry-study .er-layout[data-mobile-detail="true"] .er-list { display: none; }
+    #entity-registry-study .er-layout[data-mobile-detail="true"] .er-preview { display: block; }
+    #entity-registry-study .er-mobile-back { display: inline-flex; }
+    #entity-registry-study .er-card-body { display: block; }
+    #entity-registry-study .er-card-nav { flex-direction: row; flex-wrap: wrap; border-right: 0; border-bottom: 1px solid var(--er-line); }
+    #entity-registry-study .er-nav { font-size: 12px; padding: 6px; }
+    #entity-registry-study .er-prop { grid-template-columns: 1fr; gap: 3px; }
+    #entity-registry-study .er-card-heading .er-push { margin-left: 0; }
+    #entity-registry-study .er-table-wrap { padding-left: 10px; padding-right: 10px; }
+    #entity-registry-study .er-footer .er-push { margin-left: 0; }
+  }
+  @media (pointer: coarse) {
+    #entity-registry-study .er-button, #entity-registry-study .er-link, #entity-registry-study .er-group, #entity-registry-study .er-nav, #entity-registry-study .er-chip { min-height: 44px; }
+    #entity-registry-study .er-select, #entity-registry-study .er-search input, #entity-registry-study .er-field input { min-height: 44px; font-size: 16px; }
+    #entity-registry-study .er-check { min-height: 44px; }
+    #entity-registry-study .er-menu-item { min-height: 44px; }
+    #entity-registry-study .er-work-tab button { min-height: 44px; }
+  }
+</style>
+<script>
+(() => {
+  const root = document.getElementById('entity-registry-study');
+  const kindLabels = {catalog:'Справочник', document:'Документ', register:'Регистр сведений', plain:'Простая сущность'};
+  const groupLabels = {catalog:'Справочники', document:'Документы', register:'Регистры сведений', plain:'Простые сущности'};
+  const field = (name,label,type='Строка',required=false) => ({name,label,type,required});
+  const entities = [
+    {id:'group-nom', name:'Группы номенклатуры', item:'Группа номенклатуры', code:'GroupNom', kind:'catalog', subsystem:'Справочники', warnings:1, errors:0, fields:[field('code','Код','Строка · 20',true),field('name','Наименование','Строка · 200',true)], sections:[]},
+    {id:'unit-of-measurement', name:'Единицы измерения', item:'Единица измерения', code:'UnitOfMeasurement', kind:'catalog', subsystem:'Справочники', warnings:0, errors:0, fields:[field('shortCode','Краткий код','Строка',true),field('name','Наименование')], sections:[]},
+    {id:'nomenclature', name:'Номенклатура', item:'Элемент номенклатуры', code:'Nomenclature', kind:'catalog', subsystem:'Справочники', warnings:0, errors:0, fields:[field('code','Код','Строка · 20',true),field('name','Наименование','Строка · 200',true),field('unitOfMeasurement','Единица измерения','Ссылка',true),field('groupNom','Группа номенклатуры','Ссылка'),field('typeNom','Тип номенклатуры','Ссылка')], sections:['Значения атрибутов']},
+    {id:'workshop', name:'Цеха', item:'Цех', code:'Workshop', kind:'catalog', subsystem:'Справочники', warnings:0, errors:0, fields:[field('code','Код','Строка · 20',true),field('name','Наименование')], sections:[]},
+    {id:'receiving-document', name:'Приёмно-сдаточные накладные', item:'Накладная', code:'ReceivingDocument', kind:'document', subsystem:'Производство', warnings:1, errors:0, fields:[field('number','Номер','Строка',true),field('date','Дата','Дата и время',true),field('journal','Журнал','Ссылка',true)], sections:['Номенклатура']},
+    {id:'accounting-object-installation', name:'Установки объектов учёта', item:'Установка объекта учёта', code:'AccountingObjectInstallation', kind:'document', subsystem:'Производство', warnings:0, errors:0, fields:[field('number','Номер','Строка',true),field('date','Дата','Дата и время',true)], sections:['Объекты учёта']},
+    {id:'nomenclature-price', name:'Цены номенклатуры', item:'Цена номенклатуры', code:'NomenclaturePrice', kind:'register', subsystem:'Справочники', warnings:0, errors:1, fields:[field('period','Период','Дата',true),field('nomenclature','Номенклатура','Измерение · ссылка',true),field('price','Цена','Ресурс · число',true)], sections:[]},
+    {id:'nomenclature-accounting-object', name:'Объекты учёта номенклатуры', item:'Объект учёта номенклатуры', code:'NomenclatureAccountingObject', kind:'register', subsystem:'Производство', warnings:0, errors:0, fields:[field('period','Период','Дата и время',true),field('workshop','Цех','Измерение · ссылка',true),field('nomenclature','Номенклатура','Измерение · ссылка',true),field('accountingType','Тип учёта','Ресурс · ссылка')], sections:[]},
+    {id:'skl-nom-opa', name:'Наборы атрибутов КСУ', item:'Набор атрибутов КСУ', code:'SklNomOpa', kind:'plain', subsystem:'Справочники', warnings:0, errors:0, fields:[field('nomenclature','Номенклатура','Ссылка',true),field('displayName','Представление')], sections:[]}
+  ];
+  const escape = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const icon = name => `<i data-lucide="${name}" aria-hidden="true"></i>`;
+  const entityIcon = e => ({catalog:'folder',document:'file-text',register:'table-2',plain:'box',service:'component'}[e.kind]);
+  const exposure = e => e.kind === 'service' ? 'Служебная' : 'Основная';
+  const diagMark = e => e.errors ? `<span class="er-diagnostic-mark er-error" aria-label="${e.errors} ошибка">${icon('circle-alert')}${e.errors} ош.</span>` : e.warnings ? `<span class="er-diagnostic-mark er-warning" aria-label="${e.warnings} предупреждение">${icon('triangle-alert')}${e.warnings} пр.</span>` : '';
+  const options = (items, selected, placeholder) => `<option value="">${placeholder}</option>` + items.map(([value,label]) => `<option value="${value}" ${value===selected?'selected':''}>${label}</option>`).join('');
+  const props = rows => `<dl class="er-props">${rows.map(([label,value])=>`<div class="er-prop"><dt>${label}</dt><dd>${value}</dd></div>`).join('')}</dl>`;
+  const apps = Array.from(root.querySelectorAll('.er-app'));
+  const settings = {rowHeight:43,showClass:true};
+  const states = new Map();
+  let lastWrittenState=null;
+  const initial = () => ({selected:'group-nom',view:'registry',tab:'Основные',query:'',kind:'',subsystem:'',groupBy:'kind',closed:[],mobileDetail:false,createKind:'catalog',createMenuOpen:false,entries:[],activeId:'registry'});
+  function restore(saved) {
+    const data = saved && saved.privateContent && saved.privateContent.registryTree;
+    apps.forEach(app => {
+      const mode = app.dataset.mode;
+      const candidate = data && data[mode];
+      states.set(app, {...initial(mode), ...(candidate || {})});
+      const state=states.get(app);
+      if (!entities.some(e=>e.id===state.selected)) state.selected='group-nom';
+      if (!Array.isArray(state.closed)) state.closed=[];
+      if (!Array.isArray(state.entries)) state.entries=[];
+      state.entries=state.entries.filter(entry=>entry&&['card','modify','global','create'].includes(entry.mode)&&(['card','modify'].includes(entry.mode)?entities.some(e=>e.id===entry.entity):entry.mode==='create'?Boolean(kindLabels[entry.kind]):true));
+      state.entries.forEach(entry=>{if(!entry.labels||typeof entry.labels!=='object')entry.labels={};});
+      activateWorkspace(state,state.activeId);
+      state.createMenuOpen=false;
+      if (!kindLabels[state.createKind]) state.createKind='catalog';
+    });
+  }
+  restore(window.openai && window.openai.widgetState);
+  function save() {
+    if (!window.openai || typeof window.openai.setWidgetState !== 'function') return;
+    const data = {};
+    apps.forEach(app=>data[app.dataset.mode]=states.get(app));
+    const selected = {};
+    apps.forEach(app=>{const s=states.get(app),entry=activeWorkspace(s);selected[app.dataset.mode]={entity:entry?.entity||s.selected,catalogSelection:s.selected,view:s.view,tab:entry?.section||s.tab,openTabs:s.entries.map(e=>e.id)};});
+    lastWrittenState=JSON.stringify(data);
+    window.openai.setWidgetState({modelContent:{mockup:'Реестр сущностей — дерево и обзор',selected},privateContent:{registryTree:data}}).catch(()=>{});
+  }
+  function filtered(s) {
+    const q = s.query.toLocaleLowerCase('ru').trim();
+    return entities.filter(e => (!s.kind || e.kind===s.kind) && (!s.subsystem || e.subsystem===s.subsystem) && (!q || [e.name,e.item,e.code].some(v=>v.toLocaleLowerCase('ru').includes(q))));
+  }
+  function grouped(list,s) {
+    if(s.groupBy==='none') return [['Все сущности',list]];
+    const groups=new Map();
+    list.forEach(e=>{const name=s.groupBy==='kind'?groupLabels[e.kind]:e.subsystem;if(!groups.has(name)) groups.set(name,[]);groups.get(name).push(e);});
+    return [...groups];
+  }
+  function toolbar(s) {
+    return `<header class="er-heading"><h1>Реестр сущностей</h1><span class="er-count" data-result-count aria-live="polite"></span><button type="button" class="er-link er-reset" data-action="reset" hidden>Сбросить фильтры</button>
+      <div class="er-create"><button type="button" class="er-button er-create-trigger" data-action="create-menu" aria-haspopup="menu" aria-controls="er-create-options" aria-expanded="${s.createMenuOpen}">${icon('plus')}Создать новый <span aria-hidden="true">▾</span></button>
+      <div class="er-create-menu" id="er-create-options" role="menu" aria-label="Создать новую сущность" ${s.createMenuOpen?'':'hidden'}>${Object.entries(kindLabels).map(([kind,label])=>`<button type="button" class="er-menu-item" role="menuitem" data-create-kind="${kind}">${icon(entityIcon({kind}))}${label}</button>`).join('')}</div></div></header>
+      <div class="er-filters" role="group" aria-label="Фильтры реестра">
+      <label class="er-field">Наименование / имя в коде<input type="search" data-field="query" aria-label="Наименование или имя в коде" placeholder="Номенклатура, GroupNom…" value="${escape(s.query)}"></label>
+      <label class="er-field">Вид сущности<select class="er-select" data-field="kind">${options(Object.entries(kindLabels),s.kind,'Все виды')}</select></label>
+      <label class="er-field">Подсистема<select class="er-select" data-field="subsystem">${options([['Справочники','Справочники'],['Производство','Производство']],s.subsystem,'Все подсистемы')}</select></label></div>`;
+  }
+  function tree(list,s) {
+    return grouped(list,s).map(([name,items])=>{
+      const closed=s.closed.includes(name);
+      return `<section><button class="er-group" type="button" data-group="${escape(name)}" aria-expanded="${!closed}">${icon(closed?'chevron-right':'chevron-down')}${name}<span class="er-count">${items.length}</span></button>
+      <div ${closed?'hidden':''}>${items.map(e=>`<button type="button" class="er-entity" data-select="${e.id}" aria-pressed="${e.id===s.selected}">${icon(entityIcon(e))}<span class="er-entity-text"><span>${e.name}</span><span class="er-mono">${e.code}</span></span>${diagMark(e)}</button>`).join('')}</div></section>`;
+    }).join('') || `<div class="er-empty">Ничего не найдено.<br><button type="button" class="er-link" data-action="reset-all">Очистить поиск и фильтры</button></div>`;
+  }
+  function technical(e) { return `<details class="er-technical"><summary>Технические сведения</summary>${props([['Класс',`<code>org.ip.model.${e.code}</code>`],['Адрес',`<code>/entity-explorer/${e.id}</code>`],['Экспозиция',`<code>${e.kind==='service'?'OWNED':'STANDARD_ROOT'}</code>`]])}</details>`; }
+  function preview(e) {
+    return `<button type="button" class="er-link er-mobile-back" data-action="list">${icon('arrow-left')}К списку сущностей</button>
+      <div class="er-eyebrow">${kindLabels[e.kind]} · ${e.subsystem}</div><h2>${e.item}</h2><p class="er-subtitle er-mono">${e.code}</p>
+      <div class="er-preview-actions"><button type="button" class="er-button er-primary" data-open="${e.id}">Открыть карточку${icon('arrow-up-right')}</button><button type="button" class="er-button" data-modify="${e.id}">${icon('square-pen')}Изменить структуру…</button></div>
+      ${props([['Вид сущности',kindLabels[e.kind]],['Подсистема',e.subsystem],['Ключ',`<code>${e.id}</code>`],['Экспозиция',exposure(e)]])}
+      <h3 class="er-section-title">Кратко о структуре</h3>
+      ${props([['Реквизиты',e.fields.map(f=>escape(f.label)).join(', ')],['Табличные части',e.sections.length?e.sections.join(', '):'Нет'],['Диагностика',e.errors?'<span class="er-error">1 ошибка</span>':e.warnings?'<span class="er-warning">1 предупреждение</span>':'Нет замечаний']])}
+      ${technical(e)}`;
+  }
+  function footer(list) {const total=list.filter(e=>e.errors||e.warnings).length;return `<footer class="er-footer"><span>Пример данных · ${list.length} сущностей</span><span>${total} с замечаниями</span><button type="button" class="er-link er-push" data-action="global">${icon('triangle-alert')}Общие диагностики · 4</button></footer>`;}
+  function updateResults(app) {
+    const s=states.get(app), list=filtered(s), mode=app.dataset.mode;
+    if(s.view!=='registry') return;
+    app.querySelector('[data-result-count]').textContent = `${list.length} из ${entities.length}`;
+    app.querySelector('.er-reset').hidden=!(s.kind||s.subsystem||s.query.trim());
+    const e=list.find(e=>e.id===s.selected);
+    app.querySelector('[data-results]').innerHTML=`<div class="er-layout" data-mobile-detail="${s.mobileDetail}"><aside class="er-list" aria-label="Сущности"><div class="er-tree-tools"><label class="er-grouping">Группировать<select class="er-select" data-field="groupBy" aria-label="Группировка"><option value="kind" ${s.groupBy==='kind'?'selected':''}>По видам</option><option value="subsystem" ${s.groupBy==='subsystem'?'selected':''}>По подсистемам</option></select></label></div>${tree(list,s)}</aside><section class="er-preview" aria-label="Краткий обзор выбранной сущности">${e?preview(e):`<div class="er-empty">${list.length?'Выберите сущность в списке слева.':'Нет сущностей для просмотра.'}</div>`}</section></div>${footer(list)}`;
+    icons();
+  }
+  const tabs = ['Основные','Данные','Родитель / Владельцы','Представление','Формы','Обработчики','Нумерация','Диагностика'];
+  function dataPage(e) {
+    const sectionRows=e.sections.map(name=>`<details class="er-technical"><summary>${name}</summary><span>Реквизиты строки открываются внутри выбранной табличной части.</span></details>`).join('');
+    const sections=e.sections.length?`<h3 class="er-section-title">Табличные части</h3>${sectionRows}`:'';
+    return `<h3>Реквизиты</h3>${props(e.fields.map(f=>[`${escape(f.label)}${f.required?' *':''}`,`<code>${f.name}</code><br><span class="er-muted er-small">${f.type}</span>`]))}${sections}<details class="er-technical"><summary>Служебные реквизиты</summary>${props([['Идентификатор','<code>id</code>'],['Версия','<code>version</code>']])}</details>`;
+  }
+  function diagPage(e) {
+    if(!e.errors&&!e.warnings) return `<h3>Диагностика сущности</h3><p class="er-line er-muted">${icon('circle-check')}Замечаний нет</p>`;
+    return `<h3>Диагностика сущности</h3><div class="er-notice ${e.errors?'er-error':''}">${icon(e.errors?'circle-alert':'triangle-alert')}<div><span>${e.errors?'Не настроена форма выбора':e.id==='group-nom'?'Обязательность поля «Код» объявлена повторно':'Проверьте настройки поля «Журнал»'}</span><span class="er-small">${e.errors?'Ошибка':'Предупреждение'} · ${e.code}${e.errors?'':'#'+(e.id==='group-nom'?'code':'journal')}</span></div></div><details class="er-technical"><summary>Код и источник сообщения</summary><code>${e.errors?'MISSING_SELECTION_FORM':e.id==='group-nom'?'REDUNDANT_REQUIRED':'LEGACY_FORM_SETTING'}</code><br><code>org.ip.model.${e.code}</code></details>`;
+  }
+  function page(e,tab) {
+    if(tab==='Данные')return dataPage(e);
+    if(tab==='Диагностика')return diagPage(e);
+    if(tab==='Формы')return `<h3>Формы</h3>${props([['Элемент','Основная форма'],['Список','Основной список'],['Выбор','Основная форма выбора']])}<details class="er-technical"><summary>Классы и места регистрации</summary><code>${e.code}</code> · конфигурация форм</details>`;
+    if(tab==='Основные')return `<h3>Идентификация</h3>${props([['Название',e.item],['Имя в коде',`<code>${e.code}</code>`],['Вид',kindLabels[e.kind]],['Подсистема',e.subsystem],['Базовый класс',`<code>${e.kind==='register'?'PeriodicRegisterEntryBase':'BaseEntity'}</code>`]])}<h3 class="er-section-title">Заголовки форм</h3>${props([['Список',e.name],['Элемент',e.item],['Выбор',`Выбор: ${e.item.toLocaleLowerCase('ru')}`]])}${technical(e)}`;
+    if(tab==='Представление')return `<h3>Представление</h3>${props([['Заголовок списка',e.name],['Заголовок элемента',e.item]])}`;
+    if(tab==='Родитель / Владельцы')return `<h3>Родитель / Владельцы</h3><p class="er-muted">${e.sections.length?'Табличные части принадлежат выбранной сущности.':'Родитель и владельцы не заданы.'}</p>${e.sections.length?props(e.sections.map(x=>['Табличная часть',x])):''}`;
+    if(tab==='Обработчики')return `<h3>Обработчики</h3><p class="er-muted">Классы обработчиков и исходный код просматриваются в этом разделе карточки.</p>`;
+    if(tab==='Нумерация')return `<h3>Нумерация</h3><p class="er-muted">${e.kind==='document'?'Нумерация документа':e.id==='nomenclature'?'Нумерация кода':'Автоматическая нумерация не задана'}</p>`;
+    return `<h3>Техническая сводка</h3>${technical(e)}`;
+  }
+  function card(s) {
+    const e=entities.find(e=>e.id===s.selected);
+    return `<header class="er-card-heading"><div class="er-line er-card-top"><button type="button" class="er-button" data-action="back">${icon('arrow-left')}К реестру</button><span class="er-muted er-small">${groupLabels[e.kind]} / ${e.code}</span></div><div class="er-line"><h1>${e.item}</h1><span class="er-tag">${kindLabels[e.kind]}</span><span class="er-ro er-push">${icon('eye')}Только просмотр</span></div><p class="er-subtitle er-mono">${e.code}</p></header><div class="er-card-body"><nav class="er-card-nav" aria-label="Разделы карточки">${tabs.map(tab=>`<button type="button" class="er-nav" data-tab="${tab}" aria-pressed="${s.tab===tab}">${tab}${tab==='Диагностика'&&(e.warnings||e.errors)?' · 1':''}</button>`).join('')}<button type="button" class="er-nav" data-tab="Техническая сводка" aria-pressed="${s.tab==='Техническая сводка'}">Техническая сводка ›</button></nav><section class="er-page" aria-label="${s.tab}">${page(e,s.tab)}</section></div><footer class="er-footer">Пример данных · ${e.code} › ${s.tab}<span class="er-push">EntityExplorer</span></footer>`;
+  }
+  function globalPage() {
+    return `<header class="er-card-heading"><button type="button" class="er-button er-card-top" data-action="back">${icon('arrow-left')}К реестру</button><h1>Диагностика каталога</h1><p class="er-subtitle">4 сообщения без привязки к сущности</p></header><section class="er-page"><h3>Примеры сообщений</h3>${['В регистрации формы не указан тип сущности','Не удалось сопоставить источник метаданных с сущностью','Повторная регистрация варианта формы','Не определён адрес диагностического сообщения'].map((message,i)=>`<div class="er-notice">${icon('triangle-alert')}<div><span>${message}</span><span class="er-small">Предупреждение · сообщение ${i+1}</span></div></div>`).join('')}</section><footer class="er-footer">Пример диагностик каталога</footer>`;
+  }
+  function createPage(s) {
+    const names={catalog:['Новый справочник','Склады','Warehouse'],document:['Новый документ','Приходная накладная','IncomingDocument'],register:['Новый регистр сведений','Цены материалов','MaterialPrice'],plain:['Новая простая сущность','Настройки уведомлений','NotificationSettings']};
+    const [title,label,code]=names[s.createKind];
+    const draft=s.createDraft||{};
+    return `<header class="er-card-heading"><button type="button" class="er-button er-card-top" data-action="back">${icon('arrow-left')}К реестру</button><h1>${title}</h1><p class="er-subtitle">Генератор сущности</p></header><section class="er-generator"><label class="er-field">Вид сущности<span>${kindLabels[s.createKind]}</span></label><label class="er-field">Наименование<input data-create-field="name" value="${escape(draft.name||'')}" placeholder="${label}" aria-label="Наименование новой сущности"></label><label class="er-field">Имя в коде<input data-create-field="code" value="${escape(draft.code||'')}" placeholder="${code}" aria-label="Имя новой сущности в коде"></label><label class="er-field">Подсистема<select class="er-select" data-create-field="subsystem" aria-label="Подсистема новой сущности"><option ${draft.subsystem!=='Производство'?'selected':''}>Справочники</option><option ${draft.subsystem==='Производство'?'selected':''}>Производство</option></select></label></section><footer class="er-footer">Эскиз точки входа в создание сущности</footer>`;
+  }
+  function activeWorkspace(s) {return s.entries.find(entry=>entry.id===s.activeId)||null;}
+  function activateWorkspace(s,id) {
+    const entry=s.entries.find(entry=>entry.id===id);
+    s.activeId=entry?entry.id:'registry';s.view=entry?entry.mode:'registry';
+  }
+  function openWorkspace(s,mode,entity,kind) {
+    const id=mode+':'+(entity||kind||'catalog');
+    let entry=s.entries.find(entry=>entry.id===id);
+    if(!entry){entry={id,mode,entity:entity||null,kind:kind||null,section:'Основные',labels:{},showChanges:false};s.entries.push(entry);}
+    activateWorkspace(s,id);s.createMenuOpen=false;
+  }
+  function workspaceTitle(entry) {
+    if(entry.mode==='global')return 'Диагностика каталога';
+    if(entry.mode==='create')return 'Создать · '+kindLabels[entry.kind];
+    const e=entities.find(e=>e.id===entry.entity);
+    return (entry.mode==='modify'?'Изменение · ':'Карточка · ')+e.code;
+  }
+  function workspaceHeader(s) {
+    return `<nav class="er-window" aria-label="Рабочие вкладки"><div class="er-work-tab" data-active="${s.activeId==='registry'}"><button type="button" data-workspace-activate="registry" aria-pressed="${s.activeId==='registry'}">${icon('layers')}Структура сущностей</button></div>${s.entries.map(entry=>`<div class="er-work-tab" data-active="${entry.id===s.activeId}"><button type="button" data-workspace-activate="${entry.id}" aria-pressed="${entry.id===s.activeId}">${icon(entry.mode==='modify'?'square-pen':entry.mode==='card'?'eye':entry.mode==='create'?'plus':'triangle-alert')}${escape(workspaceTitle(entry))}</button><button type="button" class="er-tab-close" data-workspace-close="${entry.id}" aria-label="Закрыть вкладку: ${escape(workspaceTitle(entry))}">×</button></div>`).join('')}</nav>`;
+  }
+  function modifyPage(entry) {
+    const e=entities.find(e=>e.id===entry.entity);
+    const changed=e.fields.filter(f=>entry.labels[f.name]!==undefined&&entry.labels[f.name]!==f.label);
+    const rows=e.fields.map(f=>`<div class="er-edit-row"><span><code>${f.name}</code><span class="er-muted er-small">${f.type}</span></span><label class="er-field">Подпись<input type="text" data-modify-label="${f.name}" aria-label="Подпись реквизита ${f.name}" value="${escape(entry.labels[f.name]??f.label)}"></label></div>`).join('');
+    const summary=changed.length?props(changed.map(f=>[f.name,`${escape(f.label)} → ${escape(entry.labels[f.name])}`])):'<p class="er-muted">Изменений нет.</p>';
+    return `<header class="er-card-heading"><div class="er-line er-card-top"><button type="button" class="er-button" data-action="back">${icon('arrow-left')}К реестру</button><span class="er-muted er-small">${e.code}</span></div><h1>Изменение структуры · ${e.item}</h1></header><section class="er-modify-body"><h3>Реквизиты сущности</h3><div class="er-edit-fields">${rows}</div><button type="button" class="er-button" data-action="preview-modify">Показать изменения</button><div class="er-change-summary" aria-live="polite" ${entry.showChanges?'':'hidden'}>${summary}</div></section><footer class="er-footer">Пример данных · Редактор структуры</footer>`;
+  }
+  function icons(){if(globalThis.lucide)globalThis.lucide.createIcons({attrs:{width:15,height:15}});}
+  function render(app) {
+    const s=states.get(app),entry=activeWorkspace(s);
+    const content=s.view==='registry'?`${toolbar(s)}<div class="er-body" data-results></div>`:s.view==='card'?card({...s,selected:entry.entity,tab:entry.section}):s.view==='modify'?modifyPage(entry):s.view==='global'?globalPage():createPage({...s,createKind:entry.kind,createDraft:entry.draft});
+    app.innerHTML=`${workspaceHeader(s)}<div class="er-body">${content}</div>`;
+    if(s.view==='registry')updateResults(app);else icons();
+  }
+  function ensureSelection(s) {const list=filtered(s);if(!list.some(e=>e.id===s.selected))s.selected=list.length?list[0].id:'group-nom';}
+  function setMenu(app,open,focus) {
+    const s=states.get(app);s.createMenuOpen=open;
+    const trigger=app.querySelector('.er-create-trigger');
+    const menu=app.querySelector('.er-create-menu');
+    if(!trigger||!menu)return;
+    trigger.setAttribute('aria-expanded',String(open));menu.hidden=!open;
+    if(open&&focus){const items=menu.querySelectorAll('button');items[focus==='last'?items.length-1:0].focus();}
+    if(!open&&focus==='trigger')trigger.focus();
+  }
+  apps.forEach(app=>{
+    app.addEventListener('click',event=>{
+      const button=event.target.closest('button');if(!button||!app.contains(button))return;
+      const s=states.get(app);
+      if(button.dataset.workspaceActivate){setMenu(app,false);activateWorkspace(s,button.dataset.workspaceActivate);render(app);save();return;}
+      if(button.dataset.workspaceClose){const id=button.dataset.workspaceClose;s.entries=s.entries.filter(e=>e.id!==id);if(s.activeId===id)activateWorkspace(s,'registry');render(app);save();return;}
+      if(button.dataset.action==='create-menu'){setMenu(app,!s.createMenuOpen,s.createMenuOpen?'trigger':'first');return;}
+      if(button.dataset.createKind){s.createKind=button.dataset.createKind;openWorkspace(s,'create',null,s.createKind);render(app);save();return;}
+      setMenu(app,false);
+      if(button.dataset.select){s.selected=button.dataset.select;s.mobileDetail=true;updateResults(app);save();return;}
+      if(button.dataset.open){openWorkspace(s,'card',button.dataset.open);}
+      else if(button.dataset.modify){openWorkspace(s,'modify',button.dataset.modify);}
+      else if(button.dataset.tab){const entry=activeWorkspace(s);if(entry&&entry.mode==='card')entry.section=button.dataset.tab;}
+      else if(button.dataset.group){const name=button.dataset.group;s.closed=s.closed.includes(name)?s.closed.filter(x=>x!==name):[...s.closed,name];updateResults(app);save();return;}
+      else if(button.dataset.action){
+        const action=button.dataset.action;
+        if(action==='back')activateWorkspace(s,'registry');
+        if(action==='list')s.mobileDetail=false;
+        if(action==='global')openWorkspace(s,'global');
+        if(action==='preview-modify'){const entry=activeWorkspace(s);if(entry&&entry.mode==='modify')entry.showChanges=true;}
+        if(action==='reset'||action==='reset-all'){s.kind='';s.subsystem='';s.query='';s.closed=[];s.mobileDetail=false;ensureSelection(s);}
+      } else return;
+      render(app);save();
+    });
+    app.addEventListener('input',event=>{
+      if(event.target.dataset.createField){const entry=activeWorkspace(states.get(app));if(entry?.mode==='create'){entry.draft=entry.draft||{};entry.draft[event.target.dataset.createField]=event.target.value;save();}return;}
+      if(event.target.dataset.modifyLabel){const s=states.get(app),entry=activeWorkspace(s);if(entry?.mode==='modify'){entry.labels[event.target.dataset.modifyLabel]=event.target.value;entry.showChanges=false;app.querySelector('.er-change-summary').hidden=true;save();}return;}
+      if(event.target.dataset.field!=='query')return;
+      const s=states.get(app);s.query=event.target.value;s.closed=[];s.mobileDetail=false;ensureSelection(s);updateResults(app);save();
+    });
+    app.addEventListener('change',event=>{
+      if(event.target.dataset.createField)return;
+      const key=event.target.dataset.field;if(!key||key==='query')return;
+      const s=states.get(app);s[key]=event.target.type==='checkbox'?event.target.checked:event.target.value;
+      s.closed=[];s.mobileDetail=false;ensureSelection(s);updateResults(app);save();
+    });
+    app.addEventListener('keydown',event=>{
+      const s=states.get(app);
+      if(event.key==='Escape'&&s.createMenuOpen){event.preventDefault();setMenu(app,false,'trigger');return;}
+      if(event.target.closest('.er-create-trigger')&&['ArrowDown','ArrowUp'].includes(event.key)){event.preventDefault();setMenu(app,true,event.key==='ArrowUp'?'last':'first');return;}
+      if(!event.target.closest('.er-menu-item')||!['ArrowDown','ArrowUp','Home','End'].includes(event.key))return;
+      event.preventDefault();
+      const items=Array.from(app.querySelectorAll('.er-menu-item'));
+      const index=items.indexOf(event.target.closest('.er-menu-item'));
+      const next=event.key==='Home'?0:event.key==='End'?items.length-1:(index+(event.key==='ArrowDown'?1:-1)+items.length)%items.length;
+      items[next].focus();
+    });
+    render(app);
+  });
+  document.addEventListener('click',event=>{
+    apps.forEach(app=>{if(states.get(app).createMenuOpen&&!app.querySelector('.er-create')?.contains(event.target)){setMenu(app,false);}});
+  });
+  function applyDesign(){apps.forEach(app=>{app.style.setProperty('--er-row',`${settings.rowHeight}px`);app.dataset.code=String(settings.showClass);});}
+  applyDesign();
+  if(globalThis.Tweak){
+    const tweak=new Tweak({container:root,onChange:applyDesign});
+    tweak.addSlider(settings,'rowHeight',{label:'Высота строки реестра',min:38,max:58,step:2,unit:'px'});
+    tweak.addToggle(settings,'showClass',{label:'Имя класса в дереве'});
+  }
+  window.addEventListener('openai:set_globals',event=>{
+    if(!event.detail||!event.detail.globals||!event.detail.globals.widgetState)return;
+    const incoming=event.detail.globals.widgetState.privateContent?.registryTree;
+    if(incoming&&JSON.stringify(incoming)===lastWrittenState)return;
+    restore(event.detail.globals.widgetState);apps.forEach(render);applyDesign();
+  });
+})();
+</script>

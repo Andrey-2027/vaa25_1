@@ -51,6 +51,7 @@ final class RegisterJavaSourceBuilder {
         for (var imported : imports) out.append("import ").append(imported).append(";\n");
         out.append('\n');
         out.append("@Entity\n");
+        if (RecipeCatalog.strictFormSettingsRecipe(checked.source().recipe())) out.append("@FormSettingsOnly\n");
         out.append("@Table(name = ").append(literal(root.tableName()))
                 .append(", uniqueConstraints = @UniqueConstraint(name = ")
                 .append(literal(StorageNames.constraint("uk_" + root.tableName() + "_key"))).append(", columnNames = ")
@@ -120,6 +121,10 @@ final class RegisterJavaSourceBuilder {
             if (!"AUTO".equals(binding(bindings, field).requiredMode()))
                 imports.add("org.ipro.metadata.annotation.RequiredMode");
         }
+        if (RecipeCatalog.strictFormSettingsRecipe(checked.source().recipe())) {
+            imports.remove("org.ipro.metadata.annotation.GridColumn");
+            imports.add("org.ipro.metadata.annotation.FormSettingsOnly");
+        }
         return imports;
     }
 
@@ -183,7 +188,8 @@ final class RegisterJavaSourceBuilder {
         if (!"AUTO".equals(binding.requiredMode()))
             out.append(", required = RequiredMode.").append(binding.requiredMode());
         if (binding.hidden()) out.append(", hidden = true");
-        out.append(", grid = @GridColumn(visible = ").append(binding.gridVisible()).append("))\n");
+        if (RecipeCatalog.strictFormSettingsRecipe(checked.source().recipe())) out.append(")\n");
+        else out.append(", grid = @GridColumn(visible = ").append(binding.gridVisible()).append("))\n");
         out.append(INDENT).append("private ").append(type).append(' ').append(field.name()).append(";\n");
     }
 

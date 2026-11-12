@@ -72,6 +72,8 @@ final class PlanFingerprint {
             recipe(out, recipe);
             text(out, generatorVersion);
             draft(out, source);
+            if (org.ipro.design.RecipeCatalog.CUSTOM_PLAIN_V2.equals(recipe))
+                text(out, source.presentationFieldId().toString());
             context(out, context);
             if (GenerationManifest.EXTENSION_FINGERPRINT.equals(profile)) {
                 var keys = sorted(context.referenceTargets());

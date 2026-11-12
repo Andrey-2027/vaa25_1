@@ -55,6 +55,29 @@ class VaadinModuleCompositionTest {
      * останутся зелёными, а границы не будет.</p>
      */
     private static final Set<String> REVIEWED_TYPES = Set.of(
+        // R2: cohesive snapshot-only UI, states, dictionaries and optional host ports.
+        "org.ipro.vaadin.explorer.ui.CompactCardPlace",
+        "org.ipro.vaadin.explorer.ui.CompactEntityPanel",
+        "org.ipro.vaadin.explorer.ui.DetailedEntityPanel",
+        "org.ipro.vaadin.explorer.ui.EntityExplorerCardPanel",
+        "org.ipro.vaadin.explorer.ui.EntityExplorerCardPlace",
+        "org.ipro.vaadin.explorer.ui.EntityExplorerCardState",
+        "org.ipro.vaadin.explorer.ui.EntityExplorerDiagnosticsPanel",
+        "org.ipro.vaadin.explorer.ui.EntityExplorerLabels",
+        "org.ipro.vaadin.explorer.ui.EntityExplorerRegistryActions",
+        "org.ipro.vaadin.explorer.ui.EntityExplorerRegistryModel",
+        "org.ipro.vaadin.explorer.ui.EntityExplorerRegistryPanel",
+        "org.ipro.vaadin.explorer.ui.EntityExplorerRegistryState",
+        "org.ipro.vaadin.explorer.ui.ExplorerActionAvailability",
+        "org.ipro.vaadin.explorer.ui.ExplorerCardAnchor",
+        "org.ipro.vaadin.explorer.ui.ExplorerCardBehaviorPanel",
+        "org.ipro.vaadin.explorer.ui.ExplorerCardPropertyList",
+        "org.ipro.vaadin.explorer.ui.ExplorerCardSection",
+        "org.ipro.vaadin.explorer.ui.ExplorerCardSequentialLayout",
+        "org.ipro.vaadin.explorer.ui.ExplorerCardSourceView",
+        "org.ipro.vaadin.explorer.ui.ExplorerCardTab",
+        "org.ipro.vaadin.explorer.ui.ExplorerFormPreviewPort",
+        "org.ipro.vaadin.explorer.ui.ExplorerSourcePort",
         "org.ipro.form.BindingDescriptor",
         "org.ipro.form.FormMessages",
         "org.ipro.form.builder.FormTypeCustomization",
@@ -262,6 +285,7 @@ class VaadinModuleCompositionTest {
         "filtergrid-core",
         "filtergrid-grouping",
         "filtergrid-jpa",
+        "filtergrid-inmemory",
         "vaadin-spring-boot-starter",
         "spring-context",
         "spring-beans",
@@ -341,7 +365,7 @@ class VaadinModuleCompositionTest {
                 + " E1.2b добавила порт права на операцию (`OperationPermissionSource`) — итого 138;"
                 + " ET2 добавила внутренний сборщик структурных фактов (`EntityStructureFactsAssembler`) — итого 139;"
                 + " Б1 добавила поиск автокомплита с отбором выбора (`FilterableSearchFunction`) — итого 141")
-            .hasSize(169); // AF6 stage 2: per-opening embedded-list runtime host.
+            .hasSize(191); // R2: +22 explicitly reviewed Explorer UI types; no application dependency.
     }
 
     @Test

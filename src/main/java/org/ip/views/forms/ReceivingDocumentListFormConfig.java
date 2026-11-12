@@ -14,8 +14,15 @@ import org.springframework.stereotype.Component;
 @ListColumns({"id","number","date","journal.code","receivingWorkshop.code", "transferringWorkshop", "transferringWorkshop.name"})
 @SelectionColumns({"id","number","date","journal.code","receivingWorkshop.code", "transferringWorkshop", "transferringWorkshop.name"})
 public class ReceivingDocumentListFormConfig implements ListFormCustomization {
+    public static final String WORKSHOP_INCOMING = "workshop-incoming";
     @Override public Class<?> entityClass() { return ReceivingDocument.class; }
     @Override public void configure(ListFormVariants l) {
+        l.addColumns(WORKSHOP_INCOMING, "number", "date", "journal", "transferringWorkshop");
+        l.customize(WORKSHOP_INCOMING, (form, context) -> {
+            form.getGrid().setEmptyStateText(
+                "Входящих накладных пока нет. Создайте накладную или измените отборы.");
+            form.getGrid().setMinHeight("12em");
+        });
         l.filterPanel(l.filter("journal").setRequired(true),
             l.filter("date").setLabel("Период").setPeriod(), l.filter("receivingWorkshop"));
     }

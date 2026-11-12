@@ -79,6 +79,15 @@ class FormsTest {
         var materials = navigator.createListForm(Material.class);
         var requests = navigator.createListForm(MaterialRequest.class);
         ui.add(materials, requests);
+        assertThat(materials.getGrid().getColumns()).extracting(com.vaadin.flow.component.grid.Grid.Column::getKey)
+                .containsExactly("code", "name");
+        assertThat(requests.getGrid().getColumns()).extracting(com.vaadin.flow.component.grid.Grid.Column::getKey)
+                .containsExactly("number", "date", "departmentId", "status");
+        var metadata = context.getBean(org.ipro.metadata.MetadataResolver.class);
+        assertThat(metadata.resolve(Material.class).getSelectColumnPaths()).extracting(org.ipro.metadata.ColumnPath::getKey)
+                .containsExactly("code", "name");
+        assertThat(metadata.resolve(MaterialRequest.class).getSelectColumnPaths()).extracting(org.ipro.metadata.ColumnPath::getKey)
+                .containsExactly("number", "date", "departmentId", "status");
         assertThat(materials.getAddButton().isEnabled()).isTrue();
         assertThat(requests.getAddButton().isEnabled()).isTrue();
         Material material = access.lookup(Material.class, "MAT-001", 10).getFirst();
@@ -91,6 +100,12 @@ class FormsTest {
         assertThat(form.getField("comment")).isNotNull();
         assertThat(form.hasAttachedSection(MaterialRequestLine.class)).isTrue();
         assertThat(form.isReadOnly()).isFalse();
+        var number = (com.vaadin.flow.component.textfield.TextField) form.getField("number");
+        assertThat(number.isReadOnly()).isTrue();
+        form.setReadOnly(true);
+        form.setReadOnly(false);
+        assertThat(number.isReadOnly()).isTrue();
+        assertThat(((com.vaadin.flow.component.textfield.TextField) form.getField("comment")).isReadOnly()).isFalse();
         assertThat(form.tableSection(MaterialRequestLine.class).getRowClass()).isEqualTo(MaterialRequestLine.class);
         descendants(form.tableSection(MaterialRequestLine.class)).filter(Button.class::isInstance)
                 .map(Button.class::cast).filter(button -> button.getText().equals("Добавить"))

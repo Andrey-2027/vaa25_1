@@ -589,6 +589,42 @@ class FormRouteUrlBridgeTest {
             .isEmpty();
     }
 
+    @Test
+    void registryHistoryReusesTheMostRecentLiveAddresslessTab() {
+        String address = EntityExplorerAddress.format("nomenclature", "fields");
+        bridge.install("/", this::enter);
+        bridge.installExplorerEntryPoint(target -> {
+            explorerEntries.add(target);
+            workspace.becomeActive("published");
+        });
+        workspace.becomeActive("dirty-editor");
+        workspace.becomeActive("registry");
+        workspace.becomeActive("unpublished-first");
+        bridge.tabAddressed("published", address);
+        workspace.becomeActive("published");
+        workspace.becomeActive("unpublished-second");
+        history.forgetWhatHappenedWhilePreparingTheCase();
+
+        history.goBackOrForward(address);
+        history.goBackOrForward("/");
+        assertThat(explorerEntries).containsExactly(address);
+        assertThat(workspace.activeEntryId()).isEqualTo("unpublished-second");
+        assertThat(history.pushed).isEmpty();
+        assertThat(history.replaced).isEmpty();
+
+        history.goBackOrForward(address);
+        workspace.close("unpublished-second");
+        workspace.becomeActive("published");
+        history.goBackOrForward("/");
+        assertThat(workspace.activeEntryId()).isEqualTo("unpublished-first");
+        workspace.close("dirty-editor");
+        workspace.close("registry");
+        workspace.close("unpublished-first");
+        workspace.activated.clear();
+        history.goBackOrForward("/");
+        assertThat(workspace.activated).isEmpty();
+    }
+
     private OpenResult enter(String address) {
         entries.add(address);
         return entryResult;
@@ -625,7 +661,7 @@ class FormRouteUrlBridgeTest {
             for (Consumer<String> listener : List.copyOf(closedListeners)) {
                 listener.accept(entryId);
             }
-            becomeActive(open.isEmpty() ? null : open.get(0));
+            if (entryId.equals(active)) becomeActive(open.isEmpty() ? null : open.get(0));
         }
 
         @Override

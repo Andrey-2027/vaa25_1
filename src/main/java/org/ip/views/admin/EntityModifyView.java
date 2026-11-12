@@ -52,6 +52,7 @@ public class EntityModifyView extends Div implements Dirtyable {
     private ModifySession session;
     private String owner;
     private Class<?> type;
+    private EntityStructureTabTitle structureTitle;
     private Runnable changed = () -> {};
     private ModificationPlan plan;
     private long planRevision = -1;
@@ -82,8 +83,11 @@ public class EntityModifyView extends Div implements Dirtyable {
     /** Called by the workspace once, with the class of the card that was open. */
     void initialize(Class<?> type, Runnable changed) {
         this.type = Objects.requireNonNull(type); this.changed = Objects.requireNonNull(changed);
+        if (structureTitle == null) structureTitle = new EntityStructureTabTitle(type, type.getSimpleName());
         activate();
     }
+
+    void setStructureTitle(EntityStructureTabTitle title) { structureTitle = title; }
 
     /** Reads the file again for a principal that differs from the one that opened the view. */
     void activate() {
@@ -105,7 +109,7 @@ public class EntityModifyView extends Div implements Dirtyable {
         removeAll(); add(new Span("Изменение недоступно"));
     }
 
-    String tabTitle() { return "Изменение · " + (type == null ? "" : type.getSimpleName()) + (isDirty() ? " *" : ""); }
+    String tabTitle() { return (structureTitle == null ? "Изменение" : structureTitle.caption("Изменение")) + (isDirty() ? " *" : ""); }
     ModifySession session() { return session; }
     ModificationPlan plan() { return plan; }
 

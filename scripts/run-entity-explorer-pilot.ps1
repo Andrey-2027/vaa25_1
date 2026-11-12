@@ -78,8 +78,6 @@ try {
             'src/test/java/org/ip/views/admin/fixture/EntityExplorerDensityFixture.java',
             'src/test/java/org/ip/views/admin/EntityExplorerPilotBoundaryTest.java',
             'src/test/java/org/ip/views/admin/CardSections.java',
-            'src/test/java/org/ip/views/admin/EntityExplorerViewAddressTest.java',
-            'src/test/java/org/ip/views/admin/EntityExplorerViewSpringCreationTest.java',
             'src/test/java/org/ip/views/EntityExplorerAddressWiringTest.java',
             'src/test/java/org/ip/views/EntityExplorerRouteGateTest.java')
         [IO.File]::WriteAllLines("$pilotOutput/test-compile.args", [string[]]$arguments, [Text.UTF8Encoding]::new($false))

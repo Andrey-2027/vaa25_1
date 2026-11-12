@@ -51,6 +51,7 @@ public @interface FieldMetadata {
     RequiredMode required() default RequiredMode.AUTO;
 
     /** Только для чтения */
+    @Deprecated(since = "AF7", forRemoval = false)
     boolean readOnly() default false;
 
     /** Скрыть поле в форме */
@@ -60,6 +61,7 @@ public @interface FieldMetadata {
     int order() default 999;
 
     /** Настройки отображения в гриде */
+    @Deprecated(since = "AF7", forRemoval = false)
     GridColumn grid() default @GridColumn();
 
     /**

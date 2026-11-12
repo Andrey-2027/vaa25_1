@@ -9,8 +9,6 @@ public final class ExplorerPilotChecks {
     public static void main(String[] args) {
         var request = LauncherDiscoveryRequestBuilder.request().selectors(
             DiscoverySelectors.selectClass("org.ip.views.admin.EntityExplorerPilotBoundaryTest"),
-            DiscoverySelectors.selectClass("org.ip.views.admin.EntityExplorerViewAddressTest"),
-            DiscoverySelectors.selectClass("org.ip.views.admin.EntityExplorerViewSpringCreationTest"),
             DiscoverySelectors.selectClass("org.ip.views.EntityExplorerAddressWiringTest"),
             DiscoverySelectors.selectClass("org.ip.views.EntityExplorerRouteGateTest")).build();
         var listener = new SummaryGeneratingListener();

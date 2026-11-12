@@ -89,6 +89,28 @@ class EntityFieldSelectionFilterTest {
     }
 
     @Test
+    void nothingFoundExplainsTheCurrentProviderFilter() {
+        List<Map<String, Object>> seen = new ArrayList<>();
+        EntityField<Item> field = new EntityField<>("Номенклатура",
+            (FilterableSearchFunction<Item>) (term, filters) -> {
+                seen.add(filters);
+                return List.of();
+            });
+        field.setSelectionFilter(Map.of(), (onSelect, applied) -> null);
+        var current = new java.util.concurrent.atomic.AtomicReference<Map<String, Object>>(
+            Map.of("typeNom", "Материал"));
+        field.setSelectionFilterProvider(current::get);
+
+        textFieldOf(field).setValue("zzz");
+        assertThat(field.notFoundHintText())
+            .isEqualTo("Ничего не найдено Поиск ограничен отбором формы");
+        current.set(Map.of());
+        textFieldOf(field).setValue("zzzz");
+        assertThat(field.notFoundHintText()).isEqualTo("Ничего не найдено");
+        assertThat(seen).containsExactly(Map.of("typeNom", "Материал"), Map.of());
+    }
+
+    @Test
     void hintGoesAwayWhenSomethingIsFoundOrFieldIsCleared() {
         List<Item> result = new ArrayList<>();
         EntityField<Item> field = new EntityField<>("Единица", term -> result);

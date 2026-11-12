@@ -8,6 +8,7 @@ import org.ipro.design.DraftProblem;
 public record GenerationDiagnostic(Code code, DraftProblem.Target target, String messageKey,
                                    Map<String, String> parameters) {
     public enum Code {
+        FORBIDDEN_FORM_SETTING,
         UNSUPPORTED_RECIPE,
         UNSUPPORTED_CONSTRUCT,
         STALE_CHECKED_STRUCTURE,

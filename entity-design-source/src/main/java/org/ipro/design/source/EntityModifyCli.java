@@ -38,6 +38,7 @@ public final class EntityModifyCli {
           entity-modify plan  --project <dir> --type <class> (--add-field <spec>)... (--set-label <field>=<label>)...
                               --classpath-file <file> --out <dir> [--source-root <dir>]
           entity-modify apply --project <dir> --plan <dir> [--source-root <dir>]
+          entity-modify migrate-forms --project <dir> --type <class> --out <dir> [--source-root <dir>]
 
         A field spec is name=value pairs separated by commas; a comma or backslash inside a value is written \\, or \\\\.
           name, label, type (STRING INTEGER LONG DECIMAL BOOLEAN DATE DATETIME REFERENCE), length, precision, scale,
@@ -69,6 +70,7 @@ public final class EntityModifyCli {
             return switch (args[0]) {
                 case "plan" -> plan(Options.parse(args, Set.of("--project", "--type", "--classpath-file", "--out", "--source-root"), Set.of("--add-field", "--set-label")), out, err);
                 case "apply" -> apply(Options.parse(args, Set.of("--project", "--plan", "--source-root"), Set.of()), out, err);
+                case "migrate-forms" -> migrateForms(Options.parse(args, Set.of("--project", "--type", "--out", "--source-root"), Set.of()), out);
                 default -> throw new UsageException("unknown command " + args[0]);
             };
         } catch (UsageException ex) {
@@ -221,10 +223,29 @@ public final class EntityModifyCli {
 
     // ------------------------------------------------------------------ apply
 
+    private static int migrateForms(Options options, PrintStream out) {
+        Path project = Path.of(options.required("--project"));
+        Path source = options.single("--source-root").map(Path::of).orElse(project.resolve("src/main/java"));
+        String entity = options.required("--type");
+        Path directory = Path.of(options.required("--out"));
+        var plan = FormSettingsMigration.plan(source, entity);
+        MigrationPlanDirectory.write(directory, plan);
+        out.print(plan.diff());
+        out.println("Explicit composition is preserved. No AUTO conversion or schema changes.");
+        out.println("Migration plan written to " + directory.toAbsolutePath());
+        return OK;
+    }
+
     private static int apply(Options options, PrintStream out, PrintStream err) {
         Path project = Path.of(options.required("--project"));
         Path source = options.single("--source-root").map(Path::of).orElse(project.resolve("src").resolve("main").resolve("java"));
         Path directory = Path.of(options.required("--plan"));
+        if (Files.exists(directory.resolve(MigrationPlanDirectory.MANIFEST))) {
+            var result = ModificationApply.apply(project, source, MigrationPlanDirectory.read(directory));
+            var stream = result.status() == ModificationApply.Status.CONFLICT || result.status() == ModificationApply.Status.REJECTED ? err : out;
+            stream.println(result.status() + " " + result.code() + " " + result.message());
+            return switch (result.status()) { case APPLIED, NOOP -> OK; case CONFLICT -> CONFLICT; case REJECTED -> REFUSED; };
+        }
         var plan = PlanDirectory.read(directory);
         var result = ModificationApply.apply(project, source, plan);
         switch (result.status()) {

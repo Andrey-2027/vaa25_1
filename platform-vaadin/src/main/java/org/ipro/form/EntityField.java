@@ -313,7 +313,7 @@ public class EntityField<T extends HasDisplayName> extends Div implements HasLab
         focusedRowIndex = -1;
         suggestionGrid.setItems(new ArrayList<>());
         suggestionGrid.setVisible(false);
-        notFoundDetail.setVisible(!selectionFilters.isEmpty());
+        notFoundDetail.setVisible(!getSelectionFilters().isEmpty());
         notFoundHint.getStyle().set("display", "block");
         suggestionPopup.setHeight("auto");
         suggestionPopup.getStyle().set("display", "block");

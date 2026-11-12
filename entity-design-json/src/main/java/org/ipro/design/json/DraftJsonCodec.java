@@ -21,6 +21,7 @@ public final class DraftJsonCodec {
     private final JsonNode ownerDocumentSchema;
     private final JsonNode registerSchema;
     private final JsonNode registerRlsSchema;
+    private final JsonNode plainSchema;
 
     public DraftJsonCodec() {
         var factory = JsonFactory.builder().enable(StreamReadFeature.STRICT_DUPLICATE_DETECTION)
@@ -33,6 +34,15 @@ public final class DraftJsonCodec {
         // different explicitly registered recipe; never reinterpret an old reference.
         catalogV2Schema=recipeSchema(schema, RecipeCatalog.STANDARD_CATALOG_V2);
         documentSchema=recipeSchema(schema, RecipeCatalog.STANDARD_DOCUMENT);
+        var plain = (com.fasterxml.jackson.databind.node.ObjectNode) recipeSchema(schema, RecipeCatalog.CUSTOM_PLAIN_V2);
+        plain.put("$id", "urn:ipro:entity-design:entity-draft:5");
+        plain.put("title", "Portable PLAIN draft, envelope v5");
+        plain.withObject("properties").withObject("schemaVersion").put("const", RecipeCatalog.PLAIN_SCHEMA_VERSION);
+        plain.withArray("required").add("presentationFieldId");
+        var presentation = plain.withObject("properties").putObject("presentationFieldId").putArray("anyOf");
+        presentation.addObject().put("type", "null");
+        presentation.addObject().put("$ref", "#/$defs/id");
+        plainSchema = plain;
         try (var in = DraftJsonCodec.class.getResourceAsStream("/org/ipro/design/schema/entity-draft-v2.schema.json")) {
             ownerSchema = mapper.readTree(Objects.requireNonNull(in, "Packaged owner schema missing"));
         } catch (IOException e) { throw new IllegalStateException("Cannot read packaged owner schema", e); }
@@ -87,6 +97,8 @@ public final class DraftJsonCodec {
         try {
             JsonNode tree = mapper.valueToTree(draft);
             var node = (com.fasterxml.jackson.databind.node.ObjectNode) tree;
+            if (draft.presentationFieldId() == null && draft.schemaVersion() != RecipeCatalog.PLAIN_SCHEMA_VERSION)
+                node.remove("presentationFieldId");
             if (draft.schemaVersion() == 3 || draft.schemaVersion() == 4) {
                 if (draft.register() == null) throw invalid("schemaVersion=3 требует register");
                 if (draft.owner() != null) throw invalid("schemaVersion=3 не поддерживает owner");
@@ -98,7 +110,7 @@ public final class DraftJsonCodec {
             } else {
                 if (draft.register() != null) throw invalid("register требует schemaVersion=3");
                 node.remove("register");
-                if (draft.schemaVersion() == 1) {
+                if (draft.schemaVersion() == 1 || draft.schemaVersion() == RecipeCatalog.PLAIN_SCHEMA_VERSION) {
                     if (draft.owner() != null) throw invalid("schemaVersion=1 не поддерживает owner");
                     node.remove("owner");
                 }
@@ -115,7 +127,7 @@ public final class DraftJsonCodec {
         if (candidate.path("id").isTextual() && candidate.path("version").isIntegralNumber()
                 && candidate.path("version").canConvertToInt()) {
             var ref = new RecipeRef(candidate.path("id").textValue(), candidate.path("version").intValue());
-            if (RecipeCatalog.formConfigurationRecipe(ref)) {
+            if (!RecipeCatalog.structuralRecipe(ref).equals(ref)) {
                 // Validate the predecessor shape without rewriting the imported recipe identity.
                 var copy = tree.deepCopy();
                 var recipeNode = (com.fasterxml.jackson.databind.node.ObjectNode) copy.path("recipe");
@@ -124,6 +136,12 @@ public final class DraftJsonCodec {
                 envelope(copy);
                 return;
             }
+        }
+        if (tree.path("schemaVersion").isIntegralNumber()
+                && tree.path("schemaVersion").intValue() == RecipeCatalog.PLAIN_SCHEMA_VERSION) {
+            check(tree, plainSchema, "$", plainSchema);
+            uniqueIds(tree);
+            return;
         }
         if (tree.path("schemaVersion").isIntegralNumber() && tree.path("schemaVersion").intValue() == 4) {
             check(tree, registerRlsSchema, "$", registerRlsSchema);

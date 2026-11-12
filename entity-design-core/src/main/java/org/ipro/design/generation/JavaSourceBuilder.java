@@ -39,11 +39,19 @@ final class JavaSourceBuilder {
         for (var imported : imports) out.append("import ").append(imported).append(";\n");
         out.append('\n');
         out.append("@Entity\n");
+        if (RecipeCatalog.strictFormSettingsRecipe(checked.source().recipe())) out.append("@FormSettingsOnly\n");
+        if (RecipeCatalog.CUSTOM_PLAIN_V2.equals(checked.source().recipe())) {
+            var presentation = checked.fields().stream()
+                .filter(field -> field.id().equals(checked.source().presentationFieldId())).findFirst().orElseThrow();
+            out.append("@InstanceName(").append(literal(presentation.name())).append(")\n");
+        }
         out.append("@Table(name = ").append(literal(root.tableName())).append(")\n");
         if (!checked.sections().isEmpty()) out.append("@TableSections({")
             .append(checked.sections().stream().map(s -> s.packageName() + "." + s.className() + ".class").collect(java.util.stream.Collectors.joining(", "))).append("})\n");
         if (owner != null) out.append("@CatalogOwner(property = ").append(literal(owner.fieldName())).append(")\n");
         out.append("@EntityMetadata(\n");
+        if (RecipeCatalog.CUSTOM_PLAIN_V2.equals(checked.source().recipe()))
+            out.append(INDENT).append("kind = EntityKind.PLAIN,\n");
         out.append(INDENT).append("listFormTitle = ").append(literal(root.listTitle())).append(",\n");
         out.append(INDENT).append("itemFormTitle = ").append(literal(root.itemTitle())).append(",\n");
         out.append(INDENT).append("selectionFormTitle = ").append(literal(root.selectionTitle())).append(",\n");
@@ -86,6 +94,9 @@ final class JavaSourceBuilder {
         imports.add("jakarta.persistence.Table");
         imports.add(row ? "org.ipro.crud.BaseEntity" : RecipeCatalog.baseType(checked.source().recipe()));
         if (!row) imports.add("org.ipro.metadata.annotation.EntityMetadata");
+        if (!row && RecipeCatalog.CUSTOM_PLAIN_V2.equals(checked.source().recipe()))
+            imports.addAll(List.of("org.ipro.fetch.instance.InstanceName", "org.ipro.metadata.annotation.EntityKind",
+                "jakarta.validation.constraints.NotBlank"));
         if (!row && !checked.sections().isEmpty()) imports.add("org.ipro.metadata.annotation.TableSections");
         if (row) imports.addAll(List.of("org.ipro.metadata.annotation.TableSectionMetadata", "org.ipro.metadata.annotation.SectionPersistenceMode",
             "org.ipro.metadata.annotation.SectionRlsPolicy", "jakarta.persistence.ManyToOne", "jakarta.persistence.FetchType",
@@ -116,6 +127,10 @@ final class JavaSourceBuilder {
             if (!"AUTO".equals(binding(bindings, field).requiredMode()))
                 imports.add("org.ipro.metadata.annotation.RequiredMode");
         }
+        if (RecipeCatalog.strictFormSettingsRecipe(checked.source().recipe())) {
+            imports.remove("org.ipro.metadata.annotation.GridColumn");
+            imports.add("org.ipro.metadata.annotation.FormSettingsOnly");
+        }
         return imports;
     }
 
@@ -132,7 +147,9 @@ final class JavaSourceBuilder {
         var spec = new JavaMemberFragments.FieldSpec(field.name(), field.label(), field.type(), type, field.columnName(),
             field.serverRequired(), field.length(), field.precision(), field.scale());
         var publication = new JavaMemberFragments.Publication(order, binding.requiredMode(), binding.hidden(),
-            new JavaMemberFragments.Grid(binding.gridVisible(), binding.gridVisible() ? order : null));
+            RecipeCatalog.strictFormSettingsRecipe(checked.source().recipe()) ? null :
+                new JavaMemberFragments.Grid(binding.gridVisible(), binding.gridVisible() ? order : null));
+        if (field.id().equals(checked.source().presentationFieldId())) out.append(INDENT).append("@NotBlank\n");
         out.append(JavaMemberFragments.field(spec, publication));
     }
     private static void accessors(StringBuilder out, CheckedStructure.Field field, CheckedStructure checked) {
@@ -147,7 +164,9 @@ final class JavaSourceBuilder {
         projection.fields().forEach(b -> { if (bindings.put(b.fieldId(), b) != null) throw new IllegalStateException("Duplicate row binding"); });
         var out = new StringBuilder("package " + section.packageName() + ";\n\n");
         for (var imported : imports(checked, section.fields(), bindings, true)) out.append("import ").append(imported).append(";\n");
-        out.append("\n@Entity\n@Table(name = ").append(literal(section.tableName())).append(")\n");
+        out.append("\n@Entity\n");
+        if (RecipeCatalog.strictFormSettingsRecipe(checked.source().recipe())) out.append("@FormSettingsOnly\n");
+        out.append("@Table(name = ").append(literal(section.tableName())).append(")\n");
         out.append("@TableSectionMetadata(parentEntity = ").append(checked.root().packageName()).append('.').append(checked.root().className())
             .append(".class, parentField = ").append(literal(section.parentFieldName())).append(", title = ").append(literal(section.label()))
             .append(", rowFormTitle = ").append(literal(section.label())).append(", order = ").append(10 * (index + 1))
@@ -171,7 +190,9 @@ final class JavaSourceBuilder {
         out.append(INDENT).append("@ManyToOne(fetch = FetchType.LAZY, optional = false)\n");
         out.append(INDENT).append("@JoinColumn(name = ").append(literal(owner.columnName())).append(", nullable = false)\n");
         out.append(INDENT).append("@FieldMetadata(label = ").append(literal(owner.label()))
-                .append(", order = 30, required = RequiredMode.REQUIRED, grid = @GridColumn(visible = false))\n");
+                .append(RecipeCatalog.strictFormSettingsRecipe(checked.source().recipe())
+                    ? ", order = 30, required = RequiredMode.REQUIRED)\n"
+                    : ", order = 30, required = RequiredMode.REQUIRED, grid = @GridColumn(visible = false))\n");
         out.append(INDENT).append("private ").append(type).append(' ').append(owner.fieldName()).append(";\n");
     }
 

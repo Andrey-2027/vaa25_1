@@ -23,8 +23,8 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "9e007b0b4aa0eeaa128b207108eac5ee3356bded6c355d9b5bc88762e60bf24a",
-        "fileCount": 94,
+        "sha256": "a27673a92d06b2f8e7285a7edcf10823722aa393dcb95de8b7f365cf513d876f",
+        "fileCount": 100,
         "inputs": [
           "pom.xml",
           "src"
@@ -57,7 +57,7 @@
       "relativePath": "entity-design-source",
       "dependsOn": ["entity-design-core"],
       "source": {"kind": "in-repo-project", "gitCommit": null, "state": "EM1-EM4: reads, patches and plans changes of entity Java files with the JDK compiler tree API (jdk.compiler). Depends only on entity-design-core; no Jackson, UI, persistence, application or platform starter. Compile dependency of the application since EM6 (the entity-change view)."},
-      "fingerprint": {"algorithm": "gitvaa-source-tree-sha256-v2", "sha256": "96796021a56d12f99abc3289e811699fcb5d7dcd247a000225b093b3f31e13a4", "fileCount": 40, "inputs": ["pom.xml", "src"]},
+      "fingerprint": {"algorithm": "gitvaa-source-tree-sha256-v2", "sha256": "9da707c5dd85b962f41b2890d85524298238f3bd91c60dc40d9e75611d3e74af", "fileCount": 44, "inputs": ["pom.xml", "src"]},
       "artifacts": ["org.ipro:entity-design-source:1.0-SNAPSHOT"],
       "buildSteps": [{"pom": "pom.xml", "arguments": ["clean", "install"]}]
     },
@@ -110,8 +110,8 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "b179789d3aedd3dc13da87a497092561a13f5163fd4c01ab82b6b9140bb8cc83",
-        "fileCount": 43,
+        "sha256": "d114ed056b3b304987270ed16afe22239b5bfa8492e327ec10356a2bd2f2cfcb",
+        "fileCount": 44,
         "inputs": [
           "pom.xml",
           "src"
@@ -433,8 +433,8 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "7806f1d843a1bcdb40a2237f959592bb64399dc70b9aa880510f4595c631c21d",
-        "fileCount": 191,
+        "sha256": "907ab6b2d3eac7f3a18ae2d3e8d1816c59c660c3ae484bcd062d419fb54d61f1",
+        "fileCount": 192,
         "inputs": [
           "pom.xml",
           "src"
@@ -469,15 +469,6 @@
       "buildSteps": [{"pom": "pom.xml", "arguments": ["clean", "install"]}]
     },
     {
-      "id": "entity-design-runtime",
-      "relativePath": "entity-design-runtime",
-      "dependsOn": ["entity-design-core", "platform-core", "platform-numbering", "platform-register", "platform-rls"],
-      "source": {"kind": "in-repo-project", "gitCommit": null, "state": "ET9 optional backend adapter: validated platform owners to portable design facts. No UI, business lookups or file generation. entity-design-core remains JDK-only."},
-      "fingerprint": {"algorithm": "gitvaa-source-tree-sha256-v2", "sha256": "01dd0ae399941fc80cef1dc469335f70586072d9792e4a80af27588e7e6adb07", "fileCount": 10, "inputs": ["pom.xml", "src"]},
-      "artifacts": ["org.ipro:entity-design-runtime:1.0-SNAPSHOT"],
-      "buildSteps": [{"pom": "pom.xml", "arguments": ["install"]}]
-    },
-    {
       "id": "platform-register",
       "relativePath": "platform-register",
       "dependsOn": ["crudui", "filtergrid", "platform-contracts", "platform-core", "platform-events", "platform-persistence", "platform-rls", "platform-telemetry"],
@@ -504,6 +495,15 @@
           "arguments": ["clean", "install"]
         }
       ]
+    },
+    {
+      "id": "entity-design-runtime",
+      "relativePath": "entity-design-runtime",
+      "dependsOn": ["entity-design-core", "platform-core", "platform-numbering", "platform-register", "platform-rls"],
+      "source": {"kind": "in-repo-project", "gitCommit": null, "state": "ET9 optional backend adapter: validated platform owners to portable design facts. No UI, business lookups or file generation. entity-design-core remains JDK-only."},
+      "fingerprint": {"algorithm": "gitvaa-source-tree-sha256-v2", "sha256": "01dd0ae399941fc80cef1dc469335f70586072d9792e4a80af27588e7e6adb07", "fileCount": 10, "inputs": ["pom.xml", "src"]},
+      "artifacts": ["org.ipro:entity-design-runtime:1.0-SNAPSHOT"],
+      "buildSteps": [{"pom": "pom.xml", "arguments": ["install"]}]
     },
     {
       "id": "platform-query",
@@ -598,7 +598,7 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "03dfa3c7dea57ab070788bc4b225787bae22182d47660077f984577be692be7c",
+        "sha256": "1d008f084e77ca4bd2d7725282f439e0080ab76e4c837549808cc876345e2007",
         "fileCount": 287,
         "inputs": [
           "pom.xml",
@@ -842,8 +842,8 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "66e51a92e350d91fb5f67a6bdceee47f3e7574cc3b28fb9fdd1c0040b40aaa8d",
-        "fileCount": 33,
+        "sha256": "1aa43950d8ec84f0374379fd3b588224e837aabf008551dde5d06d72b2480380",
+        "fileCount": 34,
         "inputs": ["pom.xml", "src"]
       },
       "artifacts": ["org.ipro:platform-report-vaadin:1.0-SNAPSHOT"],

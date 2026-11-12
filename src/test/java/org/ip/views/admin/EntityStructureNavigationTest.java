@@ -31,7 +31,7 @@ class EntityStructureNavigationTest {
     private final List<String> details = new ArrayList<>();
     private final AtomicInteger reads = new AtomicInteger();
     private final EntityExplorerNavigation navigation = new EntityExplorerNavigation(access, routes,
-        () -> { reads.incrementAndGet(); return facts; }, details::add);
+        () -> { reads.incrementAndGet(); return facts; });
 
     private void available(boolean published, List<ExplorerSnapshot.OwnedSection> sections) {
         when(access.allows()).thenReturn(true);
@@ -44,7 +44,7 @@ class EntityStructureNavigationTest {
             when(route.entityKey()).thenReturn("roots");
             when(routes.find(Root.class)).thenReturn(Optional.of(route));
         }
-        navigation.bindHost(this, (type, anchor) -> { opens.add(type.getSimpleName() + "@" + anchor); return true; });
+        navigation.bindCardHost(this, (type, anchor, detail) -> { opens.add(type.getSimpleName() + "@" + anchor); if (!detail.isEmpty()) details.add(detail); return true; });
     }
 
     @Test void aPublishedRootOpensThroughOneHostCallWithItsActualAddress() {
@@ -101,7 +101,7 @@ class EntityStructureNavigationTest {
         navigation.unbindHost(this);
         assertThat(navigation.open(Root.class, null)).isEqualTo(new EntityStructureNavigation.OpenResult.Unavailable(
             "В текущем UI нет рабочей области для Entity Explorer"));
-        navigation.bindHost(this, (type, anchor) -> false);
+        navigation.bindCardHost(this, (type, anchor, detail) -> false);
         assertThat(navigation.open(Root.class, null)).isInstanceOf(EntityStructureNavigation.OpenResult.Unavailable.class);
         assertThat(opens).isEmpty();
     }
@@ -116,9 +116,9 @@ class EntityStructureNavigationTest {
     @Test void aPreviousHostCannotUnbindItsReplacementAndOtherUiStateIsIndependent() {
         available(true, List.of());
         Object replacement = new Object();
-        navigation.bindHost(replacement, (type, anchor) -> { opens.add("replacement"); return true; });
+        navigation.bindCardHost(replacement, (type, anchor, detail) -> { opens.add("replacement"); return true; });
         navigation.unbindHost(this);
-        EntityExplorerNavigation other = new EntityExplorerNavigation(access, routes, () -> facts, text -> {});
+        EntityExplorerNavigation other = new EntityExplorerNavigation(access, routes, () -> facts);
         assertThat(other.open(Root.class, null)).isInstanceOf(EntityStructureNavigation.OpenResult.Unavailable.class);
         navigation.open(Root.class, null);
         navigation.open(Root.class, null);
@@ -142,26 +142,25 @@ class EntityStructureNavigationTest {
         when(uiB.getUIId()).thenReturn(2);
         when(uiA.getSession()).thenReturn(session);
         when(uiB.getSession()).thenReturn(session);
-        var view = mock(EntityExplorerView.class);
-        when(view.structureCatalog()).thenReturn(facts);
         com.vaadin.flow.server.VaadinSession.setCurrent(session);
         try (var context = new org.springframework.context.annotation.AnnotationConfigApplicationContext()) {
             context.addBeanFactoryPostProcessor(new com.vaadin.flow.spring.scopes.VaadinUIScope());
             context.registerBean(EntityExplorerAccess.class, () -> access);
             context.registerBean(FormRouteCatalog.class, () -> routes);
-            context.registerBean(EntityExplorerView.class, () -> view);
+            context.registerBean(EntityExplorerCatalog.class,
+                () -> new EntityExplorerCatalog(() -> new EntityExplorerCatalog.Facts(facts, List.of()), access));
             context.register(EntityExplorerNavigation.class);
             context.refresh();
             com.vaadin.flow.component.UI.setCurrent(uiA);
             var first = context.getBean(EntityExplorerNavigation.class);
-            first.bindHost(uiA, (type, anchor) -> { opens.add("UI A"); return true; });
+            first.bindCardHost(uiA, (type, anchor, detail) -> { opens.add("UI A"); return true; });
             assertThat(context.getBean(EntityExplorerNavigation.class)).isSameAs(first);
 
             com.vaadin.flow.component.UI.setCurrent(uiB);
             var second = context.getBean(EntityExplorerNavigation.class);
             assertThat(second).isNotSameAs(first);
             assertThat(second.open(Root.class, null)).isInstanceOf(EntityStructureNavigation.OpenResult.Unavailable.class);
-            second.bindHost(uiB, (type, anchor) -> { opens.add("UI B"); return true; });
+            second.bindCardHost(uiB, (type, anchor, detail) -> { opens.add("UI B"); return true; });
             second.open(Root.class, null);
             com.vaadin.flow.component.UI.setCurrent(uiA);
             context.getBean(EntityExplorerNavigation.class).open(Root.class, null);

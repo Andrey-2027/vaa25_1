@@ -26,11 +26,29 @@ class RecipeDescriptionTest {
     @Test void descriptionsCoverExactlyTheVersionedRecipeCatalog() {
         var recipes = RecipeCatalog.recipes();
         var descriptors = RecipeCatalog.descriptors();
-        assertEquals(12, descriptors.size());
         assertEquals(recipes.stream().map(RecipeCatalog.Recipe::ref).toList(),
                 descriptors.stream().map(RecipeDescriptor::ref).toList());
         assertTrue(descriptors.stream().allMatch(descriptor -> !descriptor.displayName().isBlank()
                 && !descriptor.description().isBlank()));
+    }
+
+    @Test void plainV2DescribesOnlyTheScalarRootContractAndKeepsTheCapturedRecipe() {
+        var captured = RecipeCatalog.descriptor(new RecipeRef("custom-plain-v1", 1)).orElseThrow();
+        var plain = RecipeCatalog.descriptor(RecipeCatalog.CUSTOM_PLAIN_V2).orElseThrow();
+        assertEquals("PLAIN", plain.kind());
+        assertEquals("org.ipro.crud.BaseEntity", plain.baseType());
+        assertEquals("CANONICAL_CRUD", plain.writeProfile());
+        assertEquals(List.of(), plain.inheritedFields());
+        assertEquals(Set.of(RecipeDescriptor.EditorConstruction.FIELDS), plain.editorConstructions());
+        assertEquals(List.of(RecipeCatalog.FieldType.STRING, RecipeCatalog.FieldType.INTEGER,
+            RecipeCatalog.FieldType.LONG, RecipeCatalog.FieldType.DECIMAL, RecipeCatalog.FieldType.BOOLEAN,
+            RecipeCatalog.FieldType.DATE, RecipeCatalog.FieldType.DATETIME), plain.fieldTypes(""));
+        assertEquals(RecipeCatalog.Phase.DRAFT_READY, plain.phase());
+        assertTrue(plain.draftSupported());
+        assertTrue(plain.generatorImplemented());
+        assertEquals(RecipeCatalog.Phase.HANDOFF_ONLY, captured.phase());
+        assertTrue(captured.fieldTypes("").contains(RecipeCatalog.FieldType.REFERENCE));
+        assertEquals(plain.ref(), RecipeCatalog.structuralRecipe(plain.ref()));
     }
 
     @Test void standardDescriptionsKeepTheCapturedContracts() {

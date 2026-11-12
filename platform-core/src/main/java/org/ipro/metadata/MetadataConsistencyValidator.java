@@ -69,6 +69,7 @@ public final class MetadataConsistencyValidator {
         Map<Class<?>, List<MetadataDiagnostic>> byType = new LinkedHashMap<>();
         for (Class<?> type : metadataTypes) {
             List<MetadataDiagnostic> diagnostics = new ArrayList<>();
+            diagnostics.addAll(legacyFormSettings(type));
             diagnostics.addAll(catalogOwners.resolve(type).diagnostics());
             try {
                 // Resolve root-level declarations too (kind, columns and displaySortFields).
@@ -104,6 +105,58 @@ public final class MetadataConsistencyValidator {
             .thenComparing(diagnostic -> diagnostic.severity().ordinal())
             .thenComparing(MetadataDiagnostic::code));
         return List.copyOf(sorted);
+    }
+
+    /** Read explicit annotation pairs, including defaults; reflection loses explicit empty/false values. */
+    private static List<MetadataDiagnostic> legacyFormSettings(Class<?> type) {
+        var result = new ArrayList<MetadataDiagnostic>();
+        for (Class<?> declaring = type; declaring != null && declaring != Object.class; declaring = declaring.getSuperclass()) {
+            boolean strict = declaring.isAnnotationPresent(org.ipro.metadata.annotation.FormSettingsOnly.class);
+            String resource = "/" + declaring.getName().replace('.', '/') + ".class";
+            try (var bytes = declaring.getResourceAsStream(resource)) {
+                if (bytes == null) throw new java.io.IOException("Class bytes unavailable: " + resource);
+                new org.springframework.asm.ClassReader(bytes).accept(new org.springframework.asm.ClassVisitor(org.springframework.asm.Opcodes.ASM9) {
+                    private org.springframework.asm.AnnotationVisitor annotation(String descriptor, String field) {
+                        String prefix = "Lorg/ipro/metadata/annotation/";
+                        if (!descriptor.startsWith(prefix)) return null;
+                        String name = descriptor.substring(prefix.length(), descriptor.length() - 1);
+                        if (name.equals("GridColumn")) report(field, "@GridColumn");
+                        return new org.springframework.asm.AnnotationVisitor(org.springframework.asm.Opcodes.ASM9) {
+                            private void pair(String key) {
+                                if (name.equals("EntityMetadata") && Set.of("listColumns", "selectColumns").contains(key)
+                                        || name.equals("FieldMetadata") && Set.of("grid", "readOnly").contains(key)
+                                        || name.equals("Lookup") && Set.of("entity", "variant", "fetch").contains(key))
+                                    report(field, "@" + name + "." + key);
+                            }
+                            @Override public void visit(String key, Object value) { pair(key); }
+                            @Override public org.springframework.asm.AnnotationVisitor visitArray(String key) { pair(key); return null; }
+                            @Override public org.springframework.asm.AnnotationVisitor visitAnnotation(String key, String nested) {
+                                pair(key);
+                                // grid is already reported as FieldMetadata.grid, once per declaration.
+                                return key.equals("grid") ? null : annotation(nested, field);
+                            }
+                        };
+                    }
+                    private void report(String field, String source) {
+                        result.add(new MetadataDiagnostic(strict ? MetadataDiagnostic.Severity.ERROR : MetadataDiagnostic.Severity.WARNING,
+                            strict ? MetadataDiagnosticCodes.FORBIDDEN_FORM_SETTING : MetadataDiagnosticCodes.LEGACY_FORM_SETTING,
+                            type.getName(), field, source,
+                            strict ? "Устаревшая настройка запрещена для @FormSettingsOnly; перенесите её в конфигурацию формы"
+                                : "Настройка читается для совместимости старого кода; новые объявления задавайте в форме"));
+                    }
+                    @Override public org.springframework.asm.AnnotationVisitor visitAnnotation(String descriptor, boolean visible) { return annotation(descriptor, ""); }
+                    @Override public org.springframework.asm.FieldVisitor visitField(int access, String name, String descriptor, String signature, Object value) {
+                        return new org.springframework.asm.FieldVisitor(org.springframework.asm.Opcodes.ASM9) {
+                            @Override public org.springframework.asm.AnnotationVisitor visitAnnotation(String descriptor, boolean visible) { return annotation(descriptor, name); }
+                        };
+                    }
+                }, org.springframework.asm.ClassReader.SKIP_CODE | org.springframework.asm.ClassReader.SKIP_DEBUG | org.springframework.asm.ClassReader.SKIP_FRAMES);
+            } catch (java.io.IOException | RuntimeException failure) {
+                result.add(new MetadataDiagnostic(MetadataDiagnostic.Severity.ERROR, MetadataDiagnosticCodes.INVALID_ENTITY_METADATA,
+                    type.getName(), "", "form settings policy", "Не удалось проверить объявления " + declaring.getName() + ": " + failure));
+            }
+        }
+        return List.copyOf(result);
     }
 
     private static List<MetadataDiagnostic> fieldDiagnostics(MetadataResolver resolver,

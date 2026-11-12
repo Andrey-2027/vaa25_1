@@ -4,8 +4,8 @@ import com.example.materialrequests.model.MaterialRequest;
 import org.ipro.form.builder.ItemFormCustomization;
 import org.ipro.form.builder.ItemFormVariants;
 import org.ipro.form.builtin.ItemForm;
+import org.ipro.form.builder.layout.Layout;
 import org.springframework.stereotype.Component;
-import java.util.List;
 
 @Component
 public class RequestFormCustomization implements ItemFormCustomization {
@@ -14,10 +14,11 @@ public class RequestFormCustomization implements ItemFormCustomization {
     @Override public Class<?> entityClass() { return MaterialRequest.class; }
     @Override public void configure(ItemFormVariants variants) {
         variants.addDefault(ctx -> {
-            var form = new ItemForm<>(MaterialRequest.class,
-                ctx.metadataResolver().resolveRowMetadata(MaterialRequest.class).getFormFields().stream()
-                        .filter(field -> List.of("number", "date", "departmentId", "status", "comment")
-                                .contains(field.getName())).toList(), ctx.fieldFactory());
+            var metadata = ctx.metadataResolver().resolve(MaterialRequest.class);
+            var layout = new Layout(metadata);
+            layout.of(layout.field("number").setReadOnly(true), layout.field("date"),
+                    layout.field("departmentId"), layout.field("status"), layout.field("comment"));
+            var form = new ItemForm<MaterialRequest>(metadata, ctx.fieldFactory(), layout.compile());
             form.setEntityFactory(() -> {
                 var request = new MaterialRequest();
                 String username = user.requireAuthenticatedUsername();

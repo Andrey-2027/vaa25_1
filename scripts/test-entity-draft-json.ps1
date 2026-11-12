@@ -19,7 +19,7 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Fresh core build failed; see core-install.log.' }
     & $Maven -o "-Dmaven.repo.local=$LocalRepository" -f entity-design-json/pom.xml clean install *> "$catalogOutput/json-tests.log"
     if ($LASTEXITCODE -ne 0) { throw 'JSON codec tests failed; see json-tests.log.' }
-    $tests = 'EntityDraftJsonTransferTest,EntityDraftCatalogAdapterTest,EntityDraftSectionsTest,DraftEditorSessionTest,EntityDraftEditorViewTest,EntityDraftWorkspaceTest,EntityDraftWorkspaceContractTest,WorkspaceDirtyGuardTest,WorkspaceRouteStateTest,MainLayoutLeaveGateTest,EntityExplorerViewAddressTest,EntityExplorerViewSpringCreationTest,EntityExplorerAddressWiringTest,EntityExplorerRouteGateTest,EntityExplorerPilotPanelTest,EntityExplorerPilotBoundaryTest,ExplorerTreeModelTest,ExplorerFormPreviewTest'
+    $tests = 'EntityDraftJsonTransferTest,EntityDraftCatalogAdapterTest,EntityDraftSectionsTest,DraftEditorSessionTest,EntityDraftEditorViewTest,EntityDraftWorkspaceTest,EntityDraftWorkspaceContractTest,WorkspaceDirtyGuardTest,WorkspaceRouteStateTest,MainLayoutLeaveGateTest,EntityExplorerAddressWiringTest,EntityExplorerRouteGateTest,EntityExplorerPilotPanelTest,EntityExplorerPilotBoundaryTest,ExplorerTreeModelTest,ExplorerFormPreviewTest'
     # Other local tasks may clean target concurrently. Keep this verification's outputs separate.
     $pom = [IO.File]::ReadAllText((Join-Path $catalogRoot 'pom.xml')).Replace('<build>', '<build><directory>${project.basedir}/outputs/entity-explorer-p8-4/build</directory>')
     [IO.File]::WriteAllText($verificationPom, $pom, [Text.UTF8Encoding]::new($false))

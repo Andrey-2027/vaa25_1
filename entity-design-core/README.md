@@ -1,5 +1,14 @@
 # Entity design core
 
+AF7.2 adds explicit strict recipes: `standard-catalog-v4@4`, `standard-document-v3@3`,
+`independent-register-v5@5`, and `independent-register-v6@6` (RLS). They emit
+`@FormSettingsOnly` on roots and rows, declare list/selection columns in form
+configuration, and declare row-table columns through `TableSectionCustomization`.
+An explicitly empty row table uses `FormColumnDeclarations.none()`.
+The final generation guard rejects legacy form declarations in these recipes.
+Existing recipe IDs, output bytes and fingerprints remain unchanged; opening or
+regenerating a captured draft never upgrades its selected recipe automatically.
+
 P8.1 supplies immutable Java 21 drafts, stable structural UUIDs, pure edit
 operations, shared suggestions and a contextual semantic validator. The versioned
 JSON envelope and first recipe are included as resources. There are no runtime

@@ -104,22 +104,6 @@ class EntityExplorerPilotPanelTest {
         assertThat(split.getElement().hasAttribute("data-detail")).isTrue();
     }
 
-    @Test
-    void nonPilotKindsAndDisabledFlagAlwaysKeepTheLegacyRenderer() {
-        var access = mock(EntityExplorerAccess.class);
-        when(access.allows()).thenReturn(true);
-        for (boolean enabled : List.of(true, false)) {
-            var view = new EntityExplorerView(ExplorerTreeModel.CatalogView.of(assembler().explorerSnapshot()),
-                List.of(), mock(FormNavigator.class), access, enabled);
-            var host = (com.vaadin.flow.component.orderedlayout.VerticalLayout) ReflectionTestUtils.getField(view, "cardHost");
-            for (Class<?> type : List.of(PrdSpec.class, org.ip.model.NomenclaturePrice.class)) {
-                view.init(type);
-                assertThat(host.getComponentAt(0)).isInstanceOf(EntitySummaryPanel.class);
-            }
-            view.init(Nomenclature.class);
-            assertThat(host.getComponentAt(0)).isInstanceOf(enabled ? EntityExplorerPilotPanel.class : EntitySummaryPanel.class);
-        }
-    }
 
     @Test
     void formFactsShowCustomClassAndDocumentAutoformWithoutInvokingFactories() {
@@ -224,22 +208,6 @@ class EntityExplorerPilotPanelTest {
     }
 
     @Test
-    void ownedSearchHitOpensItsFieldInsideThePilotWithoutChangingAddressGrammar() {
-        var assembler = assembler();
-        var access = mock(EntityExplorerAccess.class);
-        when(access.allows()).thenReturn(true);
-        var view = new EntityExplorerView(ExplorerTreeModel.CatalogView.of(assembler.explorerSnapshot()),
-            List.of(), mock(FormNavigator.class), access, true);
-        view.init(Nomenclature.class);
-        var section = summary().structure().sections().getFirst();
-        var node = new ExplorerTreeModel.Node(ExplorerTreeModel.NodeKind.OWNED_SECTION, "owned-search-hit",
-            "Search result", Nomenclature.class, "fields", section.identity().id(), "NomAttributeValue", List.of(), List.of("attrType"));
-        ReflectionTestUtils.invokeMethod(view, "onTreeSelection", node);
-        var host = (com.vaadin.flow.component.orderedlayout.VerticalLayout) ReflectionTestUtils.getField(view, "cardHost");
-        assertThat(host.getComponentAt(0)).isInstanceOf(EntityExplorerPilotPanel.class);
-        assertThat(text(host)).contains("Тип атрибута (attrType)", "Nomenclature / Атрибуты номенклатуры / attrType");
-    }
-    @Test
     void sectionCollapseRestoresVisibleSelectionAndReopeningRecoversLastField() {
         var summary = summary();
         var state = new ExplorerUiState();
@@ -343,53 +311,7 @@ class EntityExplorerPilotPanelTest {
         assertThat(state.pilotPlaceOf(Nomenclature.class).target()).isEqualTo(new EntityExplorerPilotPlace.RootField("code"));
     }
 
-    @Test
-    void pilotAndAnchoredTechnicalSummaryShareOneHostAndRestoreTheLocalField() {
-        var assembler = assembler();
-        var access = mock(EntityExplorerAccess.class);
-        when(access.allows()).thenReturn(true);
-        var view = new EntityExplorerView(ExplorerTreeModel.CatalogView.of(assembler.explorerSnapshot()),
-            List.of(), mock(FormNavigator.class), access, true);
-        var host = (com.vaadin.flow.component.orderedlayout.VerticalLayout) ReflectionTestUtils.getField(view, "cardHost");
-        List<String> addresses = new ArrayList<>();
-        view.setSelectionListener((type, anchor) -> addresses.add(type.getSimpleName() + ":" + anchor));
-        view.init(Nomenclature.class);
-        var panel = (EntityExplorerPilotPanel) host.getComponentAt(0);
-        panel.focusField("name");
-        button(panel, "Техническая сводка").click();
-        assertThat(host.getComponentAt(0)).isInstanceOf(EntitySummaryPanel.class);
-        assertThat(addresses).containsExactly("Nomenclature:overview");
-        button(view, "К компактной карточке").click();
-        assertThat(host.getComponentCount()).isEqualTo(1);
-        assertThat(host.getComponentAt(0)).isSameAs(panel);
-        assertThat(text(panel)).contains("Наименование (name)");
-        assertThat(addresses).containsExactly("Nomenclature:overview", "Nomenclature:null");
-        view.init(Nomenclature.class, "fields/form");
-        assertThat(host.getComponentAt(0)).isInstanceOf(EntitySummaryPanel.class);
-        view.init(PrdSpec.class);
-        assertThat(host.getComponentAt(0)).isInstanceOf(EntitySummaryPanel.class);
-    }
 
-    @Test
-    void theModifyActionAppearsOnlyForAClassTheServiceAcceptsAndOpensThatClass() {
-        var access = mock(EntityExplorerAccess.class);
-        when(access.allows()).thenReturn(true);
-        var view = new EntityExplorerView(ExplorerTreeModel.CatalogView.of(assembler().explorerSnapshot()),
-            List.of(), mock(FormNavigator.class), access, true);
-        var opened = new ArrayList<Class<?>>();
-        view.setModifyOpener(opened::add, type -> type == Nomenclature.class);
-        view.init(PrdSpec.class);
-        Button modify = descendants(view).filter(Button.class::isInstance).map(Button.class::cast)
-            .filter(b -> b.hasClassName("explorer-open-modify")).findFirst().orElseThrow();
-        assertThat(modify.isVisible()).isFalse();
-        view.init(Nomenclature.class);
-        assertThat(modify.isVisible()).isTrue();
-        modify.click();
-        assertThat(opened).containsExactly(Nomenclature.class);
-        when(access.allows()).thenReturn(false);
-        modify.click();
-        assertThat(opened).as("access is asked again when the action runs").hasSize(1);
-    }
 
     private static EntitySummary summary() { return assembler().summarize(Nomenclature.class); }
 

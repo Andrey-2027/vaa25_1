@@ -17,9 +17,7 @@ import java.time.LocalDate;
 
 @Entity
 @Table(name = "consumer_material_request", uniqueConstraints = @UniqueConstraint(columnNames = "number"))
-@EntityMetadata(kind = EntityKind.DOCUMENT, listFormTitle = "Заявки", itemFormTitle = "Заявка на материалы",
-        selectionFormTitle = "Выбор заявки", subsystem = MaterialsSubsystem.class,
-        listColumns = {"number", "date", "departmentId", "status"}, order = 200)
+@EntityMetadata(kind = EntityKind.DOCUMENT, listFormTitle = "Заявки", itemFormTitle = "Заявка на материалы", selectionFormTitle = "Выбор заявки", subsystem = MaterialsSubsystem.class, order = 200)
 @InstanceName(value = {"number"})
 @TableSections({MaterialRequestLine.class})
 @RlsDimension(value = MaterialRequest.DEPARTMENT, valuePaths = {"departmentId"})
@@ -31,7 +29,7 @@ public class MaterialRequest extends BaseEntity {
 
     @NotBlank @Column(nullable = false, length = 40)
     @Numbered(prefix = "ЗМ-", pattern = "{prefix}{seq:000000}")
-    @FieldMetadata(label = "Номер", order = 10, readOnly = true)
+    @FieldMetadata(label = "Номер", order = 10)
     private String number;
 
     @NotNull @Column(nullable = false)

@@ -58,6 +58,8 @@ final class IndependentRegisterJavaGenerator {
         files.add(file);
         if (RecipeCatalog.formConfigurationRecipe(source.recipe()))
             files.add(FormConfigurationSourceBuilder.file(checked, projection));
+        var policyFailures = FormSettingsGenerationGuard.check(source.recipe(), source.draftId(), files);
+        if (!policyFailures.isEmpty()) return GenerationResult.rejected(policyFailures);
         var profile = RecipeCatalog.descriptor(source.recipe()).orElseThrow().generationProfile().orElseThrow();
         var planId = PlanFingerprint.planId(profile.fingerprintProfile(), source.recipe(), profile.generatorVersion(),
                 currentDraft, currentContext, files);

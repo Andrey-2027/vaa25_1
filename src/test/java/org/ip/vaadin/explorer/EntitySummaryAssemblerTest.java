@@ -1074,62 +1074,31 @@ class EntitySummaryAssemblerTest {
             resolutions.add(key);
             return Optional.empty();
         }, emptyStartupCheck());
-        org.ip.views.admin.EntityExplorerAccess access = mock(org.ip.views.admin.EntityExplorerAccess.class);
-        when(access.allows()).thenReturn(true);
-        org.ipro.form.coordinator.FormNavigator navigator = mock(org.ipro.form.coordinator.FormNavigator.class);
-        org.ip.views.admin.EntityExplorerView view = new org.ip.views.admin.EntityExplorerView(counting, navigator, access);
-        when(access.allows()).thenReturn(false);
-        view.init();
-        assertThat(counting.attempts).isEmpty();
-        when(access.allows()).thenReturn(true);
-        long started = System.nanoTime();
-        view.init();
-        long firstUiNanos = System.nanoTime() - started;
+        var snapshot = counting.explorerSnapshot();
+        var state = new org.ipro.vaadin.explorer.ui.EntityExplorerRegistryState();
+        var registry = new org.ipro.vaadin.explorer.ui.EntityExplorerRegistryPanel(snapshot, state,
+            org.ipro.vaadin.explorer.ui.EntityExplorerRegistryActions.none());
         int attempts = counting.attempts.size();
         int facets = resolutions.size();
         int metadataCalls = org.mockito.Mockito.mockingDetails(observed).getInvocations().size();
-        assertThat(((java.util.Map<?, ?>) org.springframework.test.util.ReflectionTestUtils.getField(view, "panels")))
-            .isEmpty();
-        com.vaadin.flow.component.textfield.TextField search = uiComponents(view)
-            .filter(com.vaadin.flow.component.textfield.TextField.class::isInstance)
-            .map(com.vaadin.flow.component.textfield.TextField.class::cast).findFirst().orElseThrow();
-        @SuppressWarnings("unchecked")
-        com.vaadin.flow.component.select.Select<EntityKind> filter =
-            (com.vaadin.flow.component.select.Select<EntityKind>) uiComponents(view)
-                .filter(component -> component instanceof com.vaadin.flow.component.select.Select<?> select
-                    && "Вид".equals(select.getLabel())).findFirst().orElseThrow();
-        @SuppressWarnings("unchecked")
-        com.vaadin.flow.component.select.Select<Object> grouping =
-            (com.vaadin.flow.component.select.Select<Object>) uiComponents(view)
-                .filter(component -> component instanceof com.vaadin.flow.component.select.Select<?> select
-                    && "Группировка".equals(select.getLabel())).findFirst().orElseThrow();
-        long repeatStarted = System.nanoTime();
         for (int i = 0; i < 20; i++) {
-            search.setValue(i % 2 == 0 ? "номенклатура" : "code");
-            filter.setValue(EntityKind.CATALOG);
-            filter.clear();
+            state.setQuery(i % 2 == 0 ? "номенклатура" : "code");
+            state.setKind(EntityKind.CATALOG);
+            registry.refresh();
+            state.setKind(null);
         }
-        search.clear();
-        Object subsystem = grouping.getListDataView().getItems()
-            .filter(value -> "SUBSYSTEM".equals(value.toString())).findFirst().orElseThrow();
-        grouping.setValue(subsystem);
-        long repeatNanos = System.nanoTime() - repeatStarted;
-        view.init(Nomenclature.class, "fields/table-sections");
-        view.init(ReceivingDocument.class);
-        view.applyMenuEntry();
+        state.setGrouping(org.ipro.vaadin.explorer.ui.EntityExplorerRegistryState.Grouping.SUBSYSTEM);
+        registry.refresh();
+        for (Class<?> type : List.of(Nomenclature.class, ReceivingDocument.class)) {
+            var card = new org.ipro.vaadin.explorer.ui.EntityExplorerCardPanel(snapshot, type,
+                new org.ipro.vaadin.explorer.ui.EntityExplorerCardState(),
+                org.ipro.vaadin.explorer.ui.EntityExplorerCardPanel.Mode.DETAILED,
+                org.ipro.vaadin.explorer.ui.EntityExplorerCardPanel.Actions.none());
+            card.applyPlace(org.ipro.vaadin.explorer.ui.EntityExplorerCardPlace.parse("fields").orElseThrow());
+        }
         assertThat(counting.attempts).hasSize(attempts).doesNotHaveDuplicates();
         assertThat(resolutions).hasSize(facets);
         assertThat(org.mockito.Mockito.mockingDetails(observed).getInvocations()).hasSize(metadataCalls);
-        assertThat(((java.util.Map<?, ?>) org.springframework.test.util.ReflectionTestUtils.getField(view, "panels")))
-            .hasSize(2);
-        org.mockito.Mockito.verifyNoInteractions(navigator);
-        System.out.println("[E3.2.2-9.3] types=" + attempts + " firstUiMs=" + firstUiNanos / 1_000_000
-            + " repeatedOperations=62 repeatedMs=" + repeatNanos / 1_000_000
-            + " extraSummaries=0 extraFacets=0 extraMetadata=0 panels=2");
-    }
-
-    private static Stream<com.vaadin.flow.component.Component> uiComponents(com.vaadin.flow.component.Component root) {
-        return Stream.concat(Stream.of(root), root.getChildren().flatMap(EntitySummaryAssemblerTest::uiComponents));
     }
 
     private static MetadataConsistencyStartupCheck emptyStartupCheck() {

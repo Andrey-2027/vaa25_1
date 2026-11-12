@@ -18,7 +18,7 @@ public class MaterialRequestLine extends BaseEntity {
     @Column(name = "line_number")
     private Integer lineNumber;
     @NotNull @ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "material_id", nullable = false)
-    @FieldMetadata(label = "Материал", order = 10, lookup = @Lookup(entity = Material.class))
+    @FieldMetadata(label = "Материал", order = 10)
     private Material material;
     @NotNull @Positive @Column(nullable = false, precision = 19, scale = 3)
     @FieldMetadata(label = "Количество", order = 20)

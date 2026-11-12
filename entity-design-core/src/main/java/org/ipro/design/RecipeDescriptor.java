@@ -36,6 +36,11 @@ public record RecipeDescriptor(RecipeRef ref, String displayName, String descrip
                 + "; точность decimal: не более " + RegisterDraft.MAX_RESOURCE_PRECISION + ".", RegisterDraft.RESOURCE_TYPES, false)) : List.of();
     }
     public List<RecipeCatalog.FieldType> fieldTypes(String role) {
+        if (RecipeCatalog.CUSTOM_PLAIN_V2.equals(ref)) {
+            return List.of(RecipeCatalog.FieldType.STRING, RecipeCatalog.FieldType.INTEGER,
+                RecipeCatalog.FieldType.LONG, RecipeCatalog.FieldType.DECIMAL, RecipeCatalog.FieldType.BOOLEAN,
+                RecipeCatalog.FieldType.DATE, RecipeCatalog.FieldType.DATETIME);
+        }
         if (fieldRoles().isEmpty()) return List.of(RecipeCatalog.FieldType.values());
         var exact = fieldRoles().stream().filter(r -> r.id().equals(role)).findFirst();
         if (exact.isPresent()) return exact.orElseThrow().types();
