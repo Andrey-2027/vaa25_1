@@ -51,14 +51,14 @@ public final class EntityExplorerRegistryPanel extends Div {
         search.setPlaceholder("Например, Номенклатура или GroupNom"); search.setClearButtonVisible(true);
         search.setValueChangeMode(ValueChangeMode.EAGER);
         search.setValueChangeTimeout(160);
-        kinds.setLabel("Вид сущности"); subsystems.setLabel("Подсистема"); exposures.setLabel("Экспозиция");
+        kinds.setLabel("Вид сущности"); subsystems.setLabel("Область"); exposures.setLabel("Экспозиция");
         for (var select : List.of(kinds, subsystems, exposures)) select.setItemLabelGenerator(Choice::label);
         var filters = new Div(search, kinds, subsystems); filters.addClassName("er-filters");
         var advancedControls = new Div(onlyErrors, serviceTypes, exposures); advancedControls.addClassName("er-advanced-controls");
         advanced.setSummaryText("Дополнительные фильтры"); advanced.add(advancedControls); advanced.addClassName("er-advanced");
         var tools = new Div(advanced, reset); tools.addClassName("er-tools"); reset.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
         grouping.setItems(EntityExplorerRegistryState.Grouping.values());
-        grouping.setItemLabelGenerator(value -> value == EntityExplorerRegistryState.Grouping.KIND ? "По видам" : "По подсистемам");
+        grouping.setItemLabelGenerator(value -> value == EntityExplorerRegistryState.Grouping.KIND ? "По видам" : "По областям");
         grouping.setAriaLabel("Группировать сущности"); grouping.addClassName("er-grouping-select");
         var listHeading = new Div(new Span("Группировать"), grouping); listHeading.addClassName("er-list-heading");
         tree.addClassName("er-tree"); tree.getElement().setAttribute("role", "tree");
@@ -106,10 +106,10 @@ public final class EntityExplorerRegistryPanel extends Div {
             var subsystemChoices = new ArrayList<Choice>(); subsystemChoices.add(new Choice("*", "Все подсистемы"));
             subsystemLabels.entrySet().stream().sorted(Map.Entry.<String, String>comparingByValue(String.CASE_INSENSITIVE_ORDER).thenComparing(Map.Entry.comparingByKey()))
                 .forEach(sub -> subsystemChoices.add(new Choice(sub.getKey(), sub.getValue())));
-            subsystemChoices.add(new Choice(EntityExplorerRegistryState.NO_SUBSYSTEM, "Без подсистемы"));
+            subsystemChoices.add(new Choice(EntityExplorerRegistryState.NO_SUBSYSTEM, "Без области"));
             // Keep a stale filter visible after refresh instead of silently broadening the result.
             if (state.subsystem() != null && subsystemChoices.stream().noneMatch(choice -> choice.id().equals(state.subsystem())))
-                subsystemChoices.add(new Choice(state.subsystem(), "Недоступная подсистема · " + state.subsystem()));
+                subsystemChoices.add(new Choice(state.subsystem(), "Недоступная область · " + state.subsystem()));
             subsystems.setItems(subsystemChoices);
             subsystems.setValue(subsystemChoices.stream().filter(choice -> Objects.equals(idOf(choice), state.subsystem())).findFirst().orElseThrow());
             var exposureChoices = new ArrayList<Choice>(); exposureChoices.add(new Choice("*", "Все экспозиции"));
@@ -225,7 +225,7 @@ public final class EntityExplorerRegistryPanel extends Div {
             state.setOverview(false); getElement().setAttribute("data-overview", "false");
             tree.getElement().executeJs("requestAnimationFrame(()=>this.querySelector('[aria-selected=true]')?.focus({preventScroll:true}));");
         }); back.addClassName("er-back"); back.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
-        var eyebrow = new Span(EntityExplorerLabels.kind(entry.kind(), false) + " · " + entry.subsystem().map(sub -> sub.label().value()).orElse("Без подсистемы"));
+        var eyebrow = new Span(EntityExplorerLabels.kind(entry.kind(), false) + " · " + entry.subsystem().map(sub -> sub.label().value()).orElse("Без области"));
         eyebrow.addClassName("er-eyebrow");
         var title = new H3(entry.displayName().value()); title.addClassName("er-title");
         var code = new Span(entry.simpleName()); code.addClassName("er-subtitle");

@@ -36,12 +36,13 @@ class public org.ipro.report.ui.catalog.ReportCatalogView
   annotation com.vaadin.flow.router.Route
   annotation com.vaadin.flow.router.RouteAlias$Container
   annotation jakarta.annotation.security.PermitAll
-  ctor public(org.ipro.report.catalog.ReportCatalogService, org.ipro.jr.service.JrxmlTemplateService, org.springframework.beans.factory.ObjectProvider<org.ipro.report.ui.print.JrxmlRunLauncher>, org.springframework.beans.factory.ObjectProvider<org.ipro.report.ui.unidr.UniDrCatalogGateway>, org.springframework.beans.factory.ObjectProvider<org.ipro.report.ui.unidr.UniDrRunLauncher>)
+  ctor public(org.ipro.report.catalog.ReportCatalogService, org.ipro.report.ui.config.ReportTypeAvailability, org.ipro.jr.service.JrxmlTemplateService, org.springframework.beans.factory.ObjectProvider<org.ipro.report.ui.print.JrxmlRunLauncher>, org.springframework.beans.factory.ObjectProvider<org.ipro.report.ui.unidr.UniDrCatalogGateway>, org.springframework.beans.factory.ObjectProvider<org.ipro.report.ui.unidr.UniDrRunLauncher>)
 
 class public org.ipro.report.ui.config.ReportUiAutoConfiguration
   annotation org.springframework.boot.autoconfigure.AutoConfiguration
   ctor public()
   method public org.ipro.report.ui.ReportContextFactory reportContextFactory(org.ipro.rls.RlsCurrentUser)
+  method public org.ipro.report.ui.config.ReportTypeAvailability reportTypeAvailability(boolean, boolean)
   method public org.ipro.report.ui.print.ItemFormReportActions$CardLauncher reportCardLauncher(org.ipro.jr.service.JrxmlTemplateService, org.springframework.beans.factory.ObjectProvider<org.ipro.report.ui.print.JrxmlRunLauncher>, org.springframework.beans.factory.ObjectProvider<org.ipro.report.ui.unidr.UniDrCatalogGateway>, org.springframework.beans.factory.ObjectProvider<org.ipro.report.ui.unidr.UniDrRunLauncher>)
   method public org.ipro.report.ui.print.ReportCardPrintCustomization reportCardPrintCustomization(org.ipro.report.ui.print.ItemFormReportActions$CardLauncher, org.ipro.report.ui.ReportContextFactory)
   method public org.ipro.report.ui.print.ReportPrintAction reportPrintAction(org.ipro.jr.service.JrxmlTemplateService, org.springframework.beans.factory.ObjectProvider<org.ipro.report.ui.print.JrxmlRunLauncher>, org.ipro.report.ui.ReportContextFactory, org.springframework.beans.factory.ObjectProvider<org.ipro.report.ui.unidr.UniDrCatalogGateway>, org.springframework.beans.factory.ObjectProvider<org.ipro.report.ui.unidr.UniDrRunLauncher>)
@@ -138,4 +139,15 @@ interface public abstract interface org.ipro.report.ui.unidr.UniDrCatalogGateway
 interface public abstract interface org.ipro.report.ui.unidr.UniDrRunLauncher
   method public abstract void open(org.ipro.unidr.model.UniDrDefinition)
   method public abstract void open(org.ipro.unidr.model.UniDrDefinition, org.ipro.query.ReportContext)
+
+record public final org.ipro.report.ui.config.ReportTypeAvailability
+  extends java.lang.Record
+  ctor public(boolean, boolean)
+  method public boolean enabled(org.ipro.report.catalog.ReportEngineType)
+  method public boolean jrxmlEnabled()
+  method public boolean unidrEnabled()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.util.List<org.ipro.report.catalog.ReportEngineType> enabledTypes()
 

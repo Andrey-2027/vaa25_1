@@ -23,8 +23,8 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "a27673a92d06b2f8e7285a7edcf10823722aa393dcb95de8b7f365cf513d876f",
-        "fileCount": 100,
+        "sha256": "a715e46428f313f211eb4571a00d212f92b9a926cbbf321b4c1d83bc3f0d4c7c",
+        "fileCount": 102,
         "inputs": [
           "pom.xml",
           "src"
@@ -48,7 +48,7 @@
       "relativePath": "entity-design-json",
       "dependsOn": ["entity-design-core"],
       "source": {"kind": "in-repo-project", "gitCommit": null, "state": "P8.4/E3.A: neutral bounded JSON v1/v2 codec with explicit owner envelope. Depends only on entity-design-core and Jackson; no UI, persistence, application or platform starter."},
-      "fingerprint": {"algorithm": "gitvaa-source-tree-sha256-v2", "sha256": "d5fdca4c1e906809d1b7eabd84f6f6d49d279c4144007045631ac14efb4fcafd", "fileCount": 8, "inputs": ["pom.xml", "src"]},
+      "fingerprint": {"algorithm": "gitvaa-source-tree-sha256-v2", "sha256": "b85625f770e2e6c10ce6d414301ebfc6c263e63c63439b6897cbfa806d089515", "fileCount": 8, "inputs": ["pom.xml", "src"]},
       "artifacts": ["org.ipro:entity-design-json:1.0-SNAPSHOT"],
       "buildSteps": [{"pom": "pom.xml", "arguments": ["clean", "install"]}]
     },
@@ -110,7 +110,7 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "d114ed056b3b304987270ed16afe22239b5bfa8492e327ec10356a2bd2f2cfcb",
+        "sha256": "b87c21d2d3c3711c31f787d1f3b02fcbbe63222c64444bf0130d3978a9c1b33a",
         "fileCount": 44,
         "inputs": [
           "pom.xml",
@@ -552,8 +552,8 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "6103ab79632436833bc27718be6fd25feb9dcb4d42dcb0ff74025ba8113b91a6",
-        "fileCount": 35,
+        "sha256": "0b18428657daf6117956f99a905367ef91a99ff3ae36c88a1eb9ffa553a67a0b",
+        "fileCount": 52,
         "inputs": ["pom.xml", "src"]
       },
       "artifacts": ["org.ipro:platform-navigation:1.0-SNAPSHOT"],
@@ -598,8 +598,8 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "1d008f084e77ca4bd2d7725282f439e0080ab76e4c837549808cc876345e2007",
-        "fileCount": 287,
+        "sha256": "e9a66045b2109db29937ca6cc7f01f457ac8db231832e3102dd4470aad7c499a",
+        "fileCount": 315,
         "inputs": [
           "pom.xml",
           "src"

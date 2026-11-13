@@ -4,8 +4,13 @@ import org.ip.model.PrdSpec;
 import org.ip.model.PrdSpecMtr;
 import org.ip.model.PrdSpecOper;
 import org.ipro.form.builtin.ItemForm;
-import org.ipro.form.builder.*;
-import org.ipro.form.builder.layout.*;
+import org.ipro.form.builder.FormBehavior;
+import org.ipro.form.builder.FormFor;
+import org.ipro.form.builder.FormParameter;
+import org.ipro.form.builder.FormParameters;
+import org.ipro.form.builder.layout.FormAdjust;
+import org.ipro.form.builder.layout.ItemFormLayout;
+import org.ipro.form.builder.layout.Layout;
 import java.util.List;
 
 /** Shared header and per-opening section behavior for specification variants. */

@@ -42,7 +42,7 @@ class JavaEntityReaderParityTest {
     private MetadataResolver resolver;
 
     @Test void readerAgreesWithThePlatformOnTheWholeApplicationModel() throws Exception {
-        resolver = org.ipro.form.config.ApplicationColumnsTestSupport.resolver();
+        resolver = org.ip.form.config.ApplicationColumnsTestSupport.resolver();
         var project = ProjectSources.scan(List.of(Path.of("src", "main", "java")));
         assertThat(project.complete()).as(project.unparsable().toString()).isTrue();
         var report = new ArrayList<String>();

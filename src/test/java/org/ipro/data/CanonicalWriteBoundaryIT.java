@@ -60,10 +60,11 @@ class CanonicalWriteBoundaryIT {
 
     @Test
     void attributeValueGenericUpdateAndDeleteAreRejectedBeforeRlsAndSql() {
+        // C5.6: отказ называет владельца политики, а не прежнее слово «бессмертно».
         assertThatThrownBy(() -> access.update(AttributeValue.class, new AttributeValue()))
             .isInstanceOf(IllegalStateException.class)
             .hasMessageContaining("UPDATE")
-            .hasMessageContaining("бессмертно");
+            .hasMessageContaining("AttributeValueService.getOrCreate");
 
         assertThatThrownBy(() -> access.delete(AttributeValue.class, 1L))
             .isInstanceOf(IllegalStateException.class)
@@ -74,10 +75,12 @@ class CanonicalWriteBoundaryIT {
     void sklNomOpaHasNoGenericWriteIntentAtAll() {
         SklNomOpa instance = new SklNomOpa(null, "canon", "Canon");
 
+        // C5.6: отказ приходит от capability-границы до сервиса, и причина обязана назвать
+        // владельца канонизации, а не пересказывать его слово «канонизация».
         assertThatThrownBy(() -> access.create(SklNomOpa.class, instance))
             .isInstanceOf(IllegalStateException.class)
             .hasMessageContaining("CREATE")
-            .hasMessageContaining("канонизация");
+            .hasMessageContaining("SklNomOpaService.findOrCreate");
         assertThatThrownBy(() -> access.update(SklNomOpa.class, instance))
             .isInstanceOf(IllegalStateException.class)
             .hasMessageContaining("UPDATE");

@@ -24,7 +24,7 @@ import java.util.TreeMap;
  *
  * <p><b>Группы.</b> Обычный режим группирует по resolved {@code kind} и хранит подписи групп в одном
  * словаре ({@link #kindGroupTitle}); дополнительный режим — по подсистемам, где подпись берётся у
- * самого снимка. Тип без подсистемы не исчезает: он попадает в явную группу «Без подсистемы»,
+ * самого снимка. Тип без подсистемы не исчезает: он попадает в явную группу «Без области»,
  * а тип без resolved kind — в группу «kind неизвестен». Группа не открывает карточку: у узла
  * группы {@code type()} пуст, и фиктивный тип в выбор не передаётся.</p>
  *
@@ -373,7 +373,7 @@ final class ExplorerTreeModel {
             .forEach(bucket -> groups.add(groupNode("subsystem:" + bucket.getKey(),
                 labels.get(bucket.getKey()), bucket.getValue(), view)));
         if (!none.isEmpty()) {
-            groups.add(groupNode("subsystem:none", "Без подсистемы", none, view));
+            groups.add(groupNode("subsystem:none", "Без области", none, view));
         }
         return groups;
     }
@@ -553,7 +553,7 @@ final class ExplorerTreeModel {
                 title = kind.equals("unknown") ? "kind неизвестен" : kindGroupTitle(EntityKind.valueOf(kind));
             } else {
                 title = entries.stream().flatMap(entry -> entry.subsystem().stream())
-                    .map(ref -> ref.label().value()).findFirst().orElse("Без подсистемы");
+                    .map(ref -> ref.label().value()).findFirst().orElse("Без области");
             }
             return new Node(group.kind(), group.id(), title + counterText(entries), group.type(),
                 group.tabId(), group.sectionId(), group.fieldName(), group.children());

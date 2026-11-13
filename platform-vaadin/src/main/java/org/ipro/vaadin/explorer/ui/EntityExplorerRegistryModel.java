@@ -42,7 +42,7 @@ public final class EntityExplorerRegistryModel {
             String id = byKind ? "kind:" + (entry.kind() != null && KINDS.contains(entry.kind()) ? entry.kind().name() : "UNKNOWN")
                 : "subsystem:" + entry.subsystem().map(ExplorerSnapshot.SubsystemRef::id).orElse(EntityExplorerRegistryState.NO_SUBSYSTEM);
             labels.put(id, byKind ? EntityExplorerLabels.kind(entry.kind(), true)
-                : entry.subsystem().map(sub -> sub.label().value()).orElse("Без подсистемы"));
+                : entry.subsystem().map(sub -> sub.label().value()).orElse("Без области"));
             groups.computeIfAbsent(id, key -> new ArrayList<>()).add(entry);
         }
         Comparator<String> order = state.grouping() == EntityExplorerRegistryState.Grouping.KIND

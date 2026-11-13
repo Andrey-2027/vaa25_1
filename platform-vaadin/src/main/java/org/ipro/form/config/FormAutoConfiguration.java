@@ -182,7 +182,13 @@ public class FormAutoConfiguration {
             ObjectProvider<org.ipro.rls.c5.C5PermissionEvaluator> entityReads) {
         return new org.ipro.form.registry.EmbeddedListFactory() {
             @Override public boolean canRead(Class<?> entity) {
-                String username = currentUsers.getObject().requireAuthenticatedUsername();
+                // Fail-closed: without an authenticated subject the embedded list is hidden, not
+                // an exception inside the form constructor (a description may be built outside a
+                // UI request; the app itself always has a user).
+                String username = currentUsers.getObject().username();
+                if (username == null || username.isBlank() || "system".equals(username)) {
+                    return false;
+                }
                 return entityReads.getObject().isEntityReadPermitted(username, entity)
                     && readGates.getObject().canRead(entity, username);
             }

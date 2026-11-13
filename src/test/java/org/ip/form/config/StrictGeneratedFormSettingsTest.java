@@ -1,4 +1,4 @@
-package org.ipro.form.config;
+package org.ip.form.config;
 
 import java.net.URLClassLoader;
 import java.nio.file.*;

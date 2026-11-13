@@ -57,7 +57,7 @@ public final class NavigationCatalog {
                 .thenComparing(NavigationStructure.Entry::id))
             .flatMap(entry -> functions.find(entry.functionKey()).stream().map(function ->
                 new NavigationItem(entry.id(), function,
-                    entry.title() == null ? function.title() : entry.title(), function.icon(), entry.position(), true)))
+                    entry.title() == null ? function.title() : entry.title(), function.icon(), entry.position(), !function.command())))
             .toList();
         var nested = children.getOrDefault(section.id(), List.of()).stream()
             .sorted(java.util.Comparator.comparingInt(NavigationStructure.Section::position)

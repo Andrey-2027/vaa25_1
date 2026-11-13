@@ -112,7 +112,7 @@ public class SubsystemSummaryAssembler {
     public List<Group> groupsOf(Class<?> markerClass) {
         if (markerClass == null) {
             List<EntityFacet> unassigned = catalog().unassigned();
-            return List.of(new Group(null, "Без подсистемы", "Без подсистемы", unassigned));
+            return List.of(new Group(null, "Без области", "Без области", unassigned));
         }
         SubsystemNode node = subsystemRegistry.findByMarker(markerClass)
             .orElseThrow(() -> new IllegalArgumentException(

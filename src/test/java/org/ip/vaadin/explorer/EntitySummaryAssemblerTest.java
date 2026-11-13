@@ -155,7 +155,7 @@ class EntitySummaryAssemblerTest {
 
         // Обзор: подсистема + заголовки форм.
         assertThat(summary.overview()).anyMatch(r ->
-            "Подсистема".equals(r.caption()) && !r.value().value().isBlank());
+            "Область".equals(r.caption()) && !r.value().value().isBlank());
         assertThat(summary.overview())
             .extracting(r -> r.key().kind())
             .contains(FacetKind.ENTITY_KIND, FacetKind.ENTITY_EXPOSURE,

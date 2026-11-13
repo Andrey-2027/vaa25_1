@@ -91,7 +91,7 @@
 #
 # ET4: Standard* bases are explicit external APP_API exports. TableSectionService and
 # EntityDescriptorCatalog are host application API; their previous MODULE_API role was stale.
-# ---- APP_API (45)
+# ---- APP_API (46)
 APP_API org.ipro.data.CatalogOwnerContext
 APP_API org.ipro.data.CatalogOwnerViolationException
 APP_API org.ipro.crud.InternedContract
@@ -134,6 +134,7 @@ APP_API org.ipro.metadata.ColumnPath
 APP_API org.ipro.metadata.EntityMetadataInfo
 APP_API org.ipro.metadata.StructuralAttribute
 APP_API org.ipro.metadata.FieldMetadataInfo
+APP_API org.ipro.metadata.FormColumnDeclarations
 APP_API org.ipro.metadata.ManagedEntityCatalog
 APP_API org.ipro.metadata.FactOrigin
 APP_API org.ipro.metadata.MetadataAllowance
@@ -168,7 +169,7 @@ APP_SPI org.ipro.search.GlobalSearchProvider
 # EntityReadAccess/RestGraphException — контракт с REST; Api*Read — запросы к
 # MODULE_API CanonicalReadExecutor; CanonicalEntityReadAccess создаёт autoconfigure.
 # Рост 95 -> 100, MODULE_API 43 -> 48; прикладной APP_API не расширяется.
-# ---- MODULE_API (61)
+# ---- MODULE_API (60)
 MODULE_API org.ipro.data.PresentationResolver
 MODULE_API org.ipro.metadata.CatalogOwnerDescriptor
 MODULE_API org.ipro.metadata.CatalogOwnerResolution
@@ -226,7 +227,6 @@ MODULE_API org.ipro.fetch.instance.InstanceNameProvider
 MODULE_API org.ipro.fetch.plan.FetchPlanRegistry
 MODULE_API org.ipro.filter.ColumnPathFilterFieldResolver
 MODULE_API org.ipro.metadata.FilterSpec
-MODULE_API org.ipro.metadata.FormColumnDeclarations
 MODULE_API org.ipro.metadata.JpaFieldFacts
 MODULE_API org.ipro.metadata.GridMetadata
 MODULE_API org.ipro.metadata.GridViewState
@@ -263,7 +263,7 @@ INTERNAL org.ipro.metadata.MetadataConsistencyValidator
 INTERNAL org.ipro.metadata.StructuralAttributeScanner
 INTERNAL org.ipro.search.JpaGlobalSearchProvider
 
-# ---- test-usage overlay (15)
+# ---- test-usage overlay (14)
 test-usage org.ipro.metadata.CatalogOwnerDescriptor org/ip/views/admin/EntityExplorerPilotPanelTest.java
 test-usage org.ipro.crud.GenericOwnedSectionService org/ip/application/catalog/NomenclatureAttributesIT.java org/ip/application/document/PrdSpecMetadataAggregateIT.java org/ip/application/document/ReceivingDocumentRulesIT.java org/ip/form/TableSectionFactoryStartupValidationTest.java org/ip/form/builtin/PrdSpecHiddenSectionSkipsValidationAndSaveTest.java org/ip/security/RlsServiceWriteBoundaryIT.java
 test-usage org.ipro.crud.ReferenceCheckService org/ip/security/RlsIntegrationTest.java org/ip/service/SklNomOpaServiceTest.java

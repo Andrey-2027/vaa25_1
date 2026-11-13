@@ -6,13 +6,19 @@ import org.ipro.design.EntityDraft;
 import org.ipro.design.EntityProperties;
 import org.ipro.design.FieldDraft;
 import org.ipro.design.FieldApplications;
+import org.ipro.design.OwnerDraft;
 import org.ipro.design.ProjectDesignContext;
 import org.ipro.design.RecipeCatalog;
+import org.ipro.design.RecipeDescriptor;
+import org.ipro.design.RecipeDescriptor.EditorConstruction;
+import org.ipro.design.RegisterDraft;
+import org.ipro.design.RegisterRlsDraft;
 import org.ipro.design.SectionDraft;
 import org.ipro.design.ValidationResult;
 import org.ipro.design.generation.EntityJavaGenerator;
 import org.ipro.design.RecipeRef;
 import org.ipro.design.generation.GenerationPlan;
+import org.ipro.design.generation.GenerationReadiness;
 import org.ipro.design.generation.GenerationResult;
 import java.util.Objects;
 import java.util.Optional;
@@ -42,14 +48,14 @@ final class DraftEditorSession {
     ProjectDesignContext context() { return context; }
     DraftPlace place() { return place; }
     long revision() { return revision; }
-    org.ipro.design.RecipeDescriptor descriptor() { return RecipeCatalog.descriptor(draft.recipe()).orElseThrow(); }
+    RecipeDescriptor descriptor() { return RecipeCatalog.descriptor(draft.recipe()).orElseThrow(); }
     boolean register() { return RecipeCatalog.isRegisterRecipe(draft.recipe()); }
-    boolean supports(org.ipro.design.RecipeDescriptor.EditorConstruction construction) { return descriptor().editorConstructions().contains(construction); }
+    boolean supports(EditorConstruction construction) { return descriptor().editorConstructions().contains(construction); }
     List<RecipeCatalog.InheritedField> builtins() {
         try { return descriptor().effectiveProfile(draft).inheritedFields(); }
         catch (IllegalArgumentException invalidMode) { return List.of(); }
     }
-    Optional<org.ipro.design.generation.GenerationReadiness> readiness() {
+    Optional<GenerationReadiness> readiness() {
         return validation().flatMap(ValidationResult::checkedStructure).map(checked -> EntityJavaGenerator.readiness(checked, draft, context));
     }
     String role(UUID id) {
@@ -64,7 +70,7 @@ final class DraftEditorSession {
         dimensions.remove(id); resources.remove(id);
         switch (role) { case "DIMENSION" -> dimensions.add(id); case "RESOURCE" -> resources.add(id);
             case "UNASSIGNED" -> { } default -> throw new IllegalArgumentException("Unknown role"); }
-        replace(draft.withRegister(new org.ipro.design.RegisterDraft(draft.register().period(), draft.register().writeProfile(), dimensions, resources, draft.register().rls())));
+        replace(draft.withRegister(new RegisterDraft(draft.register().period(), draft.register().writeProfile(), dimensions, resources, draft.register().rls())));
     }
     void period(String period) {
         if (!register() || descriptor().periodModes().stream().noneMatch(mode -> mode.id().equals(period))) throw new IllegalArgumentException("Register period required");
@@ -77,7 +83,7 @@ final class DraftEditorSession {
     }
     void rls(String dimension, UUID fieldId) {
         if (!RecipeCatalog.INDEPENDENT_REGISTER_RLS.equals(draft.recipe())) throw new IllegalStateException("Explicit RLS recipe required");
-        replace(draft.withRegister(draft.register().withRls(new org.ipro.design.RegisterRlsDraft(dimension, fieldId))));
+        replace(draft.withRegister(draft.register().withRls(new RegisterRlsDraft(dimension, fieldId))));
     }
     void exported(long deliveredRevision) {
         // An older response cannot undo a newer checkpoint or hide edits made during delivery.
@@ -120,7 +126,7 @@ final class DraftEditorSession {
     }
     FieldDraft selectedField() { return fields(place.sectionId()).stream().filter(f -> f.id().equals(place.fieldId())).findFirst().orElseThrow(); }
     void editEntity(UnaryOperator<EntityProperties> edit) { replace(draft.withEntity(edit.apply(draft.entity()))); }
-    void editOwner(org.ipro.design.OwnerDraft owner) {
+    void editOwner(OwnerDraft owner) {
         if (owner != null && !RecipeCatalog.STANDARD_CATALOG_V2.equals(RecipeCatalog.structuralRecipe(draft.recipe())))
             throw new IllegalStateException("This recipe does not support a catalog owner");
         replace(new EntityDraft(owner == null ? draft.schemaVersion() : 2, draft.recipe(), draft.draftId(),
@@ -148,7 +154,7 @@ final class DraftEditorSession {
         replace(operations.addField(draft, sectionId, type)); selectField(sectionId, fields(sectionId).getLast().id());
     }
     void addSection() {
-        if (!supports(org.ipro.design.RecipeDescriptor.EditorConstruction.SECTIONS)) throw new IllegalStateException("Sections are unavailable for this recipe");
+        if (!supports(EditorConstruction.SECTIONS)) throw new IllegalStateException("Sections are unavailable for this recipe");
         replace(operations.addSection(draft)); selectSection(draft.sections().getLast().id());
     }
     void editSection(UUID id, UnaryOperator<SectionDraft> edit) {

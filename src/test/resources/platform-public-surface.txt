@@ -1,4 +1,5 @@
-# KI-1/KI-2: декларации ID и прикладные адаптеры доступа/идентичности пользователей.
+# KI-1/KI-2/KI-7: ключи сущностей меню и прикладные адаптеры доступа/идентичности пользователей.
+API org.ipro.navigation.NavigationEntityKeys
 SPI org.ipro.navigation.NavigationAdministrationAccess
 SPI org.ipro.navigation.NavigationUserDirectory
 # R3.1 (2026-10-23): UDR-редактор удалён, поэтому его записи сняты из реестра.
@@ -126,14 +127,19 @@ API org.ipro.form.action.ActionId
 API org.ipro.form.action.ActionInvocation
 API org.ipro.form.action.ActionRequirement
 API org.ipro.form.action.ActionSurface
+API org.ipro.form.action.ActionDecision
+API org.ipro.form.action.ActionResolvers
+API org.ipro.form.action.NavigationCommandAvailability
 API org.ipro.form.action.CrudAction
-API org.ipro.form.builder.ContextFilterField
+API org.ipro.form.builder.FormBehavior
+API org.ipro.form.builder.FormFor
+API org.ipro.form.builder.FormParameter
+API org.ipro.form.builder.FormParameters
 API org.ipro.form.builder.ItemFormVariants
 API org.ipro.form.builder.ListFormVariants
-API org.ipro.form.builder.layout.CustomNode
-API org.ipro.form.builder.layout.DisplayNode
-API org.ipro.form.builder.layout.FieldNode
+API org.ipro.form.builder.layout.FormAdjust
 API org.ipro.form.builder.layout.ItemFormLayout
+API org.ipro.form.builder.layout.Layout
 API org.ipro.form.builtin.ItemTable
 API org.ipro.form.builtin.ListForm
 API org.ipro.form.coordinator.FormNavigator
@@ -143,10 +149,9 @@ API org.ipro.form.link.EntityExplorerAddress
 API org.ipro.form.link.FormRouteCatalog
 API org.ipro.form.link.FormRouteOpener
 API org.ipro.form.link.OpenResult
+API org.ipro.form.link.FormRouteKind
 API org.ipro.form.link.PublishedFormRoute
-API org.ipro.form.registry.FormContext
 API org.ipro.form.registry.FormType
-API org.ipro.form.registry.ListFormContext
 API org.ipro.form.spi.GridView
 API org.ipro.jr.dom.JrxmlTemplate
 API org.ipro.jr.run.JrxmlExecutionService
@@ -158,11 +163,11 @@ API org.ipro.lifecycle.EntityUpdateContext
 API org.ipro.metadata.ColumnPath
 API org.ipro.metadata.EntityMetadataInfo
 API org.ipro.metadata.FieldMetadataInfo
+API org.ipro.metadata.FormColumnDeclarations
 API org.ipro.metadata.ManagedEntityCatalog
 API org.ipro.metadata.MetadataAllowance
 API org.ipro.metadata.MetadataDiagnosticCodes
 API org.ipro.metadata.MetadataResolver
-API org.ipro.metadata.RowMetadataInfo
 API org.ipro.metadata.SubsystemNode
 API org.ipro.metadata.SubsystemRegistry
 # E3.0: `Nomenclature` называет `EntityKind` (`kind = CATALOG`) — роль API назначена этим
@@ -187,11 +192,13 @@ API org.ipro.metadata.facet.ResolvedValue
 API org.ipro.metadata.annotation.EntityMetadata
 API org.ipro.metadata.annotation.FieldMetadata
 API org.ipro.metadata.annotation.FieldType
+API org.ipro.metadata.annotation.FormConfigurationFor
 API org.ipro.metadata.annotation.GridColumn
-API org.ipro.metadata.annotation.Lookup
+API org.ipro.metadata.annotation.ListColumns
 API org.ipro.metadata.annotation.RlsLabels
 API org.ipro.metadata.annotation.RequiredMode
 API org.ipro.metadata.annotation.SectionPersistenceMode
+API org.ipro.metadata.annotation.SelectionColumns
 API org.ipro.metadata.annotation.SectionRlsPolicy
 API org.ipro.metadata.annotation.Subsystem
 API org.ipro.metadata.annotation.TableSectionMetadata
@@ -332,7 +339,6 @@ API org.ipro.register.RegisterSliceReader
 API org.ipro.register.RegisterReaderFactory
 API org.ipro.rls.RlsFilterActivator
 API org.ipro.rls.RlsPolicyEnforcer
-API org.ipro.rls.RlsReadGate
 SPI org.ipro.rls.RlsReadableIdsResolver
 API org.ipro.rls.c5.C5Operation
 API org.ipro.rls.c5.C5OperationPermissionRegistry
@@ -345,12 +351,14 @@ API org.ipro.register.RecordedRegisterReader
 API org.ipro.register.SliceSpec
 # KI-3: per-UI navigation projection and profile read contract.
 API org.ipro.navigation.NavigationCatalog
+API org.ipro.navigation.NavigationCatalogProvider
 API org.ipro.navigation.NavigationResolver
 API org.ipro.navigation.NavigationTree
 API org.ipro.navigation.NavigationProfileReader
 API org.ipro.navigation.NavigationProfile
 # KI-4: full catalogue, visibility editor and protected administration operations.
 API org.ipro.navigation.NavigationNode
+API org.ipro.navigation.NavigationItem
 API org.ipro.navigation.NavigationVisibility
 API org.ipro.navigation.NavigationAdministrationService
 API org.ipro.navigation.NavigationConflictException
@@ -385,6 +393,31 @@ API org.ipro.design.SectionDraft
 API org.ipro.design.ValidationResult
 API org.ipro.design.json.DraftJsonCodec
 API org.ipro.design.json.DraftJsonException
+API org.ipro.design.OwnerDraft
+API org.ipro.design.RecipeDescriptor
+API org.ipro.design.RecipeDescriptor.EditorConstruction
+API org.ipro.design.RecipeRef
+API org.ipro.design.RegisterDraft
+API org.ipro.design.RegisterRlsDraft
+API org.ipro.design.existing.EntityShape
+API org.ipro.design.existing.ExistingEntity
+API org.ipro.design.existing.LockedField
+API org.ipro.design.existing.ModificationPlan
+API org.ipro.design.generation.EntityJavaGenerator
+API org.ipro.design.generation.GenerationDiagnostic
+API org.ipro.design.generation.GenerationFile
+API org.ipro.design.generation.GenerationManifest
+API org.ipro.design.generation.GenerationPlan
+API org.ipro.design.generation.GenerationReadiness
+API org.ipro.design.generation.GenerationResult
+API org.ipro.design.source.JavaEntityReader
+API org.ipro.design.source.JavaSources
+API org.ipro.design.source.ModificationApply
+API org.ipro.design.source.ModificationPlanner
+API org.ipro.design.source.PlanDirectory
+API org.ipro.design.source.ProjectSources
+API org.ipro.design.source.SourceRefusal
+API org.ipro.design.source.UnifiedDiff
 API org.ipro.events.EntityChangedEvent
 API org.ipro.form.FormBindingRegistry
 API org.ipro.metadata.StructuralAttribute
@@ -452,16 +485,11 @@ API org.ipro.unidr.ui.UniDrRunDialogFactory
 API org.ipro.vaadin.explorer.ui.EntityExplorerCardPanel
 API org.ipro.vaadin.explorer.ui.EntityExplorerCardPlace
 API org.ipro.vaadin.explorer.ui.EntityExplorerCardState
-API org.ipro.vaadin.explorer.ui.EntityExplorerDiagnosticsPanel
-API org.ipro.vaadin.explorer.ui.EntityExplorerLabels
 API org.ipro.vaadin.explorer.ui.EntityExplorerRegistryActions
-API org.ipro.vaadin.explorer.ui.EntityExplorerRegistryModel
 API org.ipro.vaadin.explorer.ui.EntityExplorerRegistryPanel
 API org.ipro.vaadin.explorer.ui.EntityExplorerRegistryState
 API org.ipro.vaadin.explorer.ui.ExplorerActionAvailability
 SPI org.ipro.vaadin.explorer.ui.ExplorerFormPreviewPort
 SPI org.ipro.vaadin.explorer.ui.ExplorerSourcePort
-
-SPI org.ipro.navigation.NavigationEntityKeys
-API org.ipro.navigation.NavigationCatalogProvider
-API org.ipro.navigation.NavigationItem
+API org.ipro.navigation.NavigationFunction
+SPI org.ipro.navigation.NavigationFunctions

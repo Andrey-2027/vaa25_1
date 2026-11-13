@@ -1,6 +1,7 @@
 package org.ip.model;
 
 import org.ipro.metadata.annotation.RlsLabels;
+import org.ipro.rls.RlsDimensionRegistry;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -94,7 +95,7 @@ public class ReceivingDocument extends BaseEntity implements RlsDimensionValue {
      * идёт через {@code ReceivingDocument.ИМЯ} — простые имена в аннотации на самом
      * классе не резолвятся (аннотация атрибутируется до тела класса). Одна константа
      * вместо двух копий SQL делает расхождение read/write физически невозможным, а
-     * {@link org.ipro.rls.RlsDimensionRegistry} всё равно сверяет объявленное с
+     * {@link RlsDimensionRegistry} всё равно сверяет объявленное с
      * фактическим — гарантия нужна и для custom-политик, написанных копипастой.
      */
     public static final String JOURNAL_READ_CONDITION = "journal_id in (:allowedIds)";

@@ -1,4 +1,4 @@
-package org.ipro.form.config;
+package org.ip.form.config;
 
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -15,6 +15,7 @@ import org.ipro.form.FieldFactory;
 import org.ipro.form.builtin.ItemForm;
 import org.ipro.form.builder.layout.ItemFormLayout;
 import org.ipro.form.builder.layout.RemainingFieldsNode;
+import org.ipro.form.config.FormColumnDeclarationsCollector;
 import org.ipro.metadata.ColumnPath;
 import org.ipro.metadata.MetadataResolver;
 import org.junit.jupiter.api.Test;

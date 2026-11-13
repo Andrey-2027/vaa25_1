@@ -123,7 +123,7 @@ try {
         "--server.servlet.session.cookie.name=ENTITY_EXPLORER_PILOT_$Port",
         '--spring.jpa.hibernate.ddl-auto=none','--spring.sql.init.mode=never',
         '--app.demo-data.enabled=false','--app.security-baseline.enabled=false','--app.accounting-pilot.seed=false',
-        '--platform.navigation.enabled=false','--platform.rest.web.enabled=false',
+        '--platform.rest.web.enabled=false',
         ('--app.entity-explorer.ux-pilot.enabled='+(!$Legacy).ToString().ToLowerInvariant()),
         '--vaadin.launch-browser=false','--vaadin.allowed-packages=org.ip,org.ipro,com.vaadin,org.vaadin',
         '"--vaadin.nodeFolder=C:/Program Files/nodejs"')

@@ -134,7 +134,7 @@ class ExplorerTreeModelTest {
 
         assertThat(groups).extracting(ExplorerTreeModel.Node::label)
             .containsExactly("Справочники · ошибок: 0, предупреждений: 0",
-                "Без подсистемы · ошибок: 0, предупреждений: 0");
+                "Без области · ошибок: 0, предупреждений: 0");
         assertThat(groups.get(0).id()).isEqualTo("subsystem:subsystems.Directories");
         assertThat(groups.get(1).id()).isEqualTo("subsystem:none");
     }

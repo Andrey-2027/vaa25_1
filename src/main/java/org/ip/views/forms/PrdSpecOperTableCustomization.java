@@ -1,5 +1,7 @@
 package org.ip.views.forms;
 
+import org.ipro.metadata.FormColumnDeclarations;
+
 import org.ip.model.PrdSpecOper;
 import org.ipro.form.TableSectionCustomization;
 import org.ipro.form.builtin.ItemTable;
@@ -12,8 +14,8 @@ public class PrdSpecOperTableCustomization implements TableSectionCustomization<
     public Class<PrdSpecOper> rowClass() { return PrdSpecOper.class; }
 
     @Override
-    public org.ipro.metadata.FormColumnDeclarations.Columns columns() {
-        var columns = org.ipro.metadata.FormColumnDeclarations.auto();
+    public FormColumnDeclarations.Columns columns() {
+        var columns = FormColumnDeclarations.auto();
         columns.column("oper").setWidth("250px").setAutoWidth(true);
         columns.column("ceh").setWidth("200px").setAutoWidth(true);
         columns.column("route").setWidth("200px").setAutoWidth(true);

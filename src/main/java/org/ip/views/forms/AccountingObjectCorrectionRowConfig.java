@@ -5,6 +5,7 @@ import org.ip.model.*;
 import org.ipro.crud.ValidationException;
 import org.ipro.data.EntityDataAccess;
 import org.ipro.filtergrid.inmemory.InMemoryFilterGrid;
+import org.ipro.metadata.FormColumnDeclarations;
 import org.ipro.form.EntityField;
 import org.ipro.form.SelectionForm;
 import org.ipro.form.SelectionFormAssembler;
@@ -116,8 +117,8 @@ public class AccountingObjectCorrectionRowConfig implements ItemFormCustomizatio
     }
 
     @Override
-    public org.ipro.metadata.FormColumnDeclarations.Columns columns() {
-        var columns = org.ipro.metadata.FormColumnDeclarations.auto();
+    public FormColumnDeclarations.Columns columns() {
+        var columns = FormColumnDeclarations.auto();
         columns.column("nomenclature").setFlexGrow(1);
         columns.column("accountingType").setWidth("180px").setAutoWidth(true);
         columns.column("currentAccountingType").setWidth("180px").setAutoWidth(true);

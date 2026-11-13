@@ -12,7 +12,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /** Reads bean types, never constructs configurations or evaluates their configure methods. */
-final class FormColumnDeclarationsCollector implements BeanFactoryPostProcessor, BeanPostProcessor {
+public final class FormColumnDeclarationsCollector implements BeanFactoryPostProcessor, BeanPostProcessor {
     private FormColumnDeclarations declarations;
     @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) {

@@ -1,5 +1,7 @@
 package org.ip.views.forms;
 
+import org.ipro.metadata.FormColumnDeclarations;
+
 import org.ipro.form.TableSectionCustomization;
 import org.ipro.form.builtin.ItemTable;
 import org.ip.model.PrdSpecMtr;
@@ -46,8 +48,8 @@ public class PrdSpecMtrTableCustomization implements TableSectionCustomization<P
     }
 
     @Override
-    public org.ipro.metadata.FormColumnDeclarations.Columns columns() {
-        var columns = org.ipro.metadata.FormColumnDeclarations.auto();
+    public FormColumnDeclarations.Columns columns() {
+        var columns = FormColumnDeclarations.auto();
         columns.column("typeMtr").setWidth("100px").setAutoWidth(true);
         columns.column("prdSpecMtr").setWidth("250px").setAutoWidth(true);
         columns.column("nomenclature").setWidth("250px").setAutoWidth(true);

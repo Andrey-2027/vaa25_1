@@ -530,7 +530,7 @@ public class EntitySummaryAssembler {
             ? FactOrigin.PLATFORM_DEFAULT
             : title != null ? FactOrigin.REGISTRATION : FactOrigin.PLATFORM_DEFAULT;
         String subsystemSymbol = marker == Subsystem.NoSubsystem.class ? "" : marker.getName();
-        rows.add(new EntitySummary.OverviewRow("Подсистема",
+        rows.add(new EntitySummary.OverviewRow("Область",
             FacetKey.of(FacetKind.SUBSYSTEM_MEMBERSHIP, entityClass),
             resolve(FacetKey.of(FacetKind.SUBSYSTEM_MEMBERSHIP, entityClass), subsystemCode,
                 subsystemOrigin, subsystemSymbol)));
@@ -1150,6 +1150,9 @@ public class EntitySummaryAssembler {
      * действием. Порядок — default, затем по имени (П4).
      */
     private List<String> actionVariants(ActionSurface surface, Class<?> entityClass) {
+        if (surface == ActionSurface.NAVIGATION) {
+            return java.util.Collections.singletonList(null);
+        }
         Set<String> named = new TreeSet<>();
         FormType formType = formTypeOf(surface);
         for (FormRegistry.Registration registration : formRegistry.registrationsOf(entityClass)) {
@@ -1176,6 +1179,7 @@ public class EntitySummaryAssembler {
         return switch (surface) {
             case LIST_TOOLBAR -> FormType.LIST;
             case ITEM_FOOTER, ITEM_MENU -> FormType.ITEM;
+            case NAVIGATION -> throw new IllegalArgumentException("Navigation commands have no form type");
         };
     }
 

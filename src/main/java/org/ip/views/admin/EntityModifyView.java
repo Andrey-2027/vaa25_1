@@ -29,6 +29,7 @@ import org.ipro.design.DraftProblem;
 import org.ipro.design.DraftText;
 import org.ipro.design.FieldApplications;
 import org.ipro.design.FieldDraft;
+import org.ipro.design.RecipeCatalog;
 import org.ipro.design.ReferenceDraft;
 import org.ipro.design.existing.ModificationPlan;
 import org.ipro.design.source.ModificationApply;
@@ -177,7 +178,7 @@ public class EntityModifyView extends Div implements Dirtyable {
         var kind = new Select<String>(); kind.setItems(TYPES); kind.setValue(field.type()); kind.setLabel("Тип");
         kind.getElement().setAttribute("data-modify-input", "type");
         kind.addValueChangeListener(e -> { { command(() -> {
-            session.edit(id, f -> with(f, f.name(), f.label(), e.getValue(), org.ipro.design.RecipeCatalog.initialConstraints(e.getValue()),
+            session.edit(id, f -> with(f, f.name(), f.label(), e.getValue(), RecipeCatalog.initialConstraints(e.getValue()),
                 e.getValue().equals("REFERENCE") ? f.reference() : null, f.applications(), f.columnName()));
             invalidate(); renderNew();
         }); } });

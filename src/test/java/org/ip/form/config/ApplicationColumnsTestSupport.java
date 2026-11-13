@@ -1,7 +1,8 @@
-package org.ipro.form.config;
+package org.ip.form.config;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import org.ipro.form.config.FormColumnDeclarationsCollector;
 import org.ipro.metadata.MetadataResolver;
 import org.ipro.metadata.annotation.FormConfigurationFor;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;

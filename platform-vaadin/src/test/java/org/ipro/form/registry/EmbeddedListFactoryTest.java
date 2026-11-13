@@ -54,7 +54,7 @@ class EmbeddedListFactoryTest {
         var gate = mock(org.ipro.rls.RlsReadGate.class);
         var user = mock(org.ipro.rls.RlsCurrentUser.class);
         var entityReads = mock(org.ipro.rls.c5.C5PermissionEvaluator.class);
-        when(user.requireAuthenticatedUsername()).thenReturn("reader");
+        when(user.username()).thenReturn("reader");
         when(entityReads.isEntityReadPermitted("reader", Doc.class)).thenReturn(true);
         when(gate.canRead(Doc.class, "reader")).thenReturn(true);
         beans.addBean("readGate", gate); beans.addBean("currentUser", user); beans.addBean("entityReads", entityReads);

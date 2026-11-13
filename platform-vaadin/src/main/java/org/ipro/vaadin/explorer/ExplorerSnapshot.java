@@ -55,7 +55,7 @@ public final class ExplorerSnapshot {
         BUILD_FAILED
     }
 
-    /** Подсистема записи: стабильный идентификатор — FQN маркера, подпись — эффективная. */
+    /** Область записи: стабильный идентификатор — FQN маркера, подпись — эффективная. */
     public record SubsystemRef(String id, ResolvedValue label) {
         public SubsystemRef {
             Objects.requireNonNull(id, "id must not be null");
@@ -293,7 +293,7 @@ public final class ExplorerSnapshot {
             EntityKind kind = readFact("Вид", () -> sources.kind().apply(type), null, factFailures);
             EntityDescriptor descriptor = readFact("Экспозиция", () -> sources.descriptor().apply(type),
                 null, factFailures);
-            Optional<SubsystemRef> subsystem = readFact("Подсистема",
+            Optional<SubsystemRef> subsystem = readFact("Область",
                 () -> readOptional(sources.subsystem().apply(type), "subsystem"),
                 Optional.empty(), factFailures);
             Optional<String> publishedKey = readFact("Ключ",

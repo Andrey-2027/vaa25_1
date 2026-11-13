@@ -72,7 +72,7 @@ final class CompactEntityPanel extends Div {
         readOnly.addClassName("explorer-read-only");
         Div heading = new Div(new Span("Структура сущности"), entities, title, readOnly);
         heading.addClassName("explorer-pilot-heading");
-        Span subtitle = new Span(overview("Тип сущности") + " · Подсистема: " + overview("Подсистема"));
+        Span subtitle = new Span(overview("Тип сущности") + " · Область: " + overview("Область"));
         subtitle.addClassName("explorer-pilot-subtitle");
         Div header = new Div(heading, subtitle);
         header.addClassName("explorer-pilot-header");
@@ -122,11 +122,11 @@ final class CompactEntityPanel extends Div {
         properties.property("kind", "Вид", overview("Тип сущности"));
         properties.property("base", "Базовый класс", summary.entityClass().getSuperclass().getSimpleName());
         properties.property("package", "Пакет", summary.entityClass().getPackageName());
-        properties.property("subsystem", "Подсистема", overview("Подсистема"));
+        properties.property("subsystem", "Область", overview("Область"));
         ExplorerCardPropertyList sources = new ExplorerCardPropertyList();
         sources.property("caption-source", "Название", source(summary.displayName()));
         sources.property("class-source", "Класс", summary.entityClass().getName());
-        for (var row : summary.overview()) if (List.of("Тип сущности", "Подсистема").contains(row.caption()))
+        for (var row : summary.overview()) if (List.of("Тип сущности", "Область").contains(row.caption()))
             sources.property(row.key().kind().name(), row.caption(), source(row.value()));
         general.add(new H4("Основные"), properties, new Details("Источники", sources));
     }

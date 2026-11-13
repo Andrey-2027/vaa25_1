@@ -54,10 +54,10 @@ import static org.assertj.core.api.Assertions.assertThat;
  *     host: с E2.3 это его alias-шаблоны, и ничего сверх них.</li>
  * </ol>
  *
- * <p>Известные ограничения замера: варианты, объявленные константой или ключом enum
- * ({@code variants.add(SOME_CONST, …)}), регулярным выражением не видны — их проверит
- * runtime-каталог E2.1 по {@code FormRegistry}. Здесь такие объявления отсутствуют у
- * публикуемых типов (единственный случай — owned row {@code PrdSpecMtr}).</p>
+ * <p>Варианты, объявленные строковой константой того же конфига ({@code addColumns(KEY, …)},
+ * {@code customize(KEY, …)}, {@code variants.add(KEY, …)}), разрешаются по объявлению
+ * {@code static final String} — публичный вариант не должен исчезать из замера из-за формы
+ * записи. Ключ enum по-прежнему видит только runtime-каталог E2.1 по {@code FormRegistry}.</p>
  */
 class DeepLinkRouteBaselineTest {
 
@@ -83,6 +83,11 @@ class DeepLinkRouteBaselineTest {
     private static final Pattern LIST_VARIANT = Pattern.compile("variants\\.(?:add|addView)\\(\"([^\"]+)\"");
     private static final Pattern REQUIRED_CONTEXT = Pattern.compile(
         "required(?:Auto|Lookup|Select)\\(\"([^\"]+)\"|filter\\(\"([^\"]+)\"\\)\\s*\\.setRequired\\(true\\)");
+    /** Варрант, объявленный константой: {@code addColumns(KEY, …)}, {@code customize(KEY, …)}. */
+    private static final Pattern VARIANT_CONSTANT = Pattern.compile(
+        "(?:variants\\.(?:add|addView)|addColumns|customize)\\(\\s*([A-Z][A-Z0-9_]*)\\s*[,)]");
+    private static final Pattern STRING_CONSTANT = Pattern.compile(
+        "static\\s+final\\s+String\\s+(\\w+)\\s*=\\s*\"([^\"]+)\"");
 
     /** Пути, занятые хостом глубокой ссылки: под ними не может быть статического route. */
     private static final Set<String> DEEP_LINK_HOSTS = Set.of("records", "lists");
@@ -296,8 +301,28 @@ class DeepLinkRouteBaselineTest {
             while (matcher.find()) {
                 variants.add(matcher.group(1));
             }
+            // Named variants declared through a constant are invisible to the literal patterns;
+            // resolve the constant from the same config instead of ignoring a public variant.
+            Map<String, String> constants = stringConstants(source);
+            Matcher reference = VARIANT_CONSTANT.matcher(source);
+            while (reference.find()) {
+                String value = constants.get(reference.group(1));
+                if (value != null) {
+                    variants.add(value);
+                }
+            }
         }
         return variants;
+    }
+
+    /** Строковые константы одного конфига: имя → значение. */
+    private static Map<String, String> stringConstants(String source) {
+        Map<String, String> constants = new TreeMap<>();
+        Matcher matcher = STRING_CONSTANT.matcher(source);
+        while (matcher.find()) {
+            constants.put(matcher.group(1), matcher.group(2));
+        }
+        return constants;
     }
 
     /** New-API variants are declared on form classes instead of customization factories. */

@@ -2,6 +2,7 @@ package org.ipro.crud;
 
 import jakarta.persistence.*;
 import org.ip.model.*;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -27,6 +28,16 @@ class InternedPostgresIT {
     @Autowired EntityManager em;
     @Autowired PlatformTransactionManager transactionManager;
     private JdbcTemplate jdbc() { return new JdbcTemplate(dataSource); }
+
+    /** The gate is PostgreSQL-only; the default H2 run must skip it instead of failing on dialect checks. */
+    @BeforeEach
+    void requiresPostgreSql() throws Exception {
+        try (var connection = dataSource.getConnection()) {
+            org.junit.jupiter.api.Assumptions.assumeTrue(
+                "PostgreSQL".equals(connection.getMetaData().getDatabaseProductName()),
+                "InternedPostgresIT runs only against the isolated PostgreSQL database (ET8 runner)");
+        }
+    }
 
     @Test void appliedConstraintsMatchExactKeysAndNullSemantics() throws Exception {
         try (var connection = dataSource.getConnection()) {

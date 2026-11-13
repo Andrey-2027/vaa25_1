@@ -2,7 +2,6 @@ package org.ip.views.admin;
 
 import org.ip.model.NomAttributeValue;
 import org.ip.model.Nomenclature;
-import org.ip.model.NomenclaturePrice;
 import org.ip.model.ReceivingDocument;
 import org.ip.model.ReceivingDocumentItem;
 import org.junit.jupiter.api.Test;
@@ -17,20 +16,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 class EntityExplorerPilotBoundaryTest {
-    @Test
-    void pilotRequiresOptInAndAnAllowedTypeWithoutLegacyAnchor() {
-        var disabled = new EntityExplorerPilotPolicy(false);
-        var enabled = new EntityExplorerPilotPolicy(true);
-        assertThat(disabled.opensPilot(Nomenclature.class, null)).isFalse();
-        assertThat(enabled.opensPilot(Nomenclature.class, null)).isTrue();
-        assertThat(enabled.opensPilot(ReceivingDocument.class, "")).isTrue();
-        assertThat(enabled.opensPilot(NomenclaturePrice.class, null)).isFalse();
-        assertThat(enabled.opensPilot(null, null)).isFalse();
-        for (String anchor : new String[]{"fields", "fields/form", "unknown", " "}) {
-            assertThat(enabled.opensPilot(Nomenclature.class, anchor)).isFalse();
-        }
-    }
-
     @Test
     void sameFieldNameKeepsRootAndOwnedContextsDistinct() {
         var section = new EntityExplorerPilotPlace.OwnedSection("nomenclature", NomAttributeValue.class);

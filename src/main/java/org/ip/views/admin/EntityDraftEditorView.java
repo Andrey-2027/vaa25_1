@@ -249,11 +249,11 @@ public class EntityDraftEditorView extends Div implements Dirtyable {
             () -> session.draft().entity().titles().selection().resolve(session.draft().entity().label()), value -> entityAuto("titles.selection", value));
         String existingSubsystem = session.draft().entity().subsystemId();
         if (existingSubsystem != null) {
-            ComboBox<String> subsystem = new ComboBox<>(); subsystem.setAriaLabel("Подсистема");
+            ComboBox<String> subsystem = new ComboBox<>(); subsystem.setAriaLabel("Область");
             subsystem.setItems(existingSubsystem); subsystem.setValue(existingSubsystem); subsystem.setClearButtonVisible(true);
             subsystem.addValueChangeListener(e -> edit(e.getSource(), () -> entity("subsystemId", Objects.requireNonNullElse(e.getValue(), "")), true));
-            registerInput("subsystemId", subsystem); advanced.property("subsystemId", "Подсистема · не поддерживается профилем", subsystem);
-            advanced.property("subsystem.reason", "", "Импортированное значение сохранено. Текущий Java-профиль не представляет подсистему; её можно явно удалить.");
+            registerInput("subsystemId", subsystem); advanced.property("subsystemId", "Область · не поддерживается профилем", subsystem);
+            advanced.property("subsystem.reason", "", "Импортированное значение сохранено. Текущий Java-профиль не представляет область; её можно явно удалить.");
         }
         Select<String> icon = new Select<>(); var icons = new TreeSet<>(Arrays.stream(VaadinIcon.values()).map(Enum::name).toList());
         icons.add(session.draft().entity().icon()); icon.setItems(icons); icon.setValue(session.draft().entity().icon()); icon.setAriaLabel("Значок");
@@ -270,7 +270,7 @@ public class EntityDraftEditorView extends Div implements Dirtyable {
         recipe.addClassName("draft-recipe"); general.add(recipe);
         catalogNotice.addClassName("explorer-property-note"); general.add(catalogNotice);
     }
-    private static String recipeCaption(org.ipro.design.RecipeDescriptor descriptor) {
+    private static String recipeCaption(RecipeDescriptor descriptor) {
         if (RecipeCatalog.INDEPENDENT_REGISTER_RLS.equals(descriptor.ref())) return "Регистр сведений с RLS";
         return switch(descriptor.kind()) { case "DOCUMENT" -> "Документ"; case "INFORMATION_REGISTER" -> "Регистр сведений"; case "PLAIN" -> "Простая сущность"; default -> "Справочник"; };
     }
@@ -318,7 +318,7 @@ public class EntityDraftEditorView extends Div implements Dirtyable {
             inputs.keySet().removeIf(k -> k.equals("owner") || k.startsWith("owner.")); ownerPanel.removeAll();
             ownerPanel.add(new H4("Владелец справочника"));
             var current = session.draft().owner();
-            boolean supported = session.supports(org.ipro.design.RecipeDescriptor.EditorConstruction.OWNER);
+            boolean supported = session.supports(RecipeDescriptor.EditorConstruction.OWNER);
             ownerPanel.setVisible(supported || current != null);
             if (!supported && current == null) return;
             Checkbox enabled = new Checkbox("Подчинённый справочник"); enabled.setValue(current != null); registerInput("owner", enabled);
@@ -486,7 +486,7 @@ public class EntityDraftEditorView extends Div implements Dirtyable {
         fieldContext.setText("В: " + (session.place().sectionId() == null ? session.rootCaption() : sectionCaption(session.section(session.place().sectionId()))));
         fieldContext.getElement().setAttribute("title", fieldContext.getText());
         addField.setEnabled(allFields.size() < RecipeCatalog.MAX_FIELDS);
-        addSection.setVisible(session.supports(org.ipro.design.RecipeDescriptor.EditorConstruction.SECTIONS));
+        addSection.setVisible(session.supports(RecipeDescriptor.EditorConstruction.SECTIONS));
         addSection.setEnabled(addSection.isVisible() && session.draft().sections().size() < RecipeCatalog.MAX_SECTIONS);
     }
     private void selectField(UUID section, UUID id) { command(() -> { session.selectField(section, id); renderInspector(); showPage(); ExplorerSequentialLayout.showDetail(split); }); }
@@ -755,7 +755,7 @@ public class EntityDraftEditorView extends Div implements Dirtyable {
         if (address.fieldId() != null) target += " / " + session.fields(address.sectionId()).stream().filter(f -> f.id().equals(address.fieldId())).map(f -> f.name().isEmpty() ? "Новый реквизит" : f.name()).findFirst().orElse("Реквизит");
         String property = switch (address.propertyKey()) {
             case "className" -> "Java-класс"; case "packageName" -> "Пакет"; case "label" -> "Название"; case "name" -> "Имя";
-            case "tableName" -> "Таблица"; case "columnName" -> "Колонка"; case "type" -> "Тип"; case "subsystemId" -> "Подсистема";
+            case "tableName" -> "Таблица"; case "columnName" -> "Колонка"; case "type" -> "Тип"; case "subsystemId" -> "Область";
             case "icon" -> "Значок"; case "constraints.length" -> "Длина"; case "constraints.precision" -> "Точность"; case "constraints.scale" -> "Дробных разрядов";
             case "context.existingTypes" -> "Каталог классов"; case "context.existingTables" -> "Каталог таблиц";
             case "reference.typeId" -> "Тип ссылки"; case "applications.form" -> "Применение в форме"; case "uiRequired" -> "Обязательность UI";
@@ -778,7 +778,7 @@ public class EntityDraftEditorView extends Div implements Dirtyable {
             case INVALID_CONSTRAINT -> "Неверное числовое ограничение"; case INAPPLICABLE_CONSTRAINT -> "Параметр неприменим к типу";
             case UNSUPPORTED_FIELD_TYPE -> "Тип не поддержан"; case REFERENCE_REQUIRED -> "Укажите тип ссылки"; case REFERENCE_UNAVAILABLE -> "Тип ссылки недоступен";
             case PROJECT_FACT_UNKNOWN -> "Факт проекта пока не подтверждён"; case INVALID_APPLICATION -> "Недопустимое применение";
-            case SUBSYSTEM_UNAVAILABLE -> "Подсистема недоступна"; case ICON_UNAVAILABLE -> "Значок недоступен"; case UI_REQUIRED_MISMATCH -> "При записи значение обязательно";
+            case SUBSYSTEM_UNAVAILABLE -> "Область недоступна"; case ICON_UNAVAILABLE -> "Значок недоступен"; case UI_REQUIRED_MISMATCH -> "При записи значение обязательно";
             case UI_REQUIRED_SERVER_OPTIONAL -> "Обязательность формы не подтверждена ограничениями записи";
             case REGISTER_ROLE_MISSING -> "Назначьте измерения и ресурсы; каждое поле должно иметь одну роль";
             case REGISTER_ROLE_DUPLICATE -> "Поле не может повторяться или одновременно быть измерением и ресурсом";
@@ -976,7 +976,7 @@ public class EntityDraftEditorView extends Div implements Dirtyable {
                 if ("REGISTER_APPLICATIONS".equals(diagnostic.parameters().get("construct")))
                     yield "Профиль регистра фиксирует публикацию в форме, списке и выборе; публикация в таблице неприменима. Исходное значение сохранено.";
                 yield switch (diagnostic.target().propertyKey()) {
-                case "subsystemId" -> "Генератор поддерживает сущность без подсистемы";
+                case "subsystemId" -> "Генератор поддерживает сущность без области";
                 case "sections" -> "Выбранный профиль не поддерживает табчасти";
                 default -> "Конструкция не поддерживается выбранным профилем генерации";
                 };

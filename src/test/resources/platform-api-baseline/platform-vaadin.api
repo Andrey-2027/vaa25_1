@@ -33,6 +33,15 @@ class public final org.ipro.form.MetadataDrivenItemFormSaveAdapter
   method public <T extends org.ipro.identity.IdentifiableEntity<java.lang.Long>> org.ipro.form.FormSaveResult<T> save(org.ipro.form.builtin.ItemForm<T>)
   method public <T extends org.ipro.identity.IdentifiableEntity<java.lang.Long>> void apply(org.ipro.form.builtin.ItemForm<T>, org.ipro.crud.MetadataDrivenAggregateSaveService$AggregateSaveResult<T>)
 
+class public final org.ipro.form.action.ActionContextProvider
+  ctor public(org.ipro.data.EntityDescriptorCatalog, org.ipro.rls.RlsUiGate, org.ipro.form.action.OperationPermissionSource)
+  ctor public(org.ipro.data.EntityDescriptorCatalog, org.ipro.rls.RlsUiGate, org.ipro.form.action.OperationPermissionSource, org.ipro.form.link.FormRouteCatalog)
+  method public org.ipro.data.EntityCapabilities capabilitiesOf(java.lang.Class<?>)
+  method public org.ipro.form.action.ActionContext listContext(java.lang.Class<?>, java.lang.String, boolean)
+  method public org.ipro.form.action.ActionContext rowContext(java.lang.Class<?>, java.lang.String, java.lang.Object, boolean)
+  method public org.ipro.form.action.ActionPermission classPermissionOf(java.lang.Class<?>)
+  method public org.ipro.form.action.ActionPermission rowPermissionOf(java.lang.Class<?>, java.lang.Object)
+
 class public final org.ipro.form.action.ActionHandlerRegistry
   ctor public(java.util.List<org.ipro.form.action.ActionHandler>)
   method public java.util.List<org.ipro.form.action.ActionDefinition> definitions()
@@ -71,6 +80,12 @@ class public final org.ipro.form.action.CopyLinkButton
   method public static org.ipro.form.action.CopyLinkButton forRecord(java.lang.String, org.ipro.form.link.FormLinkService, java.lang.Class<?>, java.lang.String, java.util.function.Supplier<java.lang.Long>, java.util.function.Supplier<org.ipro.form.action.ActionDecision>, java.util.function.Consumer<org.ipro.form.action.ActionDecision>)
   method public static void copyAddress(java.lang.String)
   method public void refresh()
+
+class public final org.ipro.form.action.NavigationCommandAvailability
+  ctor public(org.ipro.form.action.ActionResolvers, org.ipro.form.registry.FormRegistry, java.util.function.Predicate<java.lang.Class<?>>)
+  method public boolean hasListVariant(java.lang.Class<?>, java.lang.String)
+  method public boolean hasRequiredContext(java.lang.Class<?>, java.lang.String)
+  method public org.ipro.form.action.ActionDecision decide(java.lang.Class<?>, java.lang.String, java.lang.String)
 
 class public final org.ipro.form.builder.FormBehavior
   ctor public(org.ipro.form.builtin.ItemForm<?>)
@@ -183,6 +198,13 @@ class public final org.ipro.form.builder.layout.Layout$Element
   method public transient org.ipro.form.builder.layout.Layout$Element except(java.lang.String[])
   method public transient org.ipro.form.builder.layout.Layout$Element setLookupPaths(java.lang.String[])
   method public void remove()
+
+class public final org.ipro.form.config.FormColumnDeclarationsCollector
+  implements org.springframework.beans.factory.config.BeanFactoryPostProcessor
+  implements org.springframework.beans.factory.config.BeanPostProcessor
+  ctor public()
+  method public java.lang.Object postProcessAfterInitialization(java.lang.Object, java.lang.String)
+  method public void postProcessBeanFactory(org.springframework.beans.factory.config.ConfigurableListableBeanFactory)
 
 class public final org.ipro.form.link.EntityExplorerAddress
   field public static final java.lang.String ROOT_SEGMENT = entity-explorer
@@ -808,10 +830,11 @@ enum public final org.ipro.form.ValueChangeSource
 
 enum public final org.ipro.form.action.ActionSurface
   extends java.lang.Enum<org.ipro.form.action.ActionSurface>
-  enum-constants [LIST_TOOLBAR, ITEM_FOOTER, ITEM_MENU]
+  enum-constants [LIST_TOOLBAR, ITEM_FOOTER, ITEM_MENU, NAVIGATION]
   field public static final org.ipro.form.action.ActionSurface ITEM_FOOTER = enum-constant
   field public static final org.ipro.form.action.ActionSurface ITEM_MENU = enum-constant
   field public static final org.ipro.form.action.ActionSurface LIST_TOOLBAR = enum-constant
+  field public static final org.ipro.form.action.ActionSurface NAVIGATION = enum-constant
   method public static org.ipro.form.action.ActionSurface valueOf(java.lang.String)
   method public static org.ipro.form.action.ActionSurface[] values()
 
@@ -1379,6 +1402,19 @@ record public final org.ipro.form.action.ActionRequirement
   method public static org.ipro.form.action.ActionRequirement none()
   method public static org.ipro.form.action.ActionRequirement of(org.ipro.form.action.ActionRequirement$Level, org.ipro.form.action.ActionRequirement$Level, org.ipro.form.action.ActionRequirement$Level, org.ipro.form.action.ActionRequirement$Level, boolean, boolean)
   method public static org.ipro.form.action.ActionRequirement selectionOnly()
+
+record public final org.ipro.form.action.ActionResolvers
+  extends java.lang.Record
+  ctor public(org.ipro.form.action.ActionRegistry, org.ipro.form.action.ActionContextProvider, org.ipro.form.action.ActionHandlerRegistry)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public org.ipro.form.action.ActionContextProvider contexts()
+  method public org.ipro.form.action.ActionHandlerRegistry handlers()
+  method public org.ipro.form.action.ActionRegistry registry()
+  method public org.ipro.form.action.ActionResolver item(java.lang.Class<?>, java.lang.String)
+  method public org.ipro.form.action.ActionResolver list(java.lang.Class<?>, java.lang.String)
+  method public org.ipro.form.action.ActionResolver navigation(java.lang.Class<?>)
 
 record public final org.ipro.form.action.ReadOnlyReason
   extends java.lang.Record

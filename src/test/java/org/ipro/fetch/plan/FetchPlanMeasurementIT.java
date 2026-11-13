@@ -253,7 +253,7 @@ class FetchPlanMeasurementIT {
      * который C3 закрывал.
      */
     @Test
-    void lookupByIdKeepsTheSelectionDependenciesThatTheFormPlanOmits() {
+    void lookupByIdLoadsTheSelectionReferenceAndLeavesFormOnlyDependenciesLazy() {
         UnitOfMeasurement unit = unitOfMeasurementRepository.save(
             new UnitOfMeasurement("LU" + suffix(), "Метр", "PLU" + suffix()));
         Nomenclature nomenclature = nomenclatureRepository.save(
@@ -272,8 +272,9 @@ class FetchPlanMeasurementIT {
             .as("ссылка значения выбора обязана быть загружена")
             .isTrue();
         assertThat(Hibernate.isInitialized(lookedUp.getNomenclature().getUnitOfMeasurement()))
-            .as("lookup по id не должен терять объявленные @Lookup(fetch) зависимости")
-            .isTrue();
+            .as("глубину выбора объявляет форма через setLookupPaths, поэтому backend lookup по id"
+                + " оставляет её ленивой и не тянет граф, который UI не просил")
+            .isFalse();
     }
 
     /**

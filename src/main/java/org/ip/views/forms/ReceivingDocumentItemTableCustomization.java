@@ -1,5 +1,7 @@
 package org.ip.views.forms;
 
+import org.ipro.metadata.FormColumnDeclarations;
+
 import org.ip.model.ReceivingDocumentItem;
 import org.ipro.form.TableSectionCustomization;
 import org.ipro.form.builtin.ItemTable;
@@ -12,8 +14,8 @@ public class ReceivingDocumentItemTableCustomization implements TableSectionCust
     public Class<ReceivingDocumentItem> rowClass() { return ReceivingDocumentItem.class; }
 
     @Override
-    public org.ipro.metadata.FormColumnDeclarations.Columns columns() {
-        var columns = org.ipro.metadata.FormColumnDeclarations.auto();
+    public FormColumnDeclarations.Columns columns() {
+        var columns = FormColumnDeclarations.auto();
         columns.column("nomenclature").setFlexGrow(1);
         columns.column("quantity").setWidth("140px").setAutoWidth(true);
         return columns;

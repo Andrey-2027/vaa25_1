@@ -107,7 +107,7 @@ try {
         "--spring.datasource.url=$url", "--server.port=$Port", '--server.address=127.0.0.1',
         '--spring.jpa.hibernate.ddl-auto=none','--spring.sql.init.mode=never',
         '--app.demo-data.enabled=false','--app.security-baseline.enabled=false','--app.accounting-pilot.seed=false',
-        '--platform.navigation.enabled=false','--platform.rest.web.enabled=false',
+        '--platform.rest.web.enabled=false',
         '--app.entity-explorer.ux-pilot.enabled=false','--vaadin.launch-browser=false',
         '--vaadin.allowed-packages=org.ip,org.ipro,com.vaadin,org.vaadin','"--vaadin.nodeFolder=C:/Program Files/nodejs"')
     [IO.File]::WriteAllLines($pilotArgs,[string[]]$arguments,[Text.UTF8Encoding]::new($false))

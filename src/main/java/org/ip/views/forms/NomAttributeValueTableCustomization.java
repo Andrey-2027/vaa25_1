@@ -1,5 +1,7 @@
 package org.ip.views.forms;
 
+import org.ipro.metadata.FormColumnDeclarations;
+
 import org.ip.model.NomAttributeValue;
 import org.ipro.form.TableSectionCustomization;
 import org.ipro.form.builtin.ItemTable;
@@ -35,8 +37,8 @@ public class NomAttributeValueTableCustomization
     }
 
     @Override
-    public org.ipro.metadata.FormColumnDeclarations.Columns columns() {
-        var columns = org.ipro.metadata.FormColumnDeclarations.auto();
+    public FormColumnDeclarations.Columns columns() {
+        var columns = FormColumnDeclarations.auto();
         columns.column("attrType").setWidth("200px").setAutoWidth(true);
         columns.column("attrValue").setFlexGrow(1);
         return columns;

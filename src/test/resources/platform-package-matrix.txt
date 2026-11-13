@@ -90,8 +90,10 @@ org.ipro.form -> org.ipro.metadata.annotation
 org.ipro.form -> org.ipro.numbering.annotation
 org.ipro.form.action -> org.ipro.data
 org.ipro.form.action -> org.ipro.fetch.plan
+org.ipro.form.action -> org.ipro.form.builder
 org.ipro.form.action -> org.ipro.form.coordinator
 org.ipro.form.action -> org.ipro.form.link
+org.ipro.form.action -> org.ipro.form.registry
 org.ipro.form.action -> org.ipro.metadata
 org.ipro.form.action -> org.ipro.rls
 org.ipro.form.builder -> org.ipro.crud
@@ -193,10 +195,12 @@ org.ipro.metadata.config -> org.ipro.metadata
 org.ipro.metadata.config -> org.ipro.rls
 org.ipro.metadata.facet -> org.ipro.metadata
 org.ipro.navigation -> org.ipro.metadata
+org.ipro.navigation -> org.ipro.navigation.store
 org.ipro.navigation.config -> org.ipro.metadata
 org.ipro.navigation.config -> org.ipro.navigation
 org.ipro.navigation.config -> org.ipro.navigation.internal
 org.ipro.navigation.config -> org.ipro.navigation.store
+org.ipro.navigation.internal -> org.ipro.metadata
 org.ipro.navigation.internal -> org.ipro.navigation
 org.ipro.navigation.internal -> org.ipro.navigation.store
 org.ipro.navigation.store -> org.ipro.crud

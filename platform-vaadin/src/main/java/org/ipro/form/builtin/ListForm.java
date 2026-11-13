@@ -1761,7 +1761,7 @@ public class ListForm<T extends IdentifiableEntity<Long>, ID> extends VerticalLa
             ui.beforeClientResponse(this, context -> {
                 commandValidationPending = false;
                 String source = "list commands " + metadata.getEntityClass().getName()
-                    + " variant '" + formVariant + "'";
+                    + ", вариант '" + formVariant + "'";
                 ListCommandLayout layout = commandBar.layout();
                 layout.validate(id -> ListCommandLayout.isPlatformKey(id)
                     || actionResolver != null && actionResolver.definitions().stream()

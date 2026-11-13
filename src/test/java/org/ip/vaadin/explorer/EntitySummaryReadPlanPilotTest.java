@@ -50,7 +50,7 @@ import static org.mockito.Mockito.when;
  *
  * <p><b>Что закреплено.</b> У {@code AttributeValue} и {@code SklNomOpa} набор сценариев объявлен
  * приложением (даже когда совпадает с правилом), у {@code Nomenclature} — выведен правилом, а
- * причина пути выбора приходит объявлением {@code @Lookup}. Ветви модели (отказ пути при непустом
+ * зависимость выбора объявлена формой, а не {@code @Lookup.fetch} в модели. Ветви модели (отказ пути при непустом
  * плане, сценарий без путей) проверены платформенным {@code EntitySummaryReadPlanRowsTest} на
  * пробах, здесь дублировать их нечем.</p>
  *
@@ -146,9 +146,13 @@ class EntitySummaryReadPlanPilotTest {
             .doesNotContain("canonical path");
     }
 
-    /** Правило экспозиции: набор платформенный, а причина пути выбора приходит объявлением. */
+    /**
+     * Правило экспозиции: набор платформенный. Зависимости выбора объявлены формой
+     * ({@code PrdSpecMtrItemForm.setLookupPaths}), а не {@code @Lookup.fetch} в модели, поэтому
+     * backend-план LOOKUP путей не содержит — это факт, а не пропавшее объявление.
+     */
     @Test
-    void exposureRuleIsNamedAndLookupReasonComesFromTheDeclaration() {
+    void exposureRuleIsNamedAndLookupDependenciesAreDeclaredByTheForm() {
         List<EntitySummary.ReadPlanRow> rows = rows(Nomenclature.class);
 
         assertThat(rows).filteredOn(EntitySummary.ReadPlanRow::allowed)
@@ -159,9 +163,10 @@ class EntitySummaryReadPlanPilotTest {
                 .isEqualTo("набор сценариев выведен из экспозиции типа (STANDARD_ROOT)"));
 
         EntitySummary.ReadPlanRow lookup = row(Nomenclature.class, "LOOKUP");
-        assertThat(lookup.paths()).extracting(EntitySummary.PathRow::reason)
-            .as("причина пути — из плана, с именем владельца объявления")
-            .containsExactly("lookup:PrdSpecMtr.nomenclature");
+        assertThat(lookup.paths())
+            .as("зависимость выбора объявлена формой (PrdSpecMtrItemForm.setLookupPaths), а не"
+                + " @Lookup.fetch в модели: backend-план LOOKUP путей не содержит")
+            .isEmpty();
     }
 
     /** Owned-строка — не предмет карточки: у неё нет metadata, и сводка её не строит. */

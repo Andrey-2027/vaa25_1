@@ -117,7 +117,7 @@ class SubsystemSummaryAssemblerTest {
         List<SubsystemSummaryAssembler.Group> groups = assembler.groupsOf(null);
 
         assertThat(groups).hasSize(1);
-        assertThat(groups.get(0).title()).isEqualTo("Без подсистемы");
+        assertThat(groups.get(0).title()).isEqualTo("Без области");
         assertThat(groups.get(0).markerClass()).isNull();
         assertThat(groups.get(0).entities()).isEqualTo(assembler.catalog().unassigned());
     }

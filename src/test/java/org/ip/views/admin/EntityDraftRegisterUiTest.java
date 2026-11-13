@@ -99,7 +99,8 @@ class EntityDraftRegisterUiTest {
         button(v, "Новый").click();
         var chooser = all(v).filter(Dialog.class::isInstance).map(Dialog.class::cast).findFirst().orElseThrow();
         assertThat(all(chooser).filter(c -> c instanceof com.vaadin.flow.component.button.Button).map(c -> ((com.vaadin.flow.component.button.Button)c).getText()).toList())
-            .contains("Справочник", "Документ", "Регистр сведений").doesNotContain("Простая сущность", "Регистр с регистратором");
+            .contains("Справочник", "Документ", "Регистр сведений", "Простая сущность")
+            .doesNotContain("Регистр с регистратором");
         button(chooser, "Регистр сведений").click();
         assertThat(v.session().draft().recipe()).isEqualTo(RecipeCatalog.INDEPENDENT_REGISTER);
         assertThat(v.session().draft().register().period()).isEqualTo("NONE");

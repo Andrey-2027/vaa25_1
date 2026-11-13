@@ -1,4 +1,4 @@
-package org.ipro.form.config;
+package org.ip.form.config;
 
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -8,6 +8,7 @@ import javax.tools.ToolProvider;
 import org.ipro.design.FieldApplicationMapping.CompositionMode;
 import org.ipro.design.source.JavaEntityReader;
 import org.ipro.design.source.ProjectSources;
+import org.ipro.form.config.FormColumnDeclarationsCollector;
 import org.ipro.form.registry.FormRegistry;
 import org.ipro.metadata.ColumnPath;
 import org.ipro.metadata.MetadataResolver;
