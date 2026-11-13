@@ -32,12 +32,12 @@ public class NavigationUiSnapshot {
     public NavigationUiSnapshot(NavigationCatalogProvider catalogs,
                                 NavigationResolver resolver,
                                 NavigationProfileReader profiles,
-                                org.ipro.rls.RlsReadGate readGate, org.ipro.rls.RlsCurrentUser currentUser) {
+                                ApplicationNavigationCommands commands) {
         this.loader = () -> {
             var catalog = catalogs.get();
             var profile = profiles.currentProfile(catalog);
             return resolver.resolve(catalog, profile.map(NavigationProfile::overrides).orElseGet(Map::of),
-                item -> readGate.canRead(item.entityClass(), currentUser.requireAuthenticatedUsername()));
+                item -> commands.decide(item.function()).actionable());
         };
     }
 

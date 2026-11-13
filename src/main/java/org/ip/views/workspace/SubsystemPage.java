@@ -1,6 +1,7 @@
 package org.ip.views.workspace;
 
 import org.ipro.navigation.NavigationItem;
+import org.ipro.navigation.NavigationFunction;
 import org.ipro.navigation.NavigationTree;
 
 import java.util.ArrayList;
@@ -16,12 +17,12 @@ record SubsystemPage(List<Group> groups) {
 
     static SubsystemPage from(NavigationTree.Node root) {
         var groups = new ArrayList<Group>();
-        addGroup(groups, root.id(), "", root.items().stream().map(item -> new Link(item.title(), item.entityClass())).toList());
+        addGroup(groups, root.id(), "", root.items().stream().map(item -> new Link(item.title(), item.function())).toList());
         for (var child : root.children()) {
             var links = child.groupsRecursive().stream()
                 .flatMap(group -> group.items().stream())
                 .sorted(Comparator.comparingInt(NavigationItem::order))
-                .map(item -> new Link(item.title(), item.entityClass())).toList();
+                .map(item -> new Link(item.title(), item.function())).toList();
             addGroup(groups, child.id(), child.title(), links);
         }
         return new SubsystemPage(groups);
@@ -50,5 +51,5 @@ record SubsystemPage(List<Group> groups) {
 
     record Group(String key, String title, List<Link> links) { }
 
-    record Link(String title, Class<?> entityClass) { }
+    record Link(String title, NavigationFunction function) { }
 }

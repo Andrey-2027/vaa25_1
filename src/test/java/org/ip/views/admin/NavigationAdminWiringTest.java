@@ -32,7 +32,7 @@ class NavigationAdminWiringTest {
 
     @Test void adminSeesTheTabAndReattachKeepsTheSameEditor() {
         login("ROLE_ADMIN");
-        var editor = new NavigationProfilesAdminTab(service, () -> true, org.ipro.navigation.NavigationCatalogProvider.of(NavigationProfileEditorTest.catalog()), new NavigationResolver());
+        var editor = new NavigationProfilesAdminTab(service, () -> true, org.ipro.navigation.NavigationCatalogProvider.of(NavigationProfileEditorTest.catalog()), new NavigationResolver(), null);
         when(tabs.getObject()).thenReturn(editor);
         var view = adminView();
         view.onAttach(new AttachEvent(view, false));

@@ -13,9 +13,10 @@ import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.data.provider.hierarchy.TreeData;
 import com.vaadin.flow.data.provider.hierarchy.TreeDataProvider;
 import com.vaadin.flow.spring.annotation.SpringComponent;
+import org.ip.navigation.ApplicationNavigationCommands;
 import org.ipro.navigation.NavigationAdministrationAccess;
 import org.ipro.navigation.NavigationAdministrationService;
-import org.ipro.navigation.NavigationCatalog;
+import org.ipro.navigation.NavigationCatalogProvider;
 import org.ipro.navigation.NavigationConflictException;
 import org.ipro.navigation.NavigationProfile;
 import org.ipro.navigation.NavigationResolver;
@@ -38,7 +39,10 @@ public class NavigationProfilesAdminTab extends VerticalLayout {
     private static final Logger log = LoggerFactory.getLogger(NavigationProfilesAdminTab.class);
     private final NavigationAdministrationService administration;
     private final NavigationAdministrationAccess access;
-    private final NavigationProfileDraft draft;
+    private NavigationProfileDraft draft;
+    private final NavigationCatalogProvider catalogs;
+    private final NavigationResolver resolver;
+    private final ApplicationNavigationCommands commands;
     private final ComboBox<NavigationProfile> profiles = new ComboBox<>("Профиль интерфейса");
     private final TreeGrid<NavigationProfileDraft.Row> tree = new TreeGrid<>();
     private final TreeGrid<PreviewEntry> preview = new TreeGrid<>();
@@ -59,10 +63,14 @@ public class NavigationProfilesAdminTab extends VerticalLayout {
 
     public NavigationProfilesAdminTab(NavigationAdministrationService administration,
                                       NavigationAdministrationAccess access,
-                                      org.ipro.navigation.NavigationCatalogProvider catalogs, NavigationResolver resolver) {
+                                      NavigationCatalogProvider catalogs, NavigationResolver resolver,
+                                      ApplicationNavigationCommands commands) {
         this.administration = administration;
         this.access = access;
-        this.draft = new NavigationProfileDraft(catalogs.get(), resolver);
+        this.catalogs = catalogs;
+        this.resolver = resolver;
+        this.commands = commands;
+        this.draft = new NavigationProfileDraft(catalogs.get(), resolver, item -> commands.decide(item.function()));
         setSizeFull();
         setMinHeight("0");
         getStyle().set("overflow", "auto");
@@ -89,18 +97,18 @@ public class NavigationProfilesAdminTab extends VerticalLayout {
         add(new H3("Интерфейс"), new Span("Настройки меню применяются после обновления страницы или нового входа. "
             + "Открытые вкладки сохраняются."), new HorizontalLayout(profiles, rename, reload),
             new HorizontalLayout(createName, create), status);
-        tree.addHierarchyColumn(NavigationProfileDraft.Row::title).setHeader("Подсистема / пункт").setFlexGrow(2);
+        tree.addHierarchyColumn(row -> row.title() + (row.command() ? " (команда)" : "")).setHeader("Раздел / пункт").setFlexGrow(2);
         tree.addColumn(row -> row.defaultVisible() ? "Показывать" : "Скрывать").setHeader("Настройка разработчика");
         tree.addComponentColumn(this::visibilityEditor).setKey("visibility").setHeader("Профиль").setWidth("13rem").setFlexGrow(0);
-        tree.addColumn(draft::outcome).setHeader("Итог до применения прав").setFlexGrow(2);
+        tree.addColumn(row -> draft.outcome(row)).setHeader("Итог по вашим правам").setFlexGrow(2);
         tree.setHeight("28rem");
         tree.setWidthFull();
         stale.setPadding(false);
         stale.setVisible(false);
         add(tree, new HorizontalLayout(save, reset), stale,
             new H3("Предпросмотр состава профиля"),
-            new Span("Предпросмотр не учитывает права конкретного пользователя. "
-                + "Права чтения проверяются при построении его меню и открытии данных."));
+            new Span("В предпросмотре команды проверяются по вашим правам. "
+                + "В меню каждого пользователя действуют его права на списки и команды."));
         preview.addHierarchyColumn(PreviewEntry::title).setHeader("Видимые разделы и пункты");
         preview.setHeight("18rem");
         preview.setWidthFull();
@@ -156,6 +164,7 @@ public class NavigationProfilesAdminTab extends VerticalLayout {
 
     private void reload() {
         var selected = draft.profile();
+        draft = new NavigationProfileDraft(catalogs.get(), resolver, item -> commands.decide(item.function()));
         available = administration.listProfiles();
         var target = selected == null ? available.stream().findFirst()
             : available.stream().filter(profile -> profile.id() == selected.id()).findFirst();
@@ -245,7 +254,7 @@ public class NavigationProfilesAdminTab extends VerticalLayout {
         var children = new ArrayList<PreviewEntry>();
         node.items().forEach(item -> children.add(new PreviewEntry(item.key(), item.title(), List.of())));
         node.children().forEach(child -> children.add(previewEntry(child)));
-        return new PreviewEntry("subsystem:" + node.id(), node.title(), List.copyOf(children));
+        return new PreviewEntry("section:" + node.id(), node.title(), List.copyOf(children));
     }
 
     private void save() {

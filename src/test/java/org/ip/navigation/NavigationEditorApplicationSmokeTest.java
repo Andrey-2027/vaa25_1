@@ -29,7 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /** Editor buttons and renderer value changes against the real protected service and H2 store. */
 @SpringBootTest(classes = Application.class, properties = {
-    "platform.navigation.enabled=true", "app.demo-data.enabled=false", "rls.write-boundary.enforced=true",
+    "app.demo-data.enabled=false", "rls.write-boundary.enforced=true",
     "spring.datasource.url=jdbc:h2:mem:navigation-ki2-app;DB_CLOSE_DELAY=-1",
     "vaadin.allowed-packages=org.ip.views.login,com.vaadin", "vaadin.productionMode=true"})
 @ContextConfiguration(initializers = NavigationSmokeIsolation.class)
@@ -76,8 +76,8 @@ class NavigationEditorApplicationSmokeTest {
         visibility(editor, "Единицы измерения").setValue(NavigationVisibility.SHOW);
         button(editor, "Сохранить").click();
         assertThat(firstId).isNotEqualTo(secondId);
-        assertThat(administration.profile(firstId).overrides()).containsEntry("item:unit-of-measurement", NavigationVisibility.HIDE);
-        assertThat(administration.profile(secondId).overrides()).containsEntry("item:unit-of-measurement", NavigationVisibility.SHOW);
+        assertThat(administration.profile(firstId).overrides()).containsEntry("entry:unit-of-measurement", NavigationVisibility.HIDE);
+        assertThat(administration.profile(secondId).overrides()).containsEntry("entry:unit-of-measurement", NavigationVisibility.SHOW);
         var anotherEditor = context.getBean(NavigationProfilesAdminTab.class);
         anotherEditor.refresh();
         assertThat(administration.listProfiles()).anyMatch(profile -> profile.id() == firstId)

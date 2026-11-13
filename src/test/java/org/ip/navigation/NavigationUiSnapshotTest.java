@@ -89,8 +89,11 @@ class NavigationUiSnapshotTest {
                 reads.incrementAndGet();
                 return call.getArgument(0) != Workshop.class;
             });
-            context.registerBean(RlsReadGate.class, () -> gate);
-            context.registerBean(org.ipro.rls.RlsCurrentUser.class, () -> user::get);
+            context.registerBean(ApplicationNavigationCommands.class, () -> {
+                var availability = new org.ipro.form.action.NavigationCommandAvailability(null, null,
+                    type -> gate.canRead(type, user.get()));
+                return new ApplicationNavigationCommands(null, availability, null);
+            });
             context.register(NavigationUiSnapshot.class);
             context.refresh();
             UI.setCurrent(uiA);
@@ -121,7 +124,7 @@ class NavigationUiSnapshotTest {
             verify(catalogs, times(2)).get();
             verify(profiles, never()).currentProfile();
             assertThat(reads.get()).isEqualTo(capturedReads);
-            var tiles = new SubsystemHomeView(mock(FormNavigator.class));
+            var tiles = new SubsystemHomeView(mock(FormNavigator.class), null);
             tiles.init(directoriesA);
             assertThat(descendants(tiles).filter(Button.class::isInstance).count()).isEqualTo(directoriesA.items().size());
             assertThat(reads.get()).isEqualTo(capturedReads);
@@ -147,7 +150,8 @@ class NavigationUiSnapshotTest {
             assertThat(menu.getItems().get(index).getItems()).isEmpty();
             click(menu.getItems().get(index));
             assertThat(opened.getLast()).isSameAs(root);
-            var view = new SubsystemHomeView(navigator);
+            var view = new SubsystemHomeView(navigator, new ApplicationNavigationCommands(null,
+                new org.ipro.form.action.NavigationCommandAvailability(null, null, type -> true), null));
             view.init(opened.getLast());
             var buttons = descendants(view).filter(Button.class::isInstance).map(Button.class::cast).toList();
             var items = root.groupsRecursive().stream().flatMap(group -> group.items().stream()).toList();
@@ -179,7 +183,7 @@ class NavigationUiSnapshotTest {
         assertThat(tree.findSubsystem("child")).isEmpty();
         assertThat(tree.roots().stream().flatMap(root -> root.groupsRecursive().stream()))
             .noneMatch(group -> group.subsystemId().equals("child"));
-        var view = new SubsystemHomeView(mock(FormNavigator.class));
+        var view = new SubsystemHomeView(mock(FormNavigator.class), null);
         view.init(tree.roots().getFirst());
         assertThat(descendants(view).filter(Button.class::isInstance).map(Button.class::cast).map(Button::getText))
             .containsExactly("Root list");

@@ -5,6 +5,10 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.textfield.TextField;
+import org.ip.navigation.ApplicationNavigationCommands;
+import org.ipro.form.action.ActionDecision;
+import org.ipro.form.coordinator.FormNavigator;
+import org.ipro.navigation.NavigationFunction;
 import org.ipro.navigation.NavigationItem;
 import org.ipro.navigation.NavigationTree;
 import org.junit.jupiter.api.Test;
@@ -45,7 +49,7 @@ class SubsystemHomeViewTest {
     void switchingSectionsUpdatesOneTabAndKeepsTheOpenForm() {
         var production = node("production", "Производство", List.of(item("shops", "Цеха")));
         var reference = node("reference", "НСИ", List.of(item("units", "Единицы измерения")));
-        var view = new SubsystemHomeView(null);
+        var view = new SubsystemHomeView(null, null);
         var factory = mock(AutowireCapableBeanFactory.class);
         when(factory.createBean(SubsystemHomeView.class)).thenReturn(view);
         var workspace = new Workspace(new WorkspaceManager(factory));
@@ -69,6 +73,33 @@ class SubsystemHomeViewTest {
         assertThat(tabTitles(workspace)).containsExactly("Рабочая форма", "Производство");
         workspace.activate("form");
         assertThat(form.isVisible()).isTrue();
+    }
+
+    @Test
+    void searchFindsAndDispatchesEachFunctionKind() {
+        var navigator = mock(FormNavigator.class);
+        var commands = mock(ApplicationNavigationCommands.class);
+        var view = new SubsystemHomeView(navigator, commands);
+        var functions = List.of(
+            new NavigationFunction("list:items", Object.class, NavigationFunction.Kind.LIST, "Список", "", 0, null),
+            new NavigationFunction("list:items:variant", Object.class, NavigationFunction.Kind.LIST_VARIANT,
+                "Вариант", "", 0, null, "variant", null),
+            new NavigationFunction("create:items", Object.class, NavigationFunction.Kind.CREATE, "Создать", "", 0, null),
+            new NavigationFunction("action:items:test.run", Object.class, NavigationFunction.Kind.ACTION,
+                "Выполнить", "", 0, null, null, "test.run"));
+        var items = functions.stream().map(function -> new NavigationItem(
+            function.kind().name().toLowerCase(java.util.Locale.ROOT).replace('_', '-'),
+            function, function.title(), "", 0, !function.command())).toList();
+        view.init(node("root", "Раздел", items));
+        var search = components(view).filter(TextField.class::isInstance).map(TextField.class::cast)
+            .findFirst().orElseThrow();
+        for (var function : functions) {
+            when(commands.execute(function, navigator)).thenReturn(ActionDecision.allowed());
+            search.setValue(function.title());
+            assertThat(labels(view)).containsExactly(function.title());
+            components(view).filter(Button.class::isInstance).map(Button.class::cast).findFirst().orElseThrow().click();
+            org.mockito.Mockito.verify(commands).execute(function, navigator);
+        }
     }
 
     private static NavigationTree.Node node(String id, String title, List<NavigationItem> items,

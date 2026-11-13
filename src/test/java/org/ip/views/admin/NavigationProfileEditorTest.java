@@ -63,11 +63,37 @@ class NavigationProfileEditorTest {
         when(service.profile(1)).thenReturn(first);
         when(service.profile(2)).thenReturn(second);
         when(service.assignmentForUser(anyString())).thenReturn(Optional.empty());
-        view = new NavigationProfilesAdminTab(service, admin::get, NavigationCatalogProvider.of(catalog()), new NavigationResolver());
+        view = new NavigationProfilesAdminTab(service, admin::get, NavigationCatalogProvider.of(catalog()), new NavigationResolver(), null);
         ui.add(view);
         view.refresh();
     }
     @AfterEach void cleanup() { UI.setCurrent(null); com.vaadin.flow.server.VaadinSession.setCurrent(null); ui = null; }
+
+    @Test void enabledCreateCommandShowsPermissionDenialInOutcome() {
+        var function = new org.ipro.navigation.NavigationFunction("create:items", Object.class,
+            org.ipro.navigation.NavigationFunction.Kind.CREATE, "Создать", "", 0, null);
+        var structure = new org.ipro.navigation.NavigationStructure(0, java.time.Instant.EPOCH,
+            List.of(new org.ipro.navigation.NavigationStructure.Section("root", null, "Root", "", 0, null)),
+            List.of(new org.ipro.navigation.NavigationStructure.Entry("create-items", "root", function.key(), null, 0)));
+        var functions = new org.ipro.navigation.NavigationFunctions() {
+            public List<org.ipro.navigation.NavigationFunction> all() { return List.of(function); }
+            public Optional<org.ipro.navigation.NavigationFunction> find(String key) {
+                return function.key().equals(key) ? Optional.of(function) : Optional.empty();
+            }
+        };
+        var denied = org.ipro.form.action.ActionDecision.blocked(
+            org.ipro.form.action.ActionDecision.Reason.ACCESS_DENIED, "Нет гранта");
+        var draft = new NavigationProfileDraft(NavigationCatalog.build(structure, functions),
+            new NavigationResolver(), item -> denied);
+        draft.load(second);
+        var command = draft.roots().getFirst().children().getFirst();
+        assertThat(command.command()).isTrue();
+        assertThat(command.defaultVisible()).isFalse();
+        assertThat(draft.outcome(command)).isEqualTo("Скрыто настройкой разработчика");
+        draft.change(command, NavigationVisibility.SHOW);
+        assertThat(draft.outcome(command)).isEqualTo("Нет права на создание");
+        assertThat(draft.preview().roots()).isEmpty();
+    }
 
     @Test void completeTreeShowsEverythingByDefaultWhilePreviewUsesTheResolver() {
         var root = draft().roots().getFirst();
