@@ -124,10 +124,12 @@ class VaadinModuleCompositionTest {
         "org.ipro.form.action.ActionProvenanceCatalog",
         "org.ipro.form.action.ActionRegistry",
         "org.ipro.form.action.ActionResolver",
+        "org.ipro.form.action.ActionResolvers",
         "org.ipro.form.action.ActionRequirement",
         "org.ipro.form.action.ActionSurface",
         "org.ipro.form.action.CrudAction",
         "org.ipro.form.action.CopyLinkButton",
+        "org.ipro.form.action.NavigationCommandAvailability",
         "org.ipro.form.action.OperationPermissionSource",
         "org.ipro.form.action.ReadOnlyReason",
         "org.ipro.form.action.RouteLinkability",
@@ -364,8 +366,10 @@ class VaadinModuleCompositionTest {
                 + " paged reader, структурный адаптер фильтра, datetime-отбор и кодек состояния — итого 137;"
                 + " E1.2b добавила порт права на операцию (`OperationPermissionSource`) — итого 138;"
                 + " ET2 добавила внутренний сборщик структурных фактов (`EntityStructureFactsAssembler`) — итого 139;"
-                + " Б1 добавила поиск автокомплита с отбором выбора (`FilterableSearchFunction`) — итого 141")
-            .hasSize(191); // R2: +22 explicitly reviewed Explorer UI types; no application dependency.
+                + " Б1 добавила поиск автокомплита с отбором выбора (`FilterableSearchFunction`) — итого 141;"
+                + " КИ-9 добавила решатели действий (`ActionResolvers`) и правило доступности команд"
+                + " (`NavigationCommandAvailability`) — итого 193")
+            .hasSize(193); // R2: +22 explicitly reviewed Explorer UI types; no application dependency.
     }
 
     @Test

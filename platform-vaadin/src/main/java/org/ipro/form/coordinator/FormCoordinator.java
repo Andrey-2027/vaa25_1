@@ -18,7 +18,7 @@ import org.ipro.form.action.ActionHandlerRegistry;
 import org.ipro.form.action.ActionDecision;
 import org.ipro.form.action.ActionRegistry;
 import org.ipro.form.action.ActionResolver;
-import org.ipro.form.action.ActionSurface;
+import org.ipro.form.action.ActionResolvers;
 import org.ipro.form.action.CrudAction;
 import org.ipro.form.action.ReadOnlyReason;
 import org.ipro.form.link.FormLinkService;
@@ -106,9 +106,7 @@ public class FormCoordinator implements FormNavigator {
     private final org.ipro.form.spi.GridViewStore gridViewStore;
     private final RlsUiGate rlsUiGate;
     private final ItemFormAccessBinder itemFormAccessBinder;
-    private final ActionRegistry actionRegistry;
-    private final ActionContextProvider actionContextProvider;
-    private final ActionHandlerRegistry actionHandlerRegistry;
+    private final ActionResolvers actionResolvers;
     private final FormLinkService formLinkService;
     private final org.ipro.crud.EntityCopyService entityCopyService;
     private final org.ipro.form.TableSectionFactory tableSectionFactory;
@@ -152,6 +150,21 @@ public class FormCoordinator implements FormNavigator {
                             org.ipro.crud.EntityCopyService entityCopyService,                             org.ipro.form.TableSectionFactory tableSectionFactory,
                              ObjectProvider<WorkspaceGateway> workspaceGateways,
                              ObjectProvider<FormRouteUrlBridge> routeUrlBridges) {
+        this(metadataResolver, fieldFactory, applicationContext, formResolver, serviceLocator,
+            formSettingsStore, gridViewStore, rlsUiGate, itemFormAccessBinder,
+            new ActionResolvers(actionRegistry, actionContextProvider, actionHandlerRegistry),
+            formLinkService, entityCopyService, tableSectionFactory, workspaceGateways, routeUrlBridges);
+    }
+
+    public FormCoordinator(MetadataResolver metadataResolver, FieldFactory fieldFactory,
+                           ApplicationContext applicationContext, FormResolver formResolver,
+                           ServiceLocator serviceLocator, org.ipro.form.spi.FormSettingsStore formSettingsStore,
+                           org.ipro.form.spi.GridViewStore gridViewStore, RlsUiGate rlsUiGate,
+                           ItemFormAccessBinder itemFormAccessBinder, ActionResolvers actionResolvers,
+                           FormLinkService formLinkService, org.ipro.crud.EntityCopyService entityCopyService,
+                           org.ipro.form.TableSectionFactory tableSectionFactory,
+                           ObjectProvider<WorkspaceGateway> workspaceGateways,
+                           ObjectProvider<FormRouteUrlBridge> routeUrlBridges) {
         // D3.5.3: обязательные коллабораторы — fail-fast с причиной, никаких permissive
         // fallback (тихий null здесь превращался бы в «кнопки без прав» или формы без
         // резолва). D3.5.3-fix: проверены не 5 из 12, а все обязательные — включая
@@ -181,18 +194,10 @@ public class FormCoordinator implements FormNavigator {
         this.itemFormAccessBinder = Objects.requireNonNull(itemFormAccessBinder,
             "itemFormAccessBinder must not be null: он решает, можно ли создавать и править"
                 + " запись, работать без него — показывать форму без проверки прав");
-        this.actionRegistry = Objects.requireNonNull(actionRegistry,
-            "actionRegistry must not be null: без него список не знает, какие действия ему"
-                + " объявлены, и обязан падать, а не показывать CRUD по догадке");
-        this.actionContextProvider = Objects.requireNonNull(actionContextProvider,
-            "actionContextProvider must not be null: он единственный собирает входы решения"
-                + " (capability типа и права), без него список вернулся бы к своей формуле прав");
         // E1.6a: реестр исполнителей прикладных действий. Пустой — это состояние "приложение
         // действий не объявляет", а не отсутствие модели: без обязательного реестра список
         // молча терял бы прикладные кнопки, и именно этот дефект здесь и закрывается.
-        this.actionHandlerRegistry = Objects.requireNonNull(actionHandlerRegistry,
-            "actionHandlerRegistry must not be null: без него объявленные прикладные действия"
-                + " исчезают из списка молча, а не с причиной");
+        this.actionResolvers = Objects.requireNonNull(actionResolvers, "actionResolvers");
         this.formLinkService = Objects.requireNonNull(formLinkService,
             "formLinkService must not be null: без него формы, открытые координатором, остались бы"
                 + " без публичного адреса — а список и карточка обязаны вести себя одинаково");
@@ -659,14 +664,12 @@ public class FormCoordinator implements FormNavigator {
      * берётся у списка, а не у подвала карточки.
      */
     private ActionResolver listActionResolver(Class<?> entityClass, String variant) {
-        return new ActionResolver(actionRegistry, actionContextProvider, actionHandlerRegistry,
-            ActionSurface.LIST_TOOLBAR, entityClass, variant);
+        return actionResolvers.list(entityClass, variant);
     }
 
     /** Решатель действий карточки (E1.5): по нему решается, правится открытая запись или нет. */
     private ActionResolver itemActionResolver(Class<?> entityClass, String variant) {
-        return new ActionResolver(actionRegistry, actionContextProvider, actionHandlerRegistry,
-            ActionSurface.ITEM_FOOTER, entityClass, variant);
+        return actionResolvers.item(entityClass, variant);
     }
 
     /**

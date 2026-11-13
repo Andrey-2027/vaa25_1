@@ -36,6 +36,17 @@ public final class ActionHandlerRegistry {
                 continue;
             }
             ActionDefinition definition = handler.definition();
+            if (definition.surface() == ActionSurface.NAVIGATION) {
+                var requirement = definition.requirement();
+                if (definition.variant() != null || requirement.requiresSelection()
+                        || requirement.rowStateSelectsOperation() || requirement.requiresLinkable()
+                        || requirement.requiresRequiredContext()
+                        || requirement.update() == ActionRequirement.Level.REQUIRED
+                        || requirement.delete() == ActionRequirement.Level.REQUIRED
+                        || CrudAction.CREATE.id().equals(definition.id())) {
+                    throw new IllegalStateException("Invalid NAVIGATION handler: " + definition.id());
+                }
+            }
             ActionRegistry.Key key = new ActionRegistry.Key(definition.surface(), definition.entityType(),
                 definition.variant(), definition.id());
             ActionHandler previous = collected.putIfAbsent(key, handler);

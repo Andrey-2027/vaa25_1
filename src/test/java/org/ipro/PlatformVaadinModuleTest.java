@@ -151,8 +151,10 @@ class PlatformVaadinModuleTest {
                 + " шесть типов стандартного списка регистра — итого 137; E1.2b добавила порт права"
                 + " на операцию (`OperationPermissionSource`) — итого 138; ET2 добавила"
                 + " EntityStructureFactsAssembler — итого 139; E3.B добавила CatalogOwnerForms —"
-                + " итого 140; Б1 добавила FilterableSearchFunction — итого 141")
-            .isEqualTo(142);
+                + " итого 140; Б1 добавила FilterableSearchFunction — итого 141; последующие срезы"
+                + " (R2 Explorer UI, КИ-9, ET/AF) довели список до 193 — актуальный перечень ведёт"
+                + " VaadinModuleCompositionTest")
+            .isEqualTo(193);
         assertThat(copies)
             .as("тип есть и в модуле, и в дереве приложения — это split package: компилятор"
                 + " различает такие копии по порядку classpath, а не по замыслу, поэтому"
