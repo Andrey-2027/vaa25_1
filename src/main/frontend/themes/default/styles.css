@@ -10,6 +10,90 @@
   overflow: hidden;
 }
 
+.subsystem-home {
+  box-sizing: border-box;
+  container-type: inline-size;
+  overflow: auto;
+  padding: 10px 16px;
+}
+
+.subsystem-home > vaadin-text-field {
+  width: min(100%, 240px);
+  flex-shrink: 0;
+}
+
+.subsystem-home-groups {
+  --section-columns: 1;
+  display: grid;
+  grid-template-columns: repeat(var(--section-columns), minmax(0, 1fr));
+  gap: 12px 24px;
+  width: 100%;
+  padding-block-start: 12px;
+  flex-shrink: 0;
+  align-items: start;
+}
+
+@container (min-width: 32rem) {
+  .subsystem-home-groups {
+    --section-columns: 2;
+  }
+}
+
+@container (min-width: 62rem) {
+  .subsystem-home-groups {
+    --section-columns: 3;
+  }
+}
+
+.subsystem-home-group:only-child {
+  grid-column: 1 / -1;
+}
+
+.subsystem-home-group:only-child .subsystem-home-links {
+  columns: var(--section-columns);
+  column-gap: 24px;
+}
+
+.subsystem-home-group h4 {
+  margin: 0 0 4px;
+  color: var(--lumo-primary-text-color);
+  font-size: var(--lumo-font-size-s);
+  font-weight: 500;
+}
+
+vaadin-button.subsystem-home-link {
+  display: flex;
+  justify-content: flex-start;
+  width: fit-content;
+  max-width: 100%;
+  height: auto;
+  min-height: 0;
+  margin: 0;
+  padding: 3px 0;
+  break-inside: avoid;
+  color: var(--lumo-body-text-color);
+  font-size: var(--lumo-font-size-s);
+  font-weight: 400;
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+.subsystem-home-link::part(label) {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: start;
+}
+
+.subsystem-home-link:hover {
+  color: var(--lumo-primary-text-color);
+  text-decoration: underline;
+}
+
+.subsystem-home-status {
+  color: var(--lumo-secondary-text-color);
+  font-size: var(--lumo-font-size-s);
+}
+
 .global-search-header {
   position: relative;
   flex: 1 1 auto;

@@ -157,6 +157,18 @@ public class Workspace extends VerticalLayout implements WorkspaceGateway {
         tooltip.setFocusDelay(0);
     }
 
+    public <T extends Component> void openOrUpdate(Class<T> viewType, String entryId,
+                                                   String tabTitle, Consumer<T> configure) {
+        Entry existing = entries.get(entryId);
+        if (existing == null) {
+            open(viewType, entryId, tabTitle, configure);
+            return;
+        }
+        configure.accept(viewType.cast(existing.getView()));
+        updateTitle(entryId, tabTitle);
+        reveal(existing);
+    }
+
     public <T extends Component> void open(Class<T> viewType, String entryId,
                                            String tabTitle, Consumer<T> initializer) {
         Entry existing = entries.get(entryId);

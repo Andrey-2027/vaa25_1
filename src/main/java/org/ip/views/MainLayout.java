@@ -117,6 +117,8 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver, Before
      */
     private static final String LOGIN_PARAMETER = "continue";
 
+    private static final String SUBSYSTEM_TAB_ID = "subsystem-home";
+
     private final Workspace workspace;
     private final SubsystemRegistry subsystemRegistry;
     private final NavigationUiSnapshot navigationSnapshot;
@@ -569,13 +571,12 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver, Before
     }
 
     private void openSubsystem(SubsystemNode node) {
-        String tabId = "subsystem-" + node.getMarkerClass().getSimpleName();
-        workspace.open(SubsystemHomeView.class, tabId, node.getTitle(),
+        workspace.openOrUpdate(SubsystemHomeView.class, SUBSYSTEM_TAB_ID, node.getTitle(),
             (SubsystemHomeView v) -> v.init(node));
     }
 
     private void openSubsystem(NavigationTree.Node node) {
-        workspace.open(SubsystemHomeView.class, "subsystem-" + node.id(), node.title(), v -> v.init(node));
+        workspace.openOrUpdate(SubsystemHomeView.class, SUBSYSTEM_TAB_ID, node.title(), v -> v.init(node));
     }
 
     private static boolean isAdmin() {
