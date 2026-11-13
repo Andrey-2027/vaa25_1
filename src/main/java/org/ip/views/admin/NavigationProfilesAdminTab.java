@@ -24,7 +24,6 @@ import org.ipro.navigation.NavigationUserDirectory;
 import org.ipro.navigation.NavigationVisibility;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.AccessDeniedException;
 
@@ -35,7 +34,6 @@ import java.util.Objects;
 /** Application-owned editor. All persistent operations use the protected navigation API. */
 @SpringComponent
 @Scope("prototype")
-@ConditionalOnProperty(name = "platform.navigation.enabled", havingValue = "true")
 public class NavigationProfilesAdminTab extends VerticalLayout {
     private static final Logger log = LoggerFactory.getLogger(NavigationProfilesAdminTab.class);
     private final NavigationAdministrationService administration;
@@ -61,10 +59,10 @@ public class NavigationProfilesAdminTab extends VerticalLayout {
 
     public NavigationProfilesAdminTab(NavigationAdministrationService administration,
                                       NavigationAdministrationAccess access,
-                                      NavigationCatalog catalog, NavigationResolver resolver) {
+                                      org.ipro.navigation.NavigationCatalogProvider catalogs, NavigationResolver resolver) {
         this.administration = administration;
         this.access = access;
-        this.draft = new NavigationProfileDraft(catalog, resolver);
+        this.draft = new NavigationProfileDraft(catalogs.get(), resolver);
         setSizeFull();
         setMinHeight("0");
         getStyle().set("overflow", "auto");

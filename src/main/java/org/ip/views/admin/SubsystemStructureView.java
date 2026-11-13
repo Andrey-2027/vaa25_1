@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * «Структура подсистем» — read-only каталог (обратное направление Entity Explorer):
+ * «Предметные области» — read-only каталог (обратное направление Entity Explorer):
  * выбрал подсистему → видишь её сущности и грани (наименование, нумерация, кастомные
  * формы, контекст-фильтры, RLS-гейт). Поверхность чтения (роль 2), ничего не пишет;
  * данные — из {@link SubsystemSummaryAssembler} (готовый агрегат, без хождения по сырым
@@ -45,7 +45,7 @@ import java.util.Locale;
  * <p>Слева — дерево подсистем ({@link TreeGrid}): иерархия «Документы → Производство»
  * с числом сущностей поддерева; поиск оставляет только совпавшие узлы и их предков.
  * Пустые подсистемы показываются с пометкой «(пусто)»; сущности без подсистемы
- * ({@code NoSubsystem}) — отдельным корнем «Без подсистемы».</p>
+ * ({@code NoSubsystem}) — отдельным корнем «Без области».</p>
  *
  * <p>Навигация наружу: «открыть список» по строке сущности (через
  * {@link FormNavigator}) и «структура» — общая вкладка Entity Explorer через
@@ -55,7 +55,7 @@ import java.util.Locale;
 @Scope("prototype")
 public class SubsystemStructureView extends VerticalLayout {
 
-    /** Узел дерева подсистем: маркер {@code @Subsystem} (null — «Без подсистемы»). */
+    /** Узел дерева подсистем: маркер {@code @Subsystem} (null — «Без области»). */
     private static final class Item {
         private final Class<?> markerClass;
         private final String title;
@@ -111,9 +111,9 @@ public class SubsystemStructureView extends VerticalLayout {
     }
 
     private void buildUi() {
-        add(new H3("Структура подсистем"));
+        add(new H3("Предметные области"));
 
-        Span hint = new Span("Read-only каталог: подсистема → её сущности и грани. Ничего не " +
+        Span hint = new Span("Каталог областей и их сущностей. Ничего не " +
                 "сохраняется — источник всех значений «код». Состав подсистем меняется в коде " +
                 "(@Subsystem / @EntityMetadata.subsystem), администраторских редакторов нет.");
         hint.getStyle().set("color", "var(--lumo-secondary-text-color)");
@@ -175,7 +175,7 @@ public class SubsystemStructureView extends VerticalLayout {
         }
         int unassigned = catalog.unassigned().size();
         if (unassigned > 0) {
-            roots.add(new Item(null, "Без подсистемы", unassigned));
+            roots.add(new Item(null, "Без области", unassigned));
         }
         return roots;
     }
@@ -256,7 +256,7 @@ public class SubsystemStructureView extends VerticalLayout {
         detail.add(title);
 
         if (groups.isEmpty()) {
-            Span empty = new Span("В этой подсистеме нет сущностей.");
+            Span empty = new Span("В этой области нет сущностей.");
             empty.getStyle().set("color", "var(--lumo-secondary-text-color)");
             detail.add(empty);
             return;
@@ -268,7 +268,7 @@ public class SubsystemStructureView extends VerticalLayout {
 
     private void showPlaceholder() {
         detail.removeAll();
-        Span empty = new Span("Выберите подсистему слева — здесь появятся её сущности и грани.");
+        Span empty = new Span("Выберите область слева — здесь появятся её сущности и грани.");
         empty.getStyle().set("color", "var(--lumo-secondary-text-color)");
         detail.add(empty);
     }

@@ -34,30 +34,6 @@ class NavigationResolverTest {
             .isInstanceOf(UnsupportedOperationException.class);
     }
 
-    @ParameterizedTest
-    @EnumSource(NavigationVisibility.class)
-    void overridesInheritOrReplaceDeveloperDefaults(NavigationVisibility visibility) {
-        for (boolean defaultVisible : List.of(false, true)) {
-            var catalog = NavigationCatalog.build(NavigationCatalogTest.original(),
-                List.of(NavigationCatalogTest.declarations(true, defaultVisible)));
-            var tree = resolver.resolve(catalog, Map.of("item:root-item", visibility), type -> true);
-            boolean expected = visibility == NavigationVisibility.SHOW
-                || (visibility == NavigationVisibility.DEFAULT && defaultVisible);
-            assertThat(tree.findSubsystem("root").orElseThrow().items().isEmpty()).isEqualTo(!expected);
-        }
-    }
-
-    @Test
-    void showingSubsystemCanReplaceDeveloperHideButStillChecksReads() {
-        var catalog = NavigationCatalog.build(NavigationCatalogTest.original(),
-            List.of(NavigationCatalogTest.declarations(false, true)));
-        assertThat(resolver.resolve(catalog, Map.of(), type -> true).roots()).isEmpty();
-        assertThat(resolver.resolve(catalog, Map.of("subsystem:root", NavigationVisibility.SHOW),
-            type -> true).roots()).hasSize(1);
-        assertThat(resolver.resolve(catalog, Map.of("subsystem:root", NavigationVisibility.SHOW),
-            type -> false).roots()).isEmpty();
-    }
-
     @Test
     void explicitShowCannotBypassHiddenAncestorAndDoesNotInvokeReadGate() {
         AtomicInteger reads = new AtomicInteger();
@@ -112,22 +88,4 @@ class NavigationResolverTest {
         })).isInstanceOf(IllegalStateException.class).hasMessage("read gate failed");
     }
 
-    @Test
-    void explicitIdentitiesPreserveHidingAcrossClassPackageTitleAndPlacementChanges() {
-        var renamedRegistry = NavigationCatalogTest.registry("org.ipro.navigation.fixture.renamed");
-        var renamed = NavigationCatalog.build(renamedRegistry, List.of(d -> d
-            .subsystem(Renamed.RenamedRoot.class, "root")
-            .subsystem(Renamed.Destination.class, "child")
-            .list(Renamed.Destination.class, Renamed.RenamedItem.class, "root-item")));
-        var profile = Map.of("item:root-item", NavigationVisibility.HIDE);
-        assertThat(resolver.resolve(NavigationCatalogTest.catalog(), profile, t -> true)
-            .findSubsystem("root").orElseThrow().items()).isEmpty();
-        var result = resolver.resolve(renamed, profile, t -> true);
-        assertThat(result.roots()).isEmpty();
-        assertThat(result.staleKeys()).isEmpty();
-        assertThat(resolver.resolve(renamed, Map.of("subsystem:root", NavigationVisibility.HIDE), t -> true).roots())
-            .isEmpty();
-        assertThat(resolver.resolve(renamed, Map.of(), t -> true).findSubsystem("child").orElseThrow().items())
-            .extracting(NavigationItem::id).containsExactly("root-item");
-    }
 }

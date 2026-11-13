@@ -56,7 +56,7 @@ class NavigationPersistenceTest {
             .withPropertyValues("platform.navigation.enabled=true", "spring.datasource.url=" + url,
                 "spring.jpa.hibernate.ddl-auto=" + ddl, "spring.jpa.open-in-view=false")
             .withBean(SubsystemRegistry.class, () -> new SubsystemRegistry("org.ipro.navigation.fixture.original", new org.ipro.metadata.MetadataResolver()))
-            .withBean(NavigationDefaultsContributor.class, () -> NavigationCatalogTest.declarations(true, true));
+            .withBean(NavigationEntityKeys.class, () -> NavigationEntityKeys::derive);
     }
 
     static ApplicationContextRunner runner(AtomicBoolean admin, Users users) {
@@ -71,7 +71,7 @@ class NavigationPersistenceTest {
             var runner = new ApplicationContextRunner().withConfiguration(AutoConfigurations.of(NavigationAutoConfiguration.class));
             if (!enabled.isEmpty()) runner = runner.withPropertyValues("platform.navigation.enabled=false");
             runner.run(context -> {
-                assertThat(context).hasNotFailed().doesNotHaveBean(NavigationCatalog.class)
+                assertThat(context).hasNotFailed().doesNotHaveBean(NavigationCatalogProvider.class)
                     .doesNotHaveBean(NavigationAdministrationService.class).doesNotHaveBean(NavigationProfileReader.class)
                     .doesNotHaveBean(NavigationProfileRepository.class).doesNotHaveBean(EntityManagerFactory.class);
             });
@@ -273,7 +273,7 @@ class NavigationPersistenceTest {
                 getClass().getClassLoader(), new Class<?>[] {NavigationAssignmentRepository.class},
                 (proxy, method, arguments) -> { throw new DataAccessResourceFailureException("database unavailable"); });
             var reader = new DefaultNavigationProfileReader(new Users(), failed,
-                context.getBean(NavigationOverrideRepository.class), context.getBean(NavigationCatalog.class),
+                context.getBean(NavigationOverrideRepository.class), context.getBean(NavigationCatalogProvider.class),
                 context.getBean(PlatformTransactionManager.class));
             assertThatThrownBy(reader::currentProfile).isInstanceOf(DataAccessResourceFailureException.class)
                 .hasMessage("database unavailable");

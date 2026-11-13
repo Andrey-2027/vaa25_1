@@ -1,7 +1,6 @@
 package org.ip.views.workspace;
 
 import org.ipro.navigation.NavigationItem;
-import org.ipro.metadata.SubsystemNode;
 import org.ipro.navigation.NavigationTree;
 
 import java.util.ArrayList;
@@ -26,23 +25,6 @@ record SubsystemPage(List<Group> groups) {
             addGroup(groups, child.id(), child.title(), links);
         }
         return new SubsystemPage(groups);
-    }
-
-    static SubsystemPage from(SubsystemNode root, java.util.function.Predicate<Class<?>> canRead) {
-        var groups = new ArrayList<Group>();
-        addGroup(groups, root.getMarkerClass().getName(), "", listLinks(root.getOwnEntities().stream(), canRead));
-        for (var child : root.getChildren()) {
-            var entities = child.getEntityGroupsRecursive().stream().flatMap(group -> group.entities().stream());
-            addGroup(groups, child.getMarkerClass().getName(), child.getTitle(), listLinks(entities, canRead));
-        }
-        return new SubsystemPage(groups);
-    }
-
-    private static List<Link> listLinks(java.util.stream.Stream<org.ipro.metadata.EntityMetadataInfo> entities,
-                                        java.util.function.Predicate<Class<?>> canRead) {
-        return entities.sorted(Comparator.comparingInt(org.ipro.metadata.EntityMetadataInfo::getOrder))
-            .filter(entity -> canRead.test(entity.getEntityClass()))
-            .map(entity -> new Link(entity.getListFormTitle(), entity.getEntityClass())).toList();
     }
 
     List<Group> matching(String query) {

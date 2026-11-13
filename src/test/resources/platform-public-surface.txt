@@ -1,6 +1,4 @@
 # KI-1/KI-2: декларации ID и прикладные адаптеры доступа/идентичности пользователей.
-API org.ipro.navigation.NavigationDefaults
-SPI org.ipro.navigation.NavigationDefaultsContributor
 SPI org.ipro.navigation.NavigationAdministrationAccess
 SPI org.ipro.navigation.NavigationUserDirectory
 # R3.1 (2026-10-23): UDR-редактор удалён, поэтому его записи сняты из реестра.
@@ -463,3 +461,7 @@ API org.ipro.vaadin.explorer.ui.EntityExplorerRegistryState
 API org.ipro.vaadin.explorer.ui.ExplorerActionAvailability
 SPI org.ipro.vaadin.explorer.ui.ExplorerFormPreviewPort
 SPI org.ipro.vaadin.explorer.ui.ExplorerSourcePort
+
+SPI org.ipro.navigation.NavigationEntityKeys
+API org.ipro.navigation.NavigationCatalogProvider
+API org.ipro.navigation.NavigationItem

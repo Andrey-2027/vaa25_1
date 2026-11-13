@@ -23,7 +23,6 @@ import org.ipro.rls.RlsCurrentUser;
 import org.ipro.rls.RlsReadGate;
 import org.junit.jupiter.api.Test;
 import org.navigationfixture.Fixtures;
-import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.core.env.MapPropertySource;
 
@@ -47,24 +46,20 @@ class NavigationUiSnapshotTest {
     private static NavigationCatalog catalog() {
         var registry = new SubsystemRegistry("org.ip", new org.ipro.metadata.MetadataResolver());
         registry.afterPropertiesSet();
-        return NavigationCatalog.build(registry,
-            List.of(new ApplicationNavigationConfiguration().applicationNavigationDefaults()));
+        return NavigationCatalog.build(registry, org.ipro.navigation.NavigationEntityKeys::derive);
     }
 
     private static NavigationCatalog nestedCatalog() {
         var registry = new SubsystemRegistry("org.navigationfixture", new org.ipro.metadata.MetadataResolver());
         registry.afterPropertiesSet();
-        return NavigationCatalog.build(registry, List.of(defaults -> defaults
-            .subsystem(Fixtures.Root.class, "root").subsystem(Fixtures.Child.class, "child")
-            .list(Fixtures.Root.class, Fixtures.RootItem.class, "root-item")
-            .list(Fixtures.Child.class, Fixtures.ChildItem.class, "child-item")));
+        return NavigationCatalog.build(registry, org.ipro.navigation.NavigationEntityKeys::derive);
     }
 
     @Test void realUiScopeKeepsUserProfilesIndependentAndFreezesEachMenuUntilRefresh() {
         var user = new AtomicReference<>("alice");
         var reads = new AtomicInteger();
         var profileReads = new AtomicInteger();
-        var overrides = new AtomicReference<>(Map.of("item:units-list", NavigationVisibility.HIDE));
+        var overrides = new AtomicReference<>(Map.of("item:unit-of-measurement", NavigationVisibility.HIDE));
         var session = mock(VaadinSession.class);
         when(session.getState()).thenReturn(VaadinSessionState.OPEN);
         when(session.hasLock()).thenReturn(true);
@@ -84,7 +79,7 @@ class NavigationUiSnapshotTest {
             context.addBeanFactoryPostProcessor(new VaadinUIScope());
             context.getEnvironment().getPropertySources().addFirst(new MapPropertySource("navigation-test",
                 Map.of("platform.navigation.enabled", "true")));
-            context.registerBean(NavigationCatalog.class, NavigationUiSnapshotTest::catalog);
+            context.registerBean(org.ipro.navigation.NavigationCatalogProvider.class, () -> org.ipro.navigation.NavigationCatalogProvider.of(catalog()));
             context.registerBean(NavigationResolver.class, NavigationResolver::new);
             context.registerBean(NavigationProfileReader.class, () -> () -> {
                 profileReads.incrementAndGet();
@@ -110,7 +105,7 @@ class NavigationUiSnapshotTest {
             assertThat(directoriesA.items()).noneMatch(item -> item.entityClass() == UnitOfMeasurement.class
                 || item.entityClass() == Workshop.class);
             user.set("bob");
-            overrides.set(Map.of("item:workshops-list", NavigationVisibility.SHOW));
+            overrides.set(Map.of("item:workshop", NavigationVisibility.SHOW));
             UI.setCurrent(uiB);
             var second = context.getBean(NavigationUiSnapshot.class);
             assertThat(second).isNotSameAs(first);
@@ -125,7 +120,7 @@ class NavigationUiSnapshotTest {
             first.appendMenu(new SideNav(), node -> {});
             assertThat(profileReads.get()).isEqualTo(2);
             assertThat(reads.get()).isEqualTo(capturedReads);
-            var tiles = new SubsystemHomeView(mock(FormNavigator.class), gate, user::get);
+            var tiles = new SubsystemHomeView(mock(FormNavigator.class));
             tiles.init(directoriesA);
             assertThat(descendants(tiles).filter(Button.class::isInstance).count()).isEqualTo(directoriesA.items().size());
             assertThat(reads.get()).isEqualTo(capturedReads);
@@ -149,20 +144,17 @@ class NavigationUiSnapshotTest {
         var gate = mock(RlsReadGate.class);
         for (int index = 0; index < tree.roots().size(); index++) {
             var root = tree.roots().get(index);
-            assertThat(menu.getItems().get(index).getItems()).extracting(SideNavItem::getLabel)
-                .containsExactlyElementsOf(root.children().stream().map(NavigationTree.Node::title).toList());
+            assertThat(menu.getItems().get(index).getItems()).isEmpty();
             click(menu.getItems().get(index));
             assertThat(opened.getLast()).isSameAs(root);
-            var view = new SubsystemHomeView(navigator, gate, () -> "alice");
+            var view = new SubsystemHomeView(navigator);
             view.init(opened.getLast());
             var buttons = descendants(view).filter(Button.class::isInstance).map(Button.class::cast).toList();
             var items = root.groupsRecursive().stream().flatMap(group -> group.items().stream()).toList();
             assertThat(buttons).extracting(Button::getText).containsExactlyElementsOf(items.stream().map(item -> item.title()).toList());
             buttons.getFirst().click();
             verify(navigator).openListForm((Class) items.getFirst().entityClass(), null, null);
-            click(menu.getItems().get(index).getItems().getFirst());
-            assertThat(opened.getLast()).isSameAs(root.children().getFirst());
-            view.init(opened.getLast());
+            view.init(root.children().getFirst());
             assertThat(descendants(view).filter(Button.class::isInstance).map(Button.class::cast).map(Button::getText))
                 .containsExactly("Child list");
         }
@@ -182,23 +174,13 @@ class NavigationUiSnapshotTest {
         assertThat(attempts.get()).isEqualTo(1);
     }
 
-    @Test void disabledModeNeedsNoNavigationBeansButEnabledModeRequiresThem() {
-        var beans = new DefaultListableBeanFactory();
-        var disabled = new NavigationUiSnapshot(false, beans.getBeanProvider(NavigationCatalog.class),
-            beans.getBeanProvider(NavigationResolver.class), beans.getBeanProvider(NavigationProfileReader.class), null, null);
-        assertThat(disabled.enabled()).isFalse();
-        assertThatThrownBy(() -> new NavigationUiSnapshot(true, beans.getBeanProvider(NavigationCatalog.class),
-            beans.getBeanProvider(NavigationResolver.class), beans.getBeanProvider(NavigationProfileReader.class), null, null))
-            .isInstanceOf(org.springframework.beans.factory.NoSuchBeanDefinitionException.class);
-    }
-
     @Test void hiddenNestedSubsystemCannotLeakIntoParentTilesEvenWithExplicitShowBelowIt() {
         var tree = new NavigationResolver().resolve(nestedCatalog(), Map.of(
             "subsystem:child", NavigationVisibility.HIDE, "item:child-item", NavigationVisibility.SHOW), type -> true);
         assertThat(tree.findSubsystem("child")).isEmpty();
         assertThat(tree.roots().stream().flatMap(root -> root.groupsRecursive().stream()))
             .noneMatch(group -> group.subsystemId().equals("child"));
-        var view = new SubsystemHomeView(mock(FormNavigator.class), mock(RlsReadGate.class), () -> "alice");
+        var view = new SubsystemHomeView(mock(FormNavigator.class));
         view.init(tree.roots().getFirst());
         assertThat(descendants(view).filter(Button.class::isInstance).map(Button.class::cast).map(Button::getText))
             .containsExactly("Root list");

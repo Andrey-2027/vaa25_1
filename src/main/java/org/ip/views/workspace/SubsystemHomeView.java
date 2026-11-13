@@ -10,9 +10,6 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.spring.annotation.SpringComponent;
-import org.ipro.metadata.SubsystemNode;
-import org.ipro.rls.RlsCurrentUser;
-import org.ipro.rls.RlsReadGate;
 import org.ipro.form.coordinator.FormNavigator;
 import org.ipro.navigation.NavigationTree;
 import org.springframework.context.annotation.Scope;
@@ -24,17 +21,13 @@ import java.util.List;
 public class SubsystemHomeView extends VerticalLayout {
 
     private final FormNavigator navigator;
-    private final RlsReadGate readGate;
-    private final RlsCurrentUser currentUser;
     private final TextField search = new TextField();
     private final Div results = new Div();
     private final Span status = new Span();
     private SubsystemPage page = new SubsystemPage(List.of());
 
-    public SubsystemHomeView(FormNavigator navigator, RlsReadGate readGate, RlsCurrentUser currentUser) {
+    public SubsystemHomeView(FormNavigator navigator) {
         this.navigator = navigator;
-        this.readGate = readGate;
-        this.currentUser = currentUser;
 
         setSizeFull();
         setPadding(false);
@@ -53,11 +46,6 @@ public class SubsystemHomeView extends VerticalLayout {
         status.addClassName("subsystem-home-status");
         status.getElement().setAttribute("role", "status");
         add(search, results, status);
-    }
-
-    public void init(SubsystemNode node) {
-        String username = currentUser.requireAuthenticatedUsername();
-        showPage(SubsystemPage.from(node, type -> readGate.canRead(type, username)));
     }
 
     public void init(NavigationTree.Node node) {

@@ -32,9 +32,9 @@ class NavigationAdminWiringTest {
 
     @Test void adminSeesTheTabAndReattachKeepsTheSameEditor() {
         login("ROLE_ADMIN");
-        var editor = new NavigationProfilesAdminTab(service, () -> true, NavigationProfileEditorTest.catalog(), new NavigationResolver());
+        var editor = new NavigationProfilesAdminTab(service, () -> true, org.ipro.navigation.NavigationCatalogProvider.of(NavigationProfileEditorTest.catalog()), new NavigationResolver());
         when(tabs.getObject()).thenReturn(editor);
-        var view = adminView(true);
+        var view = adminView();
         view.onAttach(new AttachEvent(view, false));
         Tabs tabBar = children(view).filter(Tabs.class::isInstance).map(Tabs.class::cast).findFirst().orElseThrow();
         assertThat(tabBar.getComponentCount()).isEqualTo(5);
@@ -54,31 +54,22 @@ class NavigationAdminWiringTest {
         verifyNoMoreInteractions(service);
     }
 
-    @Test void disabledModeKeepsTheFourExistingTabsAndDoesNotRequestTheEditor() {
-        login("ROLE_ADMIN");
-        var view = adminView(false);
-        view.onAttach(new AttachEvent(view, false));
-        var tabBar = children(view).filter(Tabs.class::isInstance).map(Tabs.class::cast).findFirst().orElseThrow();
-        assertThat(tabBar.getComponentCount()).isEqualTo(4);
-        verifyNoInteractions(tabs, service);
-    }
-
     @Test void nonAdministratorCannotCreateOrOpenTheEditor() {
         login("ROLE_USER");
-        var view = adminView(true);
+        var view = adminView();
         view.onAttach(new AttachEvent(view, false));
         assertThat(children(view).filter(Tabs.class::isInstance)).isEmpty();
         verifyNoInteractions(tabs, service);
     }
 
-    private AdminView adminView(boolean enabled) {
+    private AdminView adminView() {
         var factory = mock(EntityManagerFactory.class);
         var metamodel = mock(Metamodel.class);
         when(factory.getMetamodel()).thenReturn(metamodel);
         when(metamodel.getEntities()).thenReturn(Set.of());
         return new AdminView(mock(AccessGrantAdminService.class), new SettingsAdminTab(null, null, null, null, null),
             new NumberingAdminTab(null, null, null, null, null), factory,
-            new org.ipro.metadata.MetadataResolver(), List.of(), List.of(), tabs, enabled);
+            new org.ipro.metadata.MetadataResolver(), List.of(), List.of(), tabs);
     }
     private static void login(String role) {
         SecurityContextHolder.getContext().setAuthentication(UsernamePasswordAuthenticationToken.authenticated(

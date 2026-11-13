@@ -77,5 +77,6 @@ public @interface EntityMetadata {
     /** Имя VaadinIcon (например, "PACKAGE", "BOOK", "FILE_TEXT") */
     String icon() default "FILE";
 
+    /** Предметная область сущности. После начальной сборки структура меню хранится отдельно. */
     Class<?> subsystem() default Subsystem.NoSubsystem.class;
 }

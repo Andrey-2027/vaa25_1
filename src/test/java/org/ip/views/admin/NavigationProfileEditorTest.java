@@ -49,10 +49,7 @@ class NavigationProfileEditorTest {
     static NavigationCatalog catalog() {
         var registry = new SubsystemRegistry("org.navigationfixture", new org.ipro.metadata.MetadataResolver());
         registry.afterPropertiesSet();
-        return NavigationCatalog.build(registry, List.of(defaults -> defaults
-            .subsystem(Fixtures.Root.class, "root").subsystem(Fixtures.Child.class, "child")
-            .list(Fixtures.Root.class, Fixtures.RootItem.class, "root-item")
-            .list(Fixtures.Child.class, Fixtures.ChildItem.class, "child-item", false)));
+        return NavigationCatalog.build(registry, org.ipro.navigation.NavigationEntityKeys::derive);
     }
 
     @BeforeEach void prepare() {
@@ -67,7 +64,7 @@ class NavigationProfileEditorTest {
         when(service.profile(1)).thenReturn(first);
         when(service.profile(2)).thenReturn(second);
         when(service.assignmentForUser(anyString())).thenReturn(Optional.empty());
-        view = new NavigationProfilesAdminTab(service, admin::get, catalog(), new NavigationResolver());
+        view = new NavigationProfilesAdminTab(service, admin::get, org.ipro.navigation.NavigationCatalogProvider.of(catalog()), new NavigationResolver());
         ui.add(view);
         view.refresh();
     }

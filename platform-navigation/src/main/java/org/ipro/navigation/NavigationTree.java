@@ -30,7 +30,7 @@ public record NavigationTree(List<Node> roots, Set<String> staleKeys) {
     public record Node(String id, Class<?> markerClass, String title, String icon, int order,
                        List<NavigationItem> items, List<Node> children) {
         public Node {
-            NavigationDefaults.requireId(id);
+            NavigationIds.requireId(id);
             Objects.requireNonNull(markerClass, "subsystem marker");
             Objects.requireNonNull(title, "title");
             Objects.requireNonNull(icon, "icon");
@@ -55,7 +55,7 @@ public record NavigationTree(List<Node> roots, Set<String> staleKeys) {
 
     public record Group(String subsystemId, String title, List<NavigationItem> items) {
         public Group {
-            NavigationDefaults.requireId(subsystemId);
+            NavigationIds.requireId(subsystemId);
             Objects.requireNonNull(title, "title");
             items = List.copyOf(items);
         }

@@ -8,7 +8,7 @@ public record NavigationNode(String id, Class<?> markerClass, String title, Stri
                              int order, boolean defaultVisible,
                              List<NavigationItem> items, List<NavigationNode> children) {
     public NavigationNode {
-        NavigationDefaults.requireId(id);
+        NavigationIds.requireId(id);
         Objects.requireNonNull(markerClass, "subsystem marker");
         Objects.requireNonNull(title, "title");
         Objects.requireNonNull(icon, "icon");

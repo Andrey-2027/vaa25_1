@@ -1,6 +1,6 @@
 # KI-1/KI-2/KI-3/KI-4 reviewed roles; persistence/configuration internals are not application contracts.
-APP_SPI org.ipro.navigation.NavigationDefaultsContributor
-APP_API org.ipro.navigation.NavigationDefaults
+APP_SPI org.ipro.navigation.NavigationEntityKeys
+APP_API org.ipro.navigation.NavigationCatalogProvider
 APP_API org.ipro.navigation.NavigationCatalog
 APP_API org.ipro.navigation.NavigationItem
 APP_API org.ipro.navigation.NavigationNode
@@ -9,8 +9,6 @@ APP_API org.ipro.navigation.NavigationTree
 APP_API org.ipro.navigation.NavigationTree$Node
 APP_API org.ipro.navigation.NavigationTree$Group
 APP_API org.ipro.navigation.NavigationVisibility
-INTERNAL org.ipro.navigation.NavigationDefaults$Source
-INTERNAL org.ipro.navigation.NavigationDefaults$Declaration
 APP_SPI org.ipro.navigation.NavigationAdministrationAccess
 APP_SPI org.ipro.navigation.NavigationUserDirectory
 APP_API org.ipro.navigation.NavigationUserDirectory$UserOption
@@ -18,6 +16,7 @@ APP_API org.ipro.navigation.NavigationAdministrationService
 APP_API org.ipro.navigation.NavigationProfileReader
 APP_API org.ipro.navigation.NavigationProfile
 APP_API org.ipro.navigation.NavigationConflictException
+INTERNAL org.ipro.navigation.NavigationIds
 INTERNAL org.ipro.navigation.config.NavigationAutoConfiguration
 INTERNAL org.ipro.navigation.internal.DefaultNavigationAdministrationService
 INTERNAL org.ipro.navigation.internal.DefaultNavigationProfileReader
@@ -28,3 +27,4 @@ INTERNAL org.ipro.navigation.store.NavigationProfileRepository
 INTERNAL org.ipro.navigation.store.NavigationOverrideRepository
 INTERNAL org.ipro.navigation.store.NavigationAssignmentRepository
 INTERNAL org.ipro.navigation.store.NavigationSnapshots
+

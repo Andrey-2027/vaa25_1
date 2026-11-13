@@ -82,7 +82,7 @@ public class NumberingAdminTab extends VerticalLayout {
     }
 
     private void configureGrid() {
-        grid.addColumn(Row::subsystemTitle).setHeader("Подсистема").setWidth("170px");
+        grid.addColumn(Row::subsystemTitle).setHeader("Область").setWidth("170px");
         grid.addColumn(Row::entityTitle).setHeader("Сущность").setFlexGrow(1);
         grid.addColumn(Row::fieldName).setHeader("Поле").setWidth("110px");
         grid.addColumn(r -> r.rule().getPeriod().name()).setHeader("Период").setWidth("100px");

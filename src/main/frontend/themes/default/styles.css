@@ -208,3 +208,23 @@ vaadin-button.subsystem-home-link {
 .report-editor vaadin-details summary {
   padding: 0.375rem 0.75rem;
 }
+
+/* КИ-7: ящик — разделы сверху, служебные пункты внизу под чертой. */
+.drawer-column {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  min-height: 100%;
+  padding: 0 var(--lumo-space-s);
+}
+
+.drawer-column > .drawer-sections {
+  flex: 1 1 auto;
+}
+
+.drawer-column > .drawer-service {
+  flex: 0 0 auto;
+  margin-top: var(--lumo-space-s);
+  padding-top: var(--lumo-space-s);
+  border-top: 1px solid var(--lumo-contrast-10pct);
+}

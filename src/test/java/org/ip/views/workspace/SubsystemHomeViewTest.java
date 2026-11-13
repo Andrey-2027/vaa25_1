@@ -45,7 +45,7 @@ class SubsystemHomeViewTest {
     void switchingSectionsUpdatesOneTabAndKeepsTheOpenForm() {
         var production = node("production", "Производство", List.of(item("shops", "Цеха")));
         var reference = node("reference", "НСИ", List.of(item("units", "Единицы измерения")));
-        var view = new SubsystemHomeView(null, null, null);
+        var view = new SubsystemHomeView(null);
         var factory = mock(AutowireCapableBeanFactory.class);
         when(factory.createBean(SubsystemHomeView.class)).thenReturn(view);
         var workspace = new Workspace(new WorkspaceManager(factory));

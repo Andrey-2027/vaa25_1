@@ -6,7 +6,7 @@ import java.util.Objects;
 public record NavigationItem(String id, Class<?> entityClass, String title, String icon,
                              int order, boolean defaultVisible) {
     public NavigationItem {
-        NavigationDefaults.requireId(id);
+        NavigationIds.requireId(id);
         Objects.requireNonNull(entityClass, "entity class");
         Objects.requireNonNull(title, "title");
         Objects.requireNonNull(icon, "icon");

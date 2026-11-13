@@ -5,7 +5,7 @@ import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
 import com.vaadin.flow.spring.annotation.SpringComponent;
 import com.vaadin.flow.spring.annotation.UIScope;
-import org.ipro.navigation.NavigationCatalog;
+import org.ipro.navigation.NavigationCatalogProvider;
 import org.ipro.navigation.NavigationProfile;
 import org.ipro.navigation.NavigationProfileReader;
 import org.ipro.navigation.NavigationResolver;
@@ -14,9 +14,7 @@ import org.ipro.rls.RlsCurrentUser;
 import org.ipro.rls.RlsReadGate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.util.Map;
 import java.util.function.Consumer;
@@ -28,43 +26,32 @@ import java.util.function.Supplier;
 public class NavigationUiSnapshot {
     public static final String LOAD_ERROR = "Не удалось загрузить меню. Обновите страницу или обратитесь к администратору.";
     private static final Logger log = LoggerFactory.getLogger(NavigationUiSnapshot.class);
-    private final boolean enabled;
     private final Supplier<NavigationTree> loader;
     private boolean loaded;
     private NavigationTree tree;
 
     @Autowired
-    public NavigationUiSnapshot(@Value("${platform.navigation.enabled:false}") boolean enabled,
-                                ObjectProvider<NavigationCatalog> catalogs,
-                                ObjectProvider<NavigationResolver> resolvers,
-                                ObjectProvider<NavigationProfileReader> profiles,
+    public NavigationUiSnapshot(NavigationCatalogProvider catalogs,
+                                NavigationResolver resolver,
+                                NavigationProfileReader profiles,
                                 RlsReadGate readGate, RlsCurrentUser currentUser) {
-        this.enabled = enabled;
-        // Missing composition is a wiring error, never a legacy-mode fallback.
-        if (enabled) {
-            var catalog = catalogs.getObject();
-            var resolver = resolvers.getObject();
-            var reader = profiles.getObject();
-            loader = () -> {
-                var profile = reader.currentProfile();
-                String username = currentUser.requireAuthenticatedUsername();
-                return resolver.resolve(catalog, profile.map(NavigationProfile::overrides).orElseGet(Map::of),
-                    type -> readGate.canRead(type, username));
-            };
-        } else {
-            loader = null;
-        }
+        this.loader = () -> {
+            var profile = profiles.currentProfile();
+            String username = currentUser.requireAuthenticatedUsername();
+            return resolver.resolve(catalogs.get(), profile.map(NavigationProfile::overrides).orElseGet(Map::of),
+                type -> readGate.canRead(type, username));
+        };
     }
 
     NavigationUiSnapshot(Supplier<NavigationTree> loader) {
-        this.enabled = true;
         this.loader = loader;
     }
 
-    public boolean enabled() { return enabled; }
-
+    /**
+     * Adds the top-level sections to the menu, without nested items: the section page lists what is
+     * inside. A load failure is a disabled line in place of the sections.
+     */
     public void appendMenu(SideNav menu, Consumer<NavigationTree.Node> open) {
-        if (!enabled) throw new IllegalStateException("Navigation profiles are disabled");
         if (!loaded) {
             try {
                 tree = loader.get();
@@ -86,10 +73,9 @@ public class NavigationUiSnapshot {
         var item = new SideNavItem(node.title());
         if (!node.icon().isEmpty()) {
             try { item.setPrefixComponent(VaadinIcon.valueOf(node.icon()).create()); }
-            catch (IllegalArgumentException ignored) { /* Same fallback as the legacy menu. */ }
+            catch (IllegalArgumentException ignored) { /* An unknown icon name shows no icon. */ }
         }
         item.getElement().addEventListener("click", event -> open.accept(node));
-        node.children().forEach(child -> item.addItem(menuItem(child, open)));
         return item;
     }
 }

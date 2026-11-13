@@ -36,7 +36,7 @@ class NavigationApplicationSmokeTest {
         SecurityContextHolder.getContext().setAuthentication(UsernamePasswordAuthenticationToken.authenticated(
             "navigation-test-admin", "", List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
         var created = administration.createProfile("KI-2 app smoke");
-        var saved = administration.saveProfile(created.id(), created.version(), Map.of("item:units-list", NavigationVisibility.HIDE));
+        var saved = administration.saveProfile(created.id(), created.version(), Map.of("item:unit-of-measurement", NavigationVisibility.HIDE));
         assertThat(administration.profile(saved.id())).isEqualTo(saved);
         assertThat(administration.resetProfile(saved.id(), saved.version()).overrides()).isEmpty();
         // An authenticated name without a persisted User.id must not silently get a default profile.
