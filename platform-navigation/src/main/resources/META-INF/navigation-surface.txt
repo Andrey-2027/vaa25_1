@@ -1,5 +1,5 @@
 # KI-1/KI-2/KI-3/KI-4 reviewed roles; persistence/configuration internals are not application contracts.
-APP_SPI org.ipro.navigation.NavigationEntityKeys
+APP_API org.ipro.navigation.NavigationEntityKeys
 APP_API org.ipro.navigation.NavigationCatalogProvider
 APP_API org.ipro.navigation.NavigationCatalog
 APP_API org.ipro.navigation.NavigationItem
@@ -28,3 +28,25 @@ INTERNAL org.ipro.navigation.store.NavigationOverrideRepository
 INTERNAL org.ipro.navigation.store.NavigationAssignmentRepository
 INTERNAL org.ipro.navigation.store.NavigationSnapshots
 
+INTERNAL org.ipro.navigation.store.NavigationStructureEntity
+INTERNAL org.ipro.navigation.store.NavigationStructureRepository
+INTERNAL org.ipro.navigation.store.NavigationSectionEntity
+INTERNAL org.ipro.navigation.store.NavigationSectionRepository
+INTERNAL org.ipro.navigation.store.NavigationEntryEntity
+INTERNAL org.ipro.navigation.store.NavigationEntryRepository
+INTERNAL org.ipro.navigation.store.NavigationKnownFunctionEntity
+INTERNAL org.ipro.navigation.store.NavigationKnownFunctionRepository
+APP_API org.ipro.navigation.NavigationFunction
+APP_API org.ipro.navigation.NavigationFunction$Kind
+APP_SPI org.ipro.navigation.NavigationFunctions
+APP_API org.ipro.navigation.NavigationFunctionsProvider
+INTERNAL org.ipro.navigation.NavigationFunctionsProvider$Index
+APP_API org.ipro.navigation.NavigationStructure
+APP_API org.ipro.navigation.NavigationStructure$Section
+APP_API org.ipro.navigation.NavigationStructure$Entry
+APP_API org.ipro.navigation.NavigationStructureReader
+INTERNAL org.ipro.navigation.internal.NavigationStructureBootstrap
+APP_API org.ipro.navigation.NavigationStructureService
+APP_API org.ipro.navigation.NavigationStructureService$Unplaced
+INTERNAL org.ipro.navigation.internal.DefaultNavigationStructureService
+APP_API org.ipro.navigation.NavigationStructureService$RebuildPreview

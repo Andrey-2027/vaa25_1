@@ -4,7 +4,15 @@ import org.ipro.metadata.SubsystemRegistry;
 import org.ipro.navigation.NavigationAdministrationAccess;
 import org.ipro.navigation.NavigationAdministrationService;
 import org.ipro.navigation.NavigationCatalogProvider;
-import org.ipro.navigation.NavigationEntityKeys;
+import org.ipro.navigation.NavigationFunctions;
+import org.ipro.navigation.NavigationFunctionsProvider;
+import org.ipro.navigation.NavigationStructureReader;
+import org.ipro.navigation.internal.NavigationStructureBootstrap;
+import org.ipro.navigation.internal.DefaultNavigationStructureService;
+import org.ipro.navigation.store.NavigationStructureRepository;
+import org.ipro.navigation.store.NavigationSectionRepository;
+import org.ipro.navigation.store.NavigationEntryRepository;
+import org.ipro.navigation.store.NavigationKnownFunctionRepository;
 import org.ipro.navigation.NavigationProfileReader;
 import org.ipro.navigation.NavigationResolver;
 import org.ipro.navigation.NavigationUserDirectory;
@@ -29,13 +37,40 @@ import org.springframework.transaction.PlatformTransactionManager;
 @EntityScan(basePackageClasses = NavigationProfileEntity.class)
 @EnableJpaRepositories(basePackageClasses = NavigationProfileRepository.class)
 public class NavigationAutoConfiguration {
-    /**
-     * The catalog is built at the first use, not here: entity keys come from the form routes, which
-     * exist only after the form registry is closed.
-     */
+    /** The application reads a new catalog for each menu snapshot. */
     @Bean
-    NavigationCatalogProvider navigationCatalogProvider(SubsystemRegistry registry, NavigationEntityKeys entityKeys) {
-        return NavigationCatalogProvider.deferred(() -> registry, entityKeys);
+    NavigationCatalogProvider navigationCatalogProvider(NavigationStructureReader structure, NavigationFunctionsProvider functions) {
+        return NavigationCatalogProvider.stored(structure, functions);
+    }
+
+    @Bean
+    NavigationFunctionsProvider navigationFunctionsProvider(NavigationFunctions source) {
+        return new NavigationFunctionsProvider(source);
+    }
+
+    @Bean
+    NavigationStructureReader navigationStructureReader(NavigationStructureRepository structures,
+            NavigationSectionRepository sections, NavigationEntryRepository entries,
+            PlatformTransactionManager transactions) {
+        return new NavigationStructureReader(structures, sections, entries, transactions);
+    }
+
+    @Bean
+    DefaultNavigationStructureService navigationStructureService(NavigationAdministrationAccess access,
+            NavigationStructureReader reader, NavigationFunctionsProvider functions,
+            NavigationStructureRepository structures, NavigationSectionRepository sections,
+            NavigationEntryRepository entries, NavigationKnownFunctionRepository known,
+            NavigationOverrideRepository overrides, NavigationStructureBootstrap bootstrap,
+            PlatformTransactionManager transactions) {
+        return new DefaultNavigationStructureService(access, reader, functions, structures, sections, entries,
+            known, overrides, bootstrap, transactions);
+    }
+
+    @Bean
+    NavigationStructureBootstrap navigationStructureBootstrap(SubsystemRegistry areas, NavigationFunctionsProvider functions,
+            NavigationStructureRepository structures, NavigationSectionRepository sections, NavigationEntryRepository entries,
+            NavigationKnownFunctionRepository known, PlatformTransactionManager transactions) {
+        return new NavigationStructureBootstrap(areas, functions, structures, sections, entries, known, transactions);
     }
 
     /**
@@ -43,8 +78,8 @@ public class NavigationAutoConfiguration {
      * finished by then. A catalog error (repeated or malformed key) stops the application.
      */
     @Bean
-    ApplicationListener<ApplicationReadyEvent> navigationCatalogStartupCheck(NavigationCatalogProvider catalogs) {
-        return event -> catalogs.validate();
+    ApplicationListener<ApplicationReadyEvent> navigationCatalogStartupCheck(NavigationStructureBootstrap bootstrap) {
+        return event -> bootstrap.initialize();
     }
 
     @Bean

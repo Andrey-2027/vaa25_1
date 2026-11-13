@@ -1,49 +1,11 @@
-# Navigation backend — KI-1 / KI-2
+# Navigation backend
 
-Immutable projection of the existing initialized `SubsystemRegistry`. This module
-does not scan application packages, edit subsystem membership, publish form routes
-or grant access. It has no Vaadin or application dependency.
-
-Applications implement `NavigationDefaultsContributor`. Each existing subsystem
-and list item needs one explicit literal ID; visibility defaults to `true`:
-
-```java
-NavigationDefaultsContributor contributor = defaults -> defaults
-    .subsystem(Directories.class, "directories")
-    .list(Directories.class, UnitOfMeasurement.class, "units-list", false);
-NavigationCatalog catalog = NavigationCatalog.build(registry, List.of(contributor));
-NavigationTree tree = new NavigationResolver().resolve(catalog,
-    Map.of("item:units-list", NavigationVisibility.SHOW), existingReadGate);
-```
-
-The registry must be initialized before `build`. Missing identities, duplicate
-identities/targets, invalid IDs or declarations for nonexistent membership fail
-the build. Contributor order cannot resolve ambiguity. IDs use ASCII
-lower-kebab-case. Keep them when moving/renaming Java types or moving an item to
-another subsystem; an intentional ID change requires migration of overrides.
-The catalog does not keep the mutable source tree or contributor builder.
-
-Profile keys are `subsystem:<id>` and `item:<id>`. `DEFAULT` inherits developer
-visibility. `SHOW` still requires visible ancestors and the supplied read decision.
-Unknown stored keys are reported by `staleKeys()` and otherwise ignored; the input
-overrides are never mutated. The storage owner must preserve them until an explicit
-reset and validate new overrides against `catalog.keys()`.
-
-`NavigationTree` contains only visible items/nodes and removes empty subtrees.
-`Node.groupsRecursive()` is the common source for a parent subsystem's tiles,
-including visible descendants. Editor views use the complete `NavigationCatalog`.
-There is no shared per-user state; read predicate failures propagate to the caller.
-Opening forms and enforcing access continue to belong to existing services.
-
-`META-INF/navigation-surface.txt` classifies the reviewed surface. Owner-side
-tests cover metadata projection, visibility, stable IDs, storage and module composition.
-
-## Optional profile storage (KI-2)
+## Optional navigation storage
 
 The module is inert unless `platform.navigation.enabled=true`. When enabled, its
-auto-configuration registers the catalog, three internal JPA stores/repositories,
+auto-configuration registers the catalog provider, internal JPA stores and repositories,
 `NavigationAdministrationService`, `NavigationProfileReader` and the resolver.
-It requires an initialized `SubsystemRegistry`, identity declarations, a transaction
+It requires an initialized `SubsystemRegistry`, a `NavigationFunctions` bean, a transaction
 manager and both application adapters. Missing adapters fail startup.
 
 - `NavigationAdministrationAccess` decides whether the caller is an administrator.
@@ -80,7 +42,7 @@ and persistence failures propagate and must not be converted to developer defaul
 Reads started by the module use repeatable-read isolation for a consistent profile
 snapshot; an ambient transaction keeps its caller's isolation. There is no user cache.
 
-PostgreSQL additive DDL ships at `db/navigation-postgresql.sql`. Apply it once to
+The application runs with `spring.jpa.hibernate.ddl-auto=update`, which creates the navigation tables from the module's `@EntityScan`. PostgreSQL additive DDL ships at `db/navigation-postgresql.sql` and is the reference for `validate` mode and for the PostgreSQL test. Apply it once to
 the pilot database before setting the flag, then start with
 `spring.jpa.hibernate.ddl-auto=validate`. It does not modify existing tables or
 add a migration framework. Automated H2 tests use generated disposable schemas;
@@ -90,16 +52,38 @@ context, then removes only that generated database. The PostgreSQL test is skipp
 in ordinary builds unless that script supplies its environment.
 
 KI-3 connects the application's menu and subsystem tiles through a UI-scoped
-snapshot. It reads the assigned profile once when the shell builds its menu and
-resolves it with the existing RlsReadGate. Tiles use that same resolved node;
+snapshot. The shell reads one catalog from storage and uses it both to classify
+stale profile keys and to resolve the menu with the current user’s permissions. Tiles use that same resolved node;
 FormNavigator still opens lists and enforces their normal access checks. A profile
 read failure shows an error in the dynamic menu and keeps fixed service entries.
 Refresh or a new login applies settings; already opened tabs remain open.
-With platform.navigation.enabled=false the application retains its legacy path.
-KI-4 adds the application's "Интерфейс" administration tab when the feature is
-enabled. It uses the full catalogue, three-state overrides and the same resolver
-for a preview before user read permissions. Changes stay local until save;
+The application always enables the module (КИ-7): with `platform.navigation.enabled=false` it does not start, with a clear error.
+KI-4 adds the application's "Интерфейс" administration tab, which is always present.
+It uses the full catalogue, three-state overrides and the same resolver
+for a preview of the layout and the current administrator’s command access. Changes stay local until save;
 conflicts retain the draft. Creation, renaming, reset and assignment operations
 use NavigationAdministrationService; user search remains bounded canonical lookup.
 Stale keys are read-only in the editor and removed only on reset. The module
 still has no Vaadin dependency. Browser pilot acceptance belongs to KI-5.
+
+## Persisted menu (SM-1)
+
+The application supplies the published list functions through `NavigationFunctions`.
+The function index is cached after the form registry closes. Sections and entries
+are read from the database for each new UI snapshot.
+
+The first startup builds sections from areas with list functions in their subtree.
+Later startups record newly discovered functions and append lists to the one
+section linked to their area. Moving or deleting a placement preserves the
+function's discovery record. A section can be linked to at most one area,
+and an area can feed at most one section.
+
+Profiles refer to placement keys `section:<id>` and `entry:<id>`. Moving an
+entry keeps the profile key and creation audit fields. A function that disappears leaves a stale placement
+in the structure and is omitted from the menu.
+
+The function catalog contains base lists, named list variants, create commands and
+application NAVIGATION actions. Initial assembly and startup reconciliation place
+only base lists. Placed lists and variants require read access. Placed commands
+require an explicit SHOW override and an allowed action decision. The application
+checks the decision again when the user opens the function.

@@ -55,14 +55,229 @@ class NavigationPersistenceTest {
             DataSourceAutoConfiguration.class, HibernateJpaAutoConfiguration.class, NavigationAutoConfiguration.class))
             .withPropertyValues("platform.navigation.enabled=true", "spring.datasource.url=" + url,
                 "spring.jpa.hibernate.ddl-auto=" + ddl, "spring.jpa.open-in-view=false")
-            .withBean(SubsystemRegistry.class, () -> new SubsystemRegistry("org.ipro.navigation.fixture.original", new org.ipro.metadata.MetadataResolver()))
-            .withBean(NavigationEntityKeys.class, () -> NavigationEntityKeys::derive);
+            .withBean(SubsystemRegistry.class, () -> new SubsystemRegistry("org.ipro.navigation.fixture.original", new MetadataResolver()));
     }
 
     static ApplicationContextRunner runner(AtomicBoolean admin, Users users) {
+        return runner(admin, users, NavigationCatalogTest.BASE_LISTS);
+    }
+
+    private static ApplicationContextRunner runner(AtomicBoolean admin, Users users, List<NavigationFunction> functions) {
         return database("jdbc:h2:mem:nav_" + UUID.randomUUID() + ";DB_CLOSE_DELAY=-1", "create-drop")
+            .withBean(NavigationFunctions.class, () -> NavigationCatalogTest.functions(functions))
             .withBean(NavigationAdministrationAccess.class, () -> admin::get)
+            .withInitializer(context -> context.addApplicationListener(event -> {
+                if (event instanceof org.springframework.context.event.ContextRefreshedEvent) {
+                    context.getBean(org.ipro.navigation.internal.NavigationStructureBootstrap.class).initialize();
+                }
+            }))
             .withBean(NavigationUserDirectory.class, () -> users);
+    }
+
+    @Test
+    void structureStorageEnforcesAreaUniquenessAndVersionsTheSingleton() {
+        database("jdbc:h2:mem:nav_storage;DB_CLOSE_DELAY=-1", "create-drop")
+            .withBean(NavigationFunctions.class, () -> NavigationCatalogTest.functions(List.of()))
+            .withBean(NavigationAdministrationAccess.class, () -> () -> true)
+            .withBean(NavigationUserDirectory.class, Users::new).run(context -> {
+            assertThat(context).hasNotFailed();
+            var structures = context.getBean(org.ipro.navigation.store.NavigationStructureRepository.class);
+            var sections = context.getBean(org.ipro.navigation.store.NavigationSectionRepository.class);
+            var entries = context.getBean(org.ipro.navigation.store.NavigationEntryRepository.class);
+            var transaction = new TransactionTemplate(context.getBean(PlatformTransactionManager.class));
+            var now = java.time.Instant.parse("2026-11-13T00:00:00Z");
+            var initial = structures.saveAndFlush(new org.ipro.navigation.store.NavigationStructureEntity(now));
+            transaction.executeWithoutResult(status -> {
+                var state = structures.lockSingleton().orElseThrow();
+                assertThat(state.getSeededAt()).isEqualTo(now);
+                var parent = sections.save(new org.ipro.navigation.store.NavigationSectionEntity(
+                    "production", null, "Производство", "FACTORY", 0, "production"));
+                var child = sections.save(new org.ipro.navigation.store.NavigationSectionEntity(
+                    "standards", parent, "Нормативы", "", 0, null));
+                entries.save(new org.ipro.navigation.store.NavigationEntryEntity(
+                    "prd-spec", child, "list:prd-spec", null, 0));
+                state.touch();
+            });
+            assertThat(structures.findById(initial.getId()).orElseThrow().getVersion())
+                .isGreaterThan(initial.getVersion());
+            assertThatThrownBy(() -> sections.saveAndFlush(new org.ipro.navigation.store.NavigationSectionEntity(
+                "other", null, "Другой раздел", "", 1, "production")))
+                .isInstanceOf(org.springframework.dao.DataIntegrityViolationException.class);
+        });
+    }
+
+    @Test
+    void storedCatalogReflectsMovesAndBootstrapDoesNotRestoreDeletedEntries() {
+        var functions = List.of(
+            new NavigationFunction("list:first", Object.class, NavigationFunction.Kind.LIST, "First", "", 1, "child"),
+            new NavigationFunction("list:second", String.class, NavigationFunction.Kind.LIST, "Second", "", 2, "root"));
+        runner(new AtomicBoolean(true), new Users(), functions).run(context -> {
+                assertThat(context).hasNotFailed();
+                var repositories = context.getBean(org.ipro.navigation.store.NavigationEntryRepository.class);
+                var bootstrap = new org.ipro.navigation.internal.NavigationStructureBootstrap(
+                    context.getBean(SubsystemRegistry.class), context.getBean(NavigationFunctionsProvider.class),
+                    context.getBean(org.ipro.navigation.store.NavigationStructureRepository.class),
+                    context.getBean(org.ipro.navigation.store.NavigationSectionRepository.class), repositories,
+                    context.getBean(org.ipro.navigation.store.NavigationKnownFunctionRepository.class),
+                    context.getBean(PlatformTransactionManager.class));
+                bootstrap.initialize();
+                var catalog = context.getBean(NavigationCatalogProvider.class);
+                assertThat(catalog.get().findSubsystem("child").orElseThrow().items())
+                    .extracting(NavigationItem::key).containsExactly("entry:first");
+                var service = context.getBean(NavigationStructureService.class);
+                var before = service.structure();
+                assertThat(before.sections()).extracting(NavigationStructure.Section::id)
+                    .containsExactlyInAnyOrder("root", "child");
+                var loop = new NavigationStructure.Section("root", "child", "Root", "", 0, "root");
+                var child = before.sections().stream().filter(section -> section.id().equals("child")).findFirst().orElseThrow();
+                assertThatThrownBy(() -> service.save(before.version(), new NavigationStructure(
+                    before.version(), before.seededAt(), List.of(loop, child), before.entries())))
+                    .isInstanceOf(IllegalArgumentException.class);
+                assertThat(service.structure()).isEqualTo(before);
+                var first = before.entries().stream().filter(entry -> entry.id().equals("first")).findFirst().orElseThrow();
+                var saved = service.save(before.version(), new NavigationStructure(before.version(), before.seededAt(),
+                    before.sections(), List.of(new NavigationStructure.Entry(first.id(), "root", first.functionKey(), null, 0))));
+                assertThat(saved.version()).isGreaterThan(before.version());
+                assertThatThrownBy(() -> service.save(before.version(), before))
+                    .isInstanceOf(NavigationConflictException.class);
+                bootstrap.initialize();
+                assertThat(catalog.get().findSubsystem("root").orElseThrow().items())
+                    .extracting(NavigationItem::key).containsExactly("entry:first");
+                var filtered = new NavigationResolver().resolve(catalog.get(),
+                    Map.of("entry:first", NavigationVisibility.HIDE), type -> true);
+                assertThat(filtered.roots()).isEmpty();
+                assertThat(catalog.get().findItem("second")).isEmpty();
+                assertThat(service.unplaced()).extracting(row -> row.function().key()).containsExactly("list:second");
+                var draft = service.structure();
+                var extra = new NavigationStructure.Section("temporary", null, "Temporary", "", 100, null);
+                var withExtra = new ArrayList<>(draft.sections());
+                withExtra.add(extra);
+                var updated = service.save(draft.version(), new NavigationStructure(draft.version(),
+                    draft.seededAt(), withExtra, draft.entries()));
+                var preview = service.rebuildPreview();
+                assertThat(preview.removedSections()).singleElement().satisfies(section ->
+                    assertThat(section.id()).startsWith("s-"));
+                var profiles = context.getBean(NavigationAdministrationService.class);
+                var profile = profiles.createProfile("Пересборка");
+                profiles.saveProfile(profile.id(), profile.version(),
+                    Map.of("section:" + preview.removedSections().getFirst().id(), NavigationVisibility.HIDE));
+                assertThat(service.rebuildPreview().affectedOverrides()).isEqualTo(1);
+                var rebuilt = service.rebuild(updated.version());
+                assertThat(rebuilt.entries()).extracting(NavigationStructure.Entry::id)
+                    .containsExactlyInAnyOrder("first", "second");
+                var nextFunctions = new NavigationFunctionsProvider(new NavigationFunctions() {
+                    public List<NavigationFunction> all() {
+                        return List.of(functions.get(0), functions.get(1),
+                            new NavigationFunction("list:new", Integer.class, NavigationFunction.Kind.LIST,
+                                "New", "", 0, "root"),
+                            new NavigationFunction("list:unplaced", Long.class, NavigationFunction.Kind.LIST,
+                                "Unplaced", "", 0, null),
+                            new NavigationFunction("create:second", String.class, NavigationFunction.Kind.CREATE,
+                                "Create", "", 0, "root"),
+                            new NavigationFunction("list:second:variant", String.class, NavigationFunction.Kind.LIST_VARIANT,
+                                "Variant", "", 0, "root", "variant", null));
+                    }
+
+                    public java.util.Optional<NavigationFunction> find(String key) {
+                        return all().stream().filter(function -> function.key().equals(key)).findFirst();
+                    }
+                });
+                var nextBootstrap = new org.ipro.navigation.internal.NavigationStructureBootstrap(
+                    context.getBean(SubsystemRegistry.class), nextFunctions,
+                    context.getBean(org.ipro.navigation.store.NavigationStructureRepository.class),
+                    context.getBean(org.ipro.navigation.store.NavigationSectionRepository.class), repositories,
+                    context.getBean(org.ipro.navigation.store.NavigationKnownFunctionRepository.class),
+                    context.getBean(PlatformTransactionManager.class));
+                nextBootstrap.initialize();
+                var reconciled = context.getBean(NavigationStructureReader.class).current();
+                assertThat(NavigationCatalog.build(reconciled, nextFunctions.indexed())
+                    .findSubsystem("root").orElseThrow().items()).extracting(NavigationItem::id)
+                    .containsExactly("second", "new");
+                assertThat(reconciled.entries()).extracting(NavigationStructure.Entry::functionKey)
+                    .doesNotContain("list:unplaced", "create:second", "list:second:variant");
+                nextBootstrap.initialize();
+                assertThat(context.getBean(NavigationStructureReader.class).current()).isEqualTo(reconciled);
+            });
+    }
+
+    @Test
+    void movingAreaLinkKeepsExistingEntriesAndAppendsNewFunctionsToNewSection() {
+        runner(new AtomicBoolean(true), new Users()).run(context -> {
+            var service = context.getBean(NavigationStructureService.class);
+            var initial = service.structure();
+            var sections = initial.sections().stream().map(section -> new NavigationStructure.Section(
+                section.id(), section.parentId(), section.title(), section.icon(), section.position(),
+                section.id().equals("root") ? "child" : "root")).toList();
+            var jdbc = new JdbcTemplate(context.getBean(DataSource.class));
+            jdbc.update("update navigation_section set created_at = TIMESTAMP '2020-01-01 12:00:00', created_by = 'original' where section_key = 'child'");
+            jdbc.update("update navigation_entry set created_at = TIMESTAMP '2020-01-01 12:00:00', created_by = 'original' where entry_key = 'first'");
+            String sectionAudit = "select id, created_at, created_by from navigation_section where section_key = 'child'";
+            String entryAudit = "select id, created_at, created_by from navigation_entry where entry_key = 'first'";
+            var originalSection = jdbc.queryForMap(sectionAudit);
+            var originalEntry = jdbc.queryForMap(entryAudit);
+            var saved = service.save(initial.version(),
+                new NavigationStructure(initial.version(), initial.seededAt(), sections, initial.entries()));
+            assertThat(saved.entries()).containsExactlyInAnyOrderElementsOf(initial.entries());
+            assertThat(jdbc.queryForMap(sectionAudit)).isEqualTo(originalSection);
+            assertThat(jdbc.queryForMap(entryAudit)).isEqualTo(originalEntry);
+
+            var next = new ArrayList<>(NavigationCatalogTest.BASE_LISTS);
+            next.add(NavigationCatalogTest.list("new-item", Integer.class, "New item", "child", 0));
+            var bootstrap = new org.ipro.navigation.internal.NavigationStructureBootstrap(
+                context.getBean(SubsystemRegistry.class), new NavigationFunctionsProvider(NavigationCatalogTest.functions(next)),
+                context.getBean(org.ipro.navigation.store.NavigationStructureRepository.class),
+                context.getBean(org.ipro.navigation.store.NavigationSectionRepository.class),
+                context.getBean(org.ipro.navigation.store.NavigationEntryRepository.class),
+                context.getBean(org.ipro.navigation.store.NavigationKnownFunctionRepository.class),
+                context.getBean(PlatformTransactionManager.class));
+            bootstrap.initialize();
+            var reconciled = context.getBean(NavigationStructureReader.class).current();
+            assertThat(reconciled.entries()).containsAll(initial.entries());
+            assertThat(reconciled.entries()).filteredOn(entry -> entry.functionKey().equals("list:new-item"))
+                .singleElement().satisfies(entry -> {
+                    assertThat(entry.sectionId()).isEqualTo("root");
+                    assertThat(entry.position()).isGreaterThan(saved.entries().stream()
+                        .filter(previous -> previous.sectionId().equals("root"))
+                        .mapToInt(NavigationStructure.Entry::position).max().orElseThrow());
+                });
+        });
+    }
+
+    @Test
+    void rejectsUnknownParentsAndCyclesWithoutChangingPersistedStructure() {
+        runner(new AtomicBoolean(true), new Users()).run(context -> {
+            var service = context.getBean(NavigationStructureService.class);
+            var original = service.structure();
+            var child = original.sections().stream().filter(row -> row.id().equals("child")).findFirst().orElseThrow();
+            for (String invalidParent : List.of("missing", "child")) {
+                var root = new NavigationStructure.Section("root", invalidParent, "Root", "", 0, "root");
+                var draft = new NavigationStructure(original.version(), original.seededAt(),
+                    List.of(root, child), original.entries());
+                assertThatThrownBy(() -> service.save(original.version(), draft))
+                    .isInstanceOf(IllegalArgumentException.class);
+                assertThat(service.structure()).isEqualTo(original);
+            }
+        });
+    }
+
+    @Test
+    void profileStaleKeysUseTheCatalogPassedByTheMenu() {
+        runner(new AtomicBoolean(true), new Users()).run(context -> {
+            var profiles = context.getBean(NavigationAdministrationService.class);
+            var profile = profiles.createProfile("Snapshot");
+            profiles.saveProfile(profile.id(), profile.version(), Map.of("entry:first", NavigationVisibility.SHOW));
+            profiles.assignUser("101", profile.id());
+            var catalogs = context.getBean(NavigationCatalogProvider.class);
+            var oldCatalog = catalogs.get();
+            var structures = context.getBean(NavigationStructureService.class);
+            var old = structures.structure();
+            structures.save(old.version(), new NavigationStructure(old.version(), old.seededAt(), old.sections(),
+                old.entries().stream().filter(entry -> !entry.id().equals("first")).toList()));
+
+            var reader = context.getBean(NavigationProfileReader.class);
+            assertThat(reader.currentProfile(oldCatalog).orElseThrow().staleKeys()).isEmpty();
+            assertThat(reader.currentProfile(catalogs.get()).orElseThrow().staleKeys()).containsExactly("entry:first");
+        });
     }
 
     @Test
@@ -81,11 +296,13 @@ class NavigationPersistenceTest {
     @Test
     void enabledRequiresBothSecurityAndUserAdapters() {
         database("jdbc:h2:mem:nav_missing_access", "create-drop")
+            .withBean(NavigationFunctions.class, () -> NavigationCatalogTest.functions(List.of()))
             .withBean(NavigationUserDirectory.class, Users::new).run(context -> {
                 assertThat(context).hasFailed();
                 assertThat(context.getStartupFailure()).hasStackTraceContaining("NavigationAdministrationAccess");
             });
         database("jdbc:h2:mem:nav_missing_users", "create-drop")
+            .withBean(NavigationFunctions.class, () -> NavigationCatalogTest.functions(List.of()))
             .withBean(NavigationAdministrationAccess.class, () -> () -> false).run(context -> {
                 assertThat(context).hasFailed();
                 assertThat(context.getStartupFailure()).hasStackTraceContaining("NavigationUserDirectory");
@@ -104,9 +321,9 @@ class NavigationPersistenceTest {
             var first = service.createProfile(" Склад ");
             assertThat(first.name()).isEqualTo("Склад");
             var saved = service.saveProfile(first.id(), first.version(), Map.of(
-                "item:first", NavigationVisibility.HIDE, "item:second", NavigationVisibility.DEFAULT));
+                "entry:first", NavigationVisibility.HIDE, "entry:second", NavigationVisibility.DEFAULT));
             assertThat(saved.version()).isGreaterThan(first.version());
-            assertThat(saved.overrides()).containsExactlyEntriesOf(Map.of("item:first", NavigationVisibility.HIDE));
+            assertThat(saved.overrides()).containsExactlyEntriesOf(Map.of("entry:first", NavigationVisibility.HIDE));
             var second = service.createProfile("Производство");
             service.assignUser("101", first.id());
             service.assignUser("102", second.id());
@@ -154,15 +371,15 @@ class NavigationPersistenceTest {
             var profile = service.createProfile("Stale");
             var jdbc = new JdbcTemplate(context.getBean(DataSource.class));
             jdbc.update("insert into navigation_override (profile_id,target_key,visibility,version) values (?,?,?,0)",
-                profile.id(), "item:removed", "HIDE");
-            var saved = service.saveProfile(profile.id(), profile.version(), Map.of("item:first", NavigationVisibility.SHOW));
-            assertThat(saved.staleKeys()).containsExactly("item:removed");
-            assertThat(saved.overrides()).containsEntry("item:removed", NavigationVisibility.HIDE);
+                profile.id(), "entry:removed", "HIDE");
+            var saved = service.saveProfile(profile.id(), profile.version(), Map.of("entry:first", NavigationVisibility.SHOW));
+            assertThat(saved.staleKeys()).containsExactly("entry:removed");
+            assertThat(saved.overrides()).containsEntry("entry:removed", NavigationVisibility.HIDE);
             var savedAgain = service.saveProfile(saved.id(), saved.version(), saved.overrides());
-            assertThat(savedAgain.staleKeys()).containsExactly("item:removed");
-            assertThatThrownBy(() -> service.saveProfile(saved.id(), savedAgain.version(), Map.of("item:new", NavigationVisibility.HIDE)))
+            assertThat(savedAgain.staleKeys()).containsExactly("entry:removed");
+            assertThatThrownBy(() -> service.saveProfile(saved.id(), savedAgain.version(), Map.of("entry:new", NavigationVisibility.HIDE)))
                 .isInstanceOf(IllegalArgumentException.class);
-            assertThatThrownBy(() -> service.saveProfile(saved.id(), savedAgain.version(), Map.of("item:removed", NavigationVisibility.SHOW)))
+            assertThatThrownBy(() -> service.saveProfile(saved.id(), savedAgain.version(), Map.of("entry:removed", NavigationVisibility.SHOW)))
                 .isInstanceOf(IllegalArgumentException.class);
             assertThat(service.profile(saved.id())).isEqualTo(savedAgain);
             assertThat(service.resetProfile(saved.id(), savedAgain.version()).staleKeys()).isEmpty();
@@ -203,7 +420,7 @@ class NavigationPersistenceTest {
                 for (var visibility : List.of(NavigationVisibility.HIDE, NavigationVisibility.SHOW)) {
                     futures.add(pool.submit(() -> {
                         if (!start.await(10, TimeUnit.SECONDS)) throw new IllegalStateException("start timeout");
-                        try { return service.saveProfile(original.id(), original.version(), Map.of("item:first", visibility)); }
+                        try { return service.saveProfile(original.id(), original.version(), Map.of("entry:first", visibility)); }
                         catch (NavigationConflictException conflict) { return conflict; }
                     }));
                 }
@@ -216,7 +433,7 @@ class NavigationPersistenceTest {
             var winner = service.profile(original.id());
             var transaction = new TransactionTemplate(context.getBean(PlatformTransactionManager.class));
             assertThatThrownBy(() -> transaction.execute(status -> {
-                service.saveProfile(winner.id(), winner.version(), Map.of("item:second", NavigationVisibility.HIDE));
+                service.saveProfile(winner.id(), winner.version(), Map.of("entry:second", NavigationVisibility.HIDE));
                 service.assignUser("101", winner.id());
                 throw new IllegalStateException("force rollback");
             })).isInstanceOf(IllegalStateException.class).hasMessage("force rollback");
@@ -260,8 +477,8 @@ class NavigationPersistenceTest {
             service.assignUser("101", profile.id());
             assertThatThrownBy(() -> jdbc.update("insert into navigation_assignment (user_key,profile_id,version) values ('101',?,0)", profile.id()))
                 .isInstanceOf(org.springframework.dao.DataIntegrityViolationException.class);
-            service.saveProfile(profile.id(), profile.version(), Map.of("item:first", NavigationVisibility.HIDE));
-            assertThatThrownBy(() -> jdbc.update("insert into navigation_override (profile_id,target_key,visibility,version) values (?,'item:first','SHOW',0)", profile.id()))
+            service.saveProfile(profile.id(), profile.version(), Map.of("entry:first", NavigationVisibility.HIDE));
+            assertThatThrownBy(() -> jdbc.update("insert into navigation_override (profile_id,target_key,visibility,version) values (?,'entry:first','SHOW',0)", profile.id()))
                 .isInstanceOf(org.springframework.dao.DataIntegrityViolationException.class);
         });
     }

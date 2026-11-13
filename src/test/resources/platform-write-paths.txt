@@ -42,6 +42,8 @@ EXCEPTION platform-numbering org.ipro.numbering.NumberingCounterService — те
 EXCEPTION platform-numbering org.ipro.numbering.NumberingRuleService — правила нумерации — платформенная конфигурация подсистемы, не агрегат приложения; решение: d3-subsystem-extraction.md §4
 EXCEPTION platform-settings org.ipro.settings.SettingsService — платформенный store настроек (SettingValue): не агрегат приложения; решение: d3-subsystem-extraction.md §5
 EXCEPTION platform-navigation org.ipro.navigation.internal.DefaultNavigationAdministrationService — внутреннее хранилище профилей и назначений навигации: строки платформы, не сущности приложения; решение: command-interface-pilot-boundary.md
+EXCEPTION platform-navigation org.ipro.navigation.internal.DefaultNavigationStructureService — хранение структуры навигации (разделы и элементы): строки платформы, не сущности приложения; решение: command-interface-pilot-boundary.md
+EXCEPTION platform-navigation org.ipro.navigation.internal.NavigationStructureBootstrap — засев структуры навигации при старте: платформенная конфигурация подсистемы, не агрегат приложения; решение: command-interface-pilot-boundary.md
 EXCEPTION platform-telemetry org.ipro.telemetry.core.AsyncEventSink — запись в журнальные таблицы (журнал операций, факты аудита) через JdbcTemplate: это не сущности JPA; решение: d3-subsystem-extraction.md §8а
 EXCEPTION platform-telemetry org.ipro.telemetry.core.RetentionPurgeJob — ретенция журнала: удаляет строки журнала по политике хранения; решение: d3-subsystem-extraction.md §8а
 EXCEPTION platform-telemetry org.ipro.telemetry.core.TraceServiceImpl — таблица настроек трассировки: техническая настройка контура, не сущность; решение: d3-subsystem-extraction.md §8а

@@ -1,5 +1,6 @@
 package org.ipro.navigation.internal;
 
+import org.ipro.navigation.NavigationCatalog;
 import org.ipro.navigation.NavigationCatalogProvider;
 import org.ipro.navigation.NavigationProfile;
 import org.ipro.navigation.NavigationProfileReader;
@@ -32,11 +33,21 @@ public final class DefaultNavigationProfileReader implements NavigationProfileRe
     }
 
     public Optional<NavigationProfile> currentProfile() {
+        return read(catalog::get);
+    }
+
+    @Override
+    public Optional<NavigationProfile> currentProfile(NavigationCatalog snapshot) {
+        Objects.requireNonNull(snapshot);
+        return read(() -> snapshot);
+    }
+
+    private Optional<NavigationProfile> read(java.util.function.Supplier<NavigationCatalog> menu) {
         String key = DefaultNavigationAdministrationService.userKey(users.currentUserKey());
         var transaction = new TransactionTemplate(transactions);
         transaction.setReadOnly(true);
         transaction.setIsolationLevel(TransactionDefinition.ISOLATION_REPEATABLE_READ);
         return transaction.execute(status -> assignments.findByUserKey(key)
-            .map(row -> NavigationSnapshots.snapshot(row.getProfile(), overrides, catalog)));
+            .map(row -> NavigationSnapshots.snapshot(row.getProfile(), overrides, menu.get().keys())));
     }
 }

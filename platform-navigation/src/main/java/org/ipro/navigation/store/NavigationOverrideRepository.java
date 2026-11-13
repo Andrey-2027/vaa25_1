@@ -8,6 +8,7 @@ import java.util.List;
 
 public interface NavigationOverrideRepository extends Repository<NavigationOverrideEntity, Long> {
     List<NavigationOverrideEntity> findByProfile_Id(long profileId);
+    long countByTargetKeyIn(java.util.Collection<String> keys);
     <S extends NavigationOverrideEntity> List<S> saveAll(Iterable<S> overrides);
     @Modifying
     @Query("delete from NavigationOverrideStore o where o.profile.id = :id")

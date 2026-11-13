@@ -73,7 +73,7 @@ class SubsystemHomeViewTest {
 
     private static NavigationTree.Node node(String id, String title, List<NavigationItem> items,
                                             NavigationTree.Node... children) {
-        return new NavigationTree.Node(id, Object.class, title, "", 0, items, List.of(children));
+        return new NavigationTree.Node(id, null, title, "", 0, items, List.of(children));
     }
 
     private static NavigationItem item(String id, String title) {

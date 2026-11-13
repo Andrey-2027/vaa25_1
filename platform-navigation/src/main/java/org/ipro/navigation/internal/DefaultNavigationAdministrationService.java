@@ -86,11 +86,12 @@ public final class DefaultNavigationAdministrationService implements NavigationA
         Map<String, NavigationVisibility> input = Map.copyOf(values);
         return inTransaction(false, () -> {
             var profile = locked(id, expectedVersion);
-            var before = snapshot(profile);
+            var structureKeys = catalog.get().keys();
+            var before = NavigationSnapshots.snapshot(profile, overrides, structureKeys);
             Map<String, NavigationVisibility> replacement = new TreeMap<>();
             before.staleKeys().forEach(key -> replacement.put(key, before.overrides().get(key)));
             input.forEach((key, visibility) -> {
-                if (!catalog.get().keys().contains(key)) {
+                if (!structureKeys.contains(key)) {
                     if (!before.staleKeys().contains(key) || before.overrides().get(key) != visibility) {
                         throw new IllegalArgumentException("Unknown navigation target: " + key);
                     }
@@ -103,7 +104,7 @@ public final class DefaultNavigationAdministrationService implements NavigationA
                 .map(entry -> new NavigationOverrideEntity(profile, entry.getKey(), entry.getValue())).toList());
             profile.touch();
             profiles.flush();
-            return snapshot(profile);
+            return NavigationSnapshots.snapshot(profile, overrides, structureKeys);
         });
     }
 
@@ -159,7 +160,7 @@ public final class DefaultNavigationAdministrationService implements NavigationA
     }
 
     private NavigationProfile snapshot(NavigationProfileEntity profile) {
-        return NavigationSnapshots.snapshot(profile, overrides, catalog);
+        return NavigationSnapshots.snapshot(profile, overrides, catalog.get().keys());
     }
 
     private void requireAdministrator() {

@@ -2,15 +2,23 @@ package org.ipro.navigation;
 
 import java.util.Objects;
 
-/** Opening the default list form. This describes navigation, not a form action or a permission. */
-public record NavigationItem(String id, Class<?> entityClass, String title, String icon,
+/** A menu placement and the function it invokes. */
+public record NavigationItem(String id, NavigationFunction function, String title, String icon,
                              int order, boolean defaultVisible) {
+    public NavigationItem(String id, Class<?> entityClass, String title, String icon,
+                          int order, boolean defaultVisible) {
+        this(id, new NavigationFunction("list:" + id, entityClass, NavigationFunction.Kind.LIST,
+            title, icon, order, null), title, icon, order, defaultVisible);
+    }
+
     public NavigationItem {
         NavigationIds.requireId(id);
-        Objects.requireNonNull(entityClass, "entity class");
+        Objects.requireNonNull(function, "navigation function");
         Objects.requireNonNull(title, "title");
         Objects.requireNonNull(icon, "icon");
     }
 
-    public String key() { return "item:" + id; }
+    public Class<?> entityClass() { return function.entityClass(); }
+
+    public String key() { return "entry:" + id; }
 }

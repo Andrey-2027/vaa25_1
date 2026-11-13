@@ -40,7 +40,7 @@ class NavigationModuleCompositionTest {
             }
         }
         assertThat(roles.keySet()).containsExactlyInAnyOrderElementsOf(actual);
-        assertThat(roles.get(NavigationEntityKeys.class.getName())).isEqualTo("APP_SPI");
+        assertThat(roles.get(NavigationEntityKeys.class.getName())).isEqualTo("APP_API");
         assertThat(roles.get(NavigationCatalogProvider.class.getName())).isEqualTo("APP_API");
         try (var published = getClass().getResourceAsStream("/META-INF/navigation-surface.txt")) {
             assertThat(published).isNotNull();

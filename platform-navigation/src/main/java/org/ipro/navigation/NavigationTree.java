@@ -27,11 +27,10 @@ public record NavigationTree(List<Node> roots, Set<String> staleKeys) {
         return Optional.empty();
     }
 
-    public record Node(String id, Class<?> markerClass, String title, String icon, int order,
+    public record Node(String id, String areaKey, String title, String icon, int order,
                        List<NavigationItem> items, List<Node> children) {
         public Node {
             NavigationIds.requireId(id);
-            Objects.requireNonNull(markerClass, "subsystem marker");
             Objects.requireNonNull(title, "title");
             Objects.requireNonNull(icon, "icon");
             items = List.copyOf(items);

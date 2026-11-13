@@ -27,25 +27,43 @@ class NavigationPostgresqlTest {
             }
         }
         var users = new NavigationPersistenceTest.Users();
+        var function = new NavigationFunction("list:first", Object.class, NavigationFunction.Kind.LIST,
+            "First", "", 0, "child");
         var runner = NavigationPersistenceTest.database(url, "validate")
             .withPropertyValues("spring.datasource.username=" + username, "spring.datasource.password=" + password)
             .withBean(NavigationAdministrationAccess.class, () -> () -> true)
-            .withBean(NavigationUserDirectory.class, () -> users);
+            .withBean(NavigationUserDirectory.class, () -> users)
+            .withBean(NavigationFunctions.class, () -> new NavigationFunctions() {
+                public java.util.List<NavigationFunction> all() { return java.util.List.of(function); }
+                public java.util.Optional<NavigationFunction> find(String key) {
+                    return function.key().equals(key) ? java.util.Optional.of(function) : java.util.Optional.empty();
+                }
+            });
         var id = new AtomicLong();
         runner.run(context -> {
             assertThat(context).hasNotFailed();
+            var bootstrap = context.getBean(org.ipro.navigation.internal.NavigationStructureBootstrap.class);
+            bootstrap.initialize();
+            var structure = context.getBean(NavigationStructureService.class);
+            var initial = structure.structure();
+            structure.save(initial.version(), new NavigationStructure(initial.version(), initial.seededAt(),
+                initial.sections(), java.util.List.of(
+                    new NavigationStructure.Entry("first", "root", function.key(), null, 0))));
             var service = context.getBean(NavigationAdministrationService.class);
             var profile = service.createProfile("PostgreSQL profile");
-            var saved = service.saveProfile(profile.id(), profile.version(), Map.of("item:first", NavigationVisibility.HIDE));
+            var saved = service.saveProfile(profile.id(), profile.version(), Map.of("entry:first", NavigationVisibility.HIDE));
             service.assignUser("101", saved.id());
             id.set(saved.id());
         });
         runner.run(context -> {
             assertThat(context).hasNotFailed();
+            context.getBean(org.ipro.navigation.internal.NavigationStructureBootstrap.class).initialize();
+            assertThat(context.getBean(NavigationStructureService.class).structure().entries())
+                .singleElement().satisfies(entry -> assertThat(entry.sectionId()).isEqualTo("root"));
             var reader = context.getBean(NavigationProfileReader.class);
             var restored = reader.currentProfile().orElseThrow();
             assertThat(restored.id()).isEqualTo(id.get());
-            assertThat(restored.overrides()).containsExactlyEntriesOf(Map.of("item:first", NavigationVisibility.HIDE));
+            assertThat(restored.overrides()).containsExactlyEntriesOf(Map.of("entry:first", NavigationVisibility.HIDE));
             var service = context.getBean(NavigationAdministrationService.class);
             assertThatThrownBy(() -> service.saveProfile(restored.id(), restored.version() - 1, Map.of()))
                 .isInstanceOf(NavigationConflictException.class);

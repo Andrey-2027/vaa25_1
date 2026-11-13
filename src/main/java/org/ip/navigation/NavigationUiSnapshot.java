@@ -10,8 +10,6 @@ import org.ipro.navigation.NavigationProfile;
 import org.ipro.navigation.NavigationProfileReader;
 import org.ipro.navigation.NavigationResolver;
 import org.ipro.navigation.NavigationTree;
-import org.ipro.rls.RlsCurrentUser;
-import org.ipro.rls.RlsReadGate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +18,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-/** One immutable projection (or load failure) per UI, shared by the shell and its tiles. */
+/** One immutable projection (or load failure) per UI, shared by the shell and its section pages. */
 @SpringComponent
 @UIScope
 public class NavigationUiSnapshot {
@@ -34,12 +32,12 @@ public class NavigationUiSnapshot {
     public NavigationUiSnapshot(NavigationCatalogProvider catalogs,
                                 NavigationResolver resolver,
                                 NavigationProfileReader profiles,
-                                RlsReadGate readGate, RlsCurrentUser currentUser) {
+                                org.ipro.rls.RlsReadGate readGate, org.ipro.rls.RlsCurrentUser currentUser) {
         this.loader = () -> {
-            var profile = profiles.currentProfile();
-            String username = currentUser.requireAuthenticatedUsername();
-            return resolver.resolve(catalogs.get(), profile.map(NavigationProfile::overrides).orElseGet(Map::of),
-                type -> readGate.canRead(type, username));
+            var catalog = catalogs.get();
+            var profile = profiles.currentProfile(catalog);
+            return resolver.resolve(catalog, profile.map(NavigationProfile::overrides).orElseGet(Map::of),
+                item -> readGate.canRead(item.entityClass(), currentUser.requireAuthenticatedUsername()));
         };
     }
 
