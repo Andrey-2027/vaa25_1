@@ -492,7 +492,7 @@ test-usage org.ipro.form.action.ActionProvenanceCatalog org/ip/vaadin/explorer/E
 # так же строго: новый файл обязан быть назван в overlay, а снятый — исчезнуть.
 # E1.2-pilot: RLS-половина gate проверяется на реальном носителе (PrdSpec) настоящим гейтом —
 # решатель и два вида не-API причин решения нужны тесту приложения, а не одному config-тесту.
-test-usage org.ipro.form.action.ActionResolver org/ip/config/ActionPolicyConfigTest.java org/ip/security/RlsProtectedTypeActionDecisionTest.java org/ip/application/register/RegisterListFormToolbarTest.java org/ip/config/PilotRegisterListToolbarIT.java
+test-usage org.ipro.form.action.ActionResolver org/ip/config/ActionPolicyConfigTest.java org/ip/security/RlsProtectedTypeActionDecisionTest.java org/ip/application/register/RegisterListFormToolbarTest.java org/ip/config/PilotRegisterListToolbarIT.java org/ip/views/query/ApplicationQueryActionsTest.java
 test-usage org.ipro.form.action.ReadOnlyReason org/ip/security/RlsProtectedTypeActionDecisionTest.java
 # E1.2b: приёмочный срез защищённого типа собирает провайдер входов тем же адаптером C5, что и контейнер.
 test-usage org.ipro.form.action.OperationPermissionSource org/ip/security/RlsProtectedTypeActionDecisionTest.java org/ip/navigation/NavigationApplicationSmokeTest.java
