@@ -299,7 +299,7 @@ public class FormResolver {
             }
             SelectionFormAssembler.ResolvedSelection resolved =
                 org.ipro.form.builder.SelectionColumnResolver.resolve(
-                    metadataResolver, formRegistry, entityClass, variant, null);
+                    metadataResolver, formRegistry, entityClass, variant);
             if (resolved == null) throw unknownVariant(entityClass, "SELECTION", variant);
             SelectionForm<T> form = selectionFormAssembler.assemble(
                 entityClass, onSelect, effectiveFilters, resolved, variant);

@@ -226,22 +226,21 @@ public class FieldFactory {
 
         Class<?> lookupEntity = info.getLookupEntity();
         String variant = info.getLookupVariant();
-        String[] fieldColumns = info.getLookupColumns();
 
         // Колонки резолвятся из одного источника для автокомплита и диалога, чтобы они
-        // не расходились. Без варианта/переопределения — прежний путь через ассемблер
+        // не расходились. Без варианта — прежний путь через ассемблер
         // (default: selectColumns целевой сущности либо её грид).
-        // С вариантом/переопределением — через общий резолвер приоритета
-        // (field columns → вариант → selectColumns → listColumns); неизвестный вариант
+        // С вариантом — через общий резолвер приоритета
+        // (вариант → selectColumns → listColumns); неизвестный вариант
         // здесь — ошибка конфигурации поля, а не тихий fallback.
         final SelectionFormAssembler.ResolvedSelection resolved;
         final String effectiveVariant;
-        if ((variant == null || variant.isBlank()) && (fieldColumns == null || fieldColumns.length == 0)) {
+        if (variant == null || variant.isBlank()) {
             resolved = selectionFormAssembler.resolveColumns(lookupEntity);
             effectiveVariant = null;
         } else {
             SelectionFormAssembler.ResolvedSelection r = SelectionColumnResolver.resolve(
-                metadataResolver, formRegistry, lookupEntity, variant, fieldColumns);
+                metadataResolver, formRegistry, lookupEntity, variant);
             if (r == null) {
                 throw new IllegalStateException(
                     "Unknown SELECTION variant '" + variant + "' for " + lookupEntity.getName() +
@@ -252,16 +251,17 @@ public class FieldFactory {
             effectiveVariant = (variant == null || variant.isBlank()) ? null : variant;
         }
 
-        String[] explicitSearch = info.getLookupSearchFields();
-        String[] searchFields = (explicitSearch != null && explicitSearch.length > 0)
-            ? explicitSearch
-            : resolved.columns().stream()
-                .filter(path -> path.getResolvedType() == FieldType.TEXT)
-                .map(ColumnPath::getKey)
-                .toArray(String[]::new);
+        String[] searchFields = resolved.columns().stream()
+            .filter(path -> path.getResolvedType() == FieldType.TEXT)
+            .map(ColumnPath::getKey)
+            .toArray(String[]::new);
 
         // LookupService применяет сценарий LOOKUP внутри своей read-границы.
-        SearchFunction search = term -> lookupService.search(lookupEntity, searchFields, term, 20);
+        // Б1: поле умеет применять отбор выбора (setSelectionFilter) и в автокомплите.
+        // Без отбора вызов прежний: поле без ограничений ищет ровно как раньше.
+        FilterableSearchFunction search = (term, filters) -> filters == null || filters.isEmpty()
+            ? lookupService.search(lookupEntity, searchFields, term, 20)
+            : lookupService.search(lookupEntity, searchFields, term, 20, null, filters);
 
         EntityField entityField = new EntityField(info.getLabel(), search);
         entityField.setSelectionFormFactory(onSelect -> {
@@ -313,13 +313,10 @@ public class FieldFactory {
             tf.setReadOnly(info.isReadOnly());
             if (numbered) {
                 tf.setPlaceholder("присвоится автоматически");
-            } else if (!info.getPlaceholder().isEmpty()) {
-                tf.setPlaceholder(info.getPlaceholder());
             }
         } else if (field instanceof TextArea ta) {
             ta.setRequired(required);
             ta.setReadOnly(info.isReadOnly());
-            if (!info.getPlaceholder().isEmpty()) ta.setPlaceholder(info.getPlaceholder());
         } else if (field instanceof EmailField ef) {
             ef.setRequired(required);
             ef.setReadOnly(info.isReadOnly());

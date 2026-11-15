@@ -14,7 +14,6 @@ import org.ipro.crud.InternedContract;
 import org.ipro.data.SearchFields;
 import org.ipro.metadata.HasDisplayName;
 import org.ipro.metadata.annotation.EntityMetadata;
-import org.ipro.metadata.annotation.Lookup;
 
 /**
  * Шапка набора значений атрибутов КСУ — immutable экземпляр комбинации «тип → значение»
@@ -55,7 +54,6 @@ public class SklNomOpa extends BaseEntity implements HasDisplayName, InternedEnt
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "nomenclature_id", nullable = false)
-    @Lookup(entity = Nomenclature.class)
     private Nomenclature nomenclature;
 
     /** Каноническая строка набора {@code "typeId:valueId;..."}; пустой набор — "". */

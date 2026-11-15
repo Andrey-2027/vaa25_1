@@ -417,7 +417,7 @@ public class CanonicalReadExecutor {
         }
         return readSearch(new SearchRead<>(request.type(), SearchContext.LOOKUP, request.term(),
             request.searchFields(), PageRequest.of(0, request.limit()),
-            request.additionalPaths())).getContent();
+            request.additionalPaths(), request.filters())).getContent();
     }
 
     /**
@@ -461,7 +461,7 @@ public class CanonicalReadExecutor {
         }
         SearchRead<T> bounded = new SearchRead<>(request.type(), request.context(),
             request.term(), request.searchFields(), PageRequest.of(0, limit),
-            request.additionalPaths());
+            request.additionalPaths(), request.filters());
         SearchContext context = bounded.context();
         return measured(context.operation(), bounded.type(), context.scenario(),
             () -> executeSearch(bounded, timeoutMs, false).getContent());
@@ -489,13 +489,21 @@ public class CanonicalReadExecutor {
         CriteriaQuery<T> query = cb.createQuery(request.type());
         Root<T> root = query.from(request.type());
         Path<?> idPath = root.get(SearchFieldResolver.idFieldName(request.type()));
+        // Б1: отбор выбора («путь → значение») действует и в автокомплите, и в диалоге —
+        // правило одно (SelectionFilters). Он сужает выдачу вместе с RLS и термом.
+        Specification<T> selectionFilter = SelectionFilters.specificationFor(request.filters());
 
         if (blank) {
             // Blank term не является фильтром: bounded-выдача по id, а не «вся таблица».
             query.select(root).orderBy(cb.asc(idPath));
+            Predicate filterOnly = filterPredicate(selectionFilter, root, query, cb);
+            if (filterOnly != null) {
+                query.where(filterOnly);
+            }
         } else {
             query.select(root)
-                .where(matchingPredicate(cb, root, fields, request.term()))
+                .where(withFilter(matchingPredicate(cb, root, fields, request.term()),
+                    filterPredicate(selectionFilter, root, query, cb), cb))
                 .orderBy(context.ranked()
                     ? List.of(cb.asc(rankExpression(cb, root, fields, request.term())),
                         cb.asc(idPath))
@@ -531,11 +539,24 @@ public class CanonicalReadExecutor {
         CriteriaQuery<Long> countQuery = cb.createQuery(Long.class);
         Root<T> countRoot = countQuery.from(request.type());
         countQuery.select(blank ? cb.count(countRoot) : cb.countDistinct(countRoot));
+        Predicate countFilter = filterPredicate(selectionFilter, countRoot, countQuery, cb);
         if (!blank) {
-            countQuery.where(matchingPredicate(cb, countRoot, fields, request.term()));
+            countQuery.where(withFilter(
+                matchingPredicate(cb, countRoot, fields, request.term()), countFilter, cb));
+        } else if (countFilter != null) {
+            countQuery.where(countFilter);
         }
         long total = entityManager.createQuery(countQuery).getSingleResult();
         return new PageImpl<>(content, pageable, total);
+    }
+
+    private static <T> Predicate filterPredicate(Specification<T> filter, Root<T> root,
+                                                 CriteriaQuery<?> query, CriteriaBuilder cb) {
+        return filter == null ? null : filter.toPredicate(root, query, cb);
+    }
+
+    private static Predicate withFilter(Predicate matching, Predicate filter, CriteriaBuilder cb) {
+        return filter == null ? matching : cb.and(matching, filter);
     }
 
     /** Подстрочный предикат по всем полям; поля с соединением не размножают строки (countDistinct). */

@@ -257,7 +257,10 @@ class NomAttributeValueItemFormTest {
         AttributeType enumType = type(22L, "E2", "Перечислимый 2", AttributeValueType.ENUM);
         AttributeValue option = value(enumType, "STEEL");
         when(attributeValueService.findByAttrType(enumType)).thenReturn(List.of(option));
-        when(fieldFactoryLookup.search(eq(AttributeType.class), any(String[].class), anyString(), anyInt()))
+        // Поле атрибута ограничено отбором active=true (Б1): автокомплит идёт тем же отбором,
+        // что и диалог выбора, поэтому отвечает перегрузка с отбором.
+        when(fieldFactoryLookup.search(eq(AttributeType.class), any(String[].class), anyString(),
+            anyInt(), any(), eq(java.util.Map.of("active", true))))
             .thenReturn(List.of(enumType));
         NomAttributeValueItemForm form = form();
         form.setEntity(new NomAttributeValue(null, stringType, value(stringType, "XL")));

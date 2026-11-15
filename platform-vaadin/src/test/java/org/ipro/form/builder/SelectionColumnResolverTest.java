@@ -25,7 +25,7 @@ class SelectionColumnResolverTest {
     @Test
     void defaultUsesSelectColumns() {
         SelectionFormAssembler.ResolvedSelection resolved =
-            SelectionColumnResolver.resolve(metadataResolver, registry, Unit.class, null, null);
+            SelectionColumnResolver.resolve(metadataResolver, registry, Unit.class, null);
 
         assertThat(resolved.columns()).extracting(p -> p.getKey())
             .containsExactly("code", "name");
@@ -35,7 +35,7 @@ class SelectionColumnResolverTest {
     @Test
     void defaultWithoutSelectColumnsFallsBackToGrid() {
         SelectionFormAssembler.ResolvedSelection resolved =
-            SelectionColumnResolver.resolve(metadataResolver, registry, Warehouse.class, null, null);
+            SelectionColumnResolver.resolve(metadataResolver, registry, Warehouse.class, null);
 
         assertThat(resolved.columns()).extracting(p -> p.getKey())
             .containsExactly("name", "code");
@@ -47,7 +47,7 @@ class SelectionColumnResolverTest {
             SelectionColumnsDef.of(List.of("code"), "Кратко"));
 
         SelectionFormAssembler.ResolvedSelection resolved =
-            SelectionColumnResolver.resolve(metadataResolver, registry, Unit.class, "compact", null);
+            SelectionColumnResolver.resolve(metadataResolver, registry, Unit.class, "compact");
 
         assertThat(resolved.columns()).extracting(p -> p.getKey()).containsExactly("code");
         assertThat(resolved.title()).isEqualTo("Кратко");
@@ -58,27 +58,16 @@ class SelectionColumnResolverTest {
         registry.registerSelectionColumns(Unit.class, "compact", SelectionColumnsDef.of("name"));
 
         SelectionFormAssembler.ResolvedSelection resolved =
-            SelectionColumnResolver.resolve(metadataResolver, registry, Unit.class, "compact", null);
+            SelectionColumnResolver.resolve(metadataResolver, registry, Unit.class, "compact");
 
         assertThat(resolved.columns()).extracting(p -> p.getKey()).containsExactly("name");
         assertThat(resolved.title()).isEqualTo("Выбор ЕИ");
     }
 
     @Test
-    void fieldColumnsOverrideBeatsVariant() {
-        registry.registerSelectionColumns(Unit.class, "compact",
-            SelectionColumnsDef.of(List.of("code"), "Кратко"));
-
-        SelectionFormAssembler.ResolvedSelection resolved = SelectionColumnResolver.resolve(
-            metadataResolver, registry, Unit.class, "compact", new String[]{"name"});
-
-        assertThat(resolved.columns()).extracting(p -> p.getKey()).containsExactly("name");
-    }
-
-    @Test
     void unknownVariantReturnsNullForStrictError() {
         assertThat(SelectionColumnResolver.resolve(
-            metadataResolver, registry, Unit.class, "nope", null)).isNull();
+            metadataResolver, registry, Unit.class, "nope")).isNull();
     }
 
     @EntityMetadata(listFormTitle = "ЕИ", selectionFormTitle = "Выбор ЕИ",

@@ -336,11 +336,7 @@ public class GridViewEditorDialog extends Dialog {
     // === Секция "Отбор" ===
 
     private List<ColumnPath> filterableColumns() {
-        return metadata.getListColumnPaths().stream()
-                .filter(column -> column.asFieldMetadata()
-                        .map(FieldMetadataInfo::isFilterEnabled)
-                        .orElse(true))
-                .toList();
+        return metadata.getListColumnPaths();
     }
 
     /**

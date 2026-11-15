@@ -68,6 +68,7 @@ class VaadinModuleCompositionTest {
         "org.ipro.form.FieldRenderer",
         "org.ipro.form.CatalogOwnerForms",
         "org.ipro.form.FilterGridMoreMenu",
+        "org.ipro.form.FilterableSearchFunction",
         "org.ipro.form.FilterLookupOptions",
         "org.ipro.form.FormBinding",
         "org.ipro.form.FormBindingRegistry",
@@ -310,8 +311,9 @@ class VaadinModuleCompositionTest {
                 + " (`AccessDenialPresentation`) — итого 131; R8 добавила семейную настройку форм,"
                 + " paged reader, структурный адаптер фильтра, datetime-отбор и кодек состояния — итого 137;"
                 + " E1.2b добавила порт права на операцию (`OperationPermissionSource`) — итого 138;"
-                + " ET2 добавила внутренний сборщик структурных фактов (`EntityStructureFactsAssembler`) — итого 139")
-            .hasSize(140);
+                + " ET2 добавила внутренний сборщик структурных фактов (`EntityStructureFactsAssembler`) — итого 139;"
+                + " Б1 добавила поиск автокомплита с отбором выбора (`FilterableSearchFunction`) — итого 141")
+            .hasSize(141);
     }
 
     @Test

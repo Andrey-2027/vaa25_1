@@ -126,6 +126,7 @@ class PlatformCoreModuleTest {
         "org.ipro.data.SearchFieldResolver",
         "org.ipro.data.SearchRead",
         "org.ipro.data.SearchTerms",
+        "org.ipro.data.SelectionFilters",
         "org.ipro.data.WriteTelemetry",
         "org.ipro.data.grouping.GroupingValuesProviderFactory",
         "org.ipro.data.grouping.JpaGroupingValuesProviderFactory",

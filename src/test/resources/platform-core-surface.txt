@@ -168,7 +168,7 @@ APP_SPI org.ipro.search.GlobalSearchProvider
 # EntityReadAccess/RestGraphException — контракт с REST; Api*Read — запросы к
 # MODULE_API CanonicalReadExecutor; CanonicalEntityReadAccess создаёт autoconfigure.
 # Рост 95 -> 100, MODULE_API 43 -> 48; прикладной APP_API не расширяется.
-# ---- MODULE_API (58)
+# ---- MODULE_API (59)
 MODULE_API org.ipro.metadata.CatalogOwnerDescriptor
 MODULE_API org.ipro.metadata.CatalogOwnerResolution
 MODULE_API org.ipro.metadata.CatalogOwnerResolver
@@ -240,6 +240,7 @@ MODULE_API org.ipro.search.GlobalSearchRequest
 MODULE_API org.ipro.search.GlobalSearchResponse
 MODULE_API org.ipro.search.GlobalSearchResult
 MODULE_API org.ipro.search.GlobalSearchService
+MODULE_API org.ipro.data.SelectionFilters
 # ---- INTERNAL (18)
 INTERNAL org.ipro.data.CatalogOwnerGuard
 INTERNAL org.ipro.data.CatalogOwnerToken

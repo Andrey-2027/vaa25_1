@@ -10,10 +10,10 @@ import java.time.LocalDateTime;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Два разных вопроса о поле: фильтруется ли оно вовсе ({@code filter}) и показывать ли встроенную
- * строку быстрого фильтра под заголовком колонки ({@code inlineFilter}). Регистр сведений снимает
- * только второй — широкий диапазон даты-времени мешает списку, а условие по периоду обязано
- * остаться разрешённым.
+ * Показывать ли встроенную строку быстрого фильтра под заголовком колонки
+ * ({@code inlineFilter}). Регистр сведений снимает её у периода — широкий диапазон
+ * даты-времени мешает списку, а условие по периоду обязано остаться разрешённым. Отдельного
+ * признака «поле не фильтруется вовсе» нет: отбор по колонке доступен всегда (AF1.3).
  */
 class FieldMetadataInlineFilterTest {
 
@@ -21,35 +21,18 @@ class FieldMetadataInlineFilterTest {
         @FieldMetadata(label = "Период", inlineFilter = false)
         private LocalDateTime period;
 
-        @FieldMetadata(label = "Наименование", filter = false, inlineFilter = false)
-        private String name;
-
         @FieldMetadata(label = "Цена")
         private BigDecimal price;
     }
 
     @Test
-    void inlineFilterIsIndependentOfWhetherTheFieldIsFilterable() {
-        FieldMetadataInfo period = info("period");
-
-        assertThat(period.isFilterEnabled()).isTrue();
-        assertThat(period.isInlineFilterEnabled()).isFalse();
-    }
-
-    @Test
-    void bothDeclarationsCanBeOffTogether() {
-        FieldMetadataInfo name = info("name");
-
-        assertThat(name.isFilterEnabled()).isFalse();
-        assertThat(name.isInlineFilterEnabled()).isFalse();
+    void periodDeclaresNoInlineFilterControl() {
+        assertThat(info("period").isInlineFilterEnabled()).isFalse();
     }
 
     @Test
     void defaultIsAnInlineFilter() {
-        FieldMetadataInfo price = info("price");
-
-        assertThat(price.isFilterEnabled()).isTrue();
-        assertThat(price.isInlineFilterEnabled()).isTrue();
+        assertThat(info("price").isInlineFilterEnabled()).isTrue();
     }
 
     private static FieldMetadataInfo info(String fieldName) {

@@ -8,7 +8,6 @@ import org.ipro.crud.BaseEntity;
 import org.ipro.metadata.HasDisplayName;
 import org.ipro.metadata.annotation.FieldMetadata;
 import org.ipro.metadata.annotation.GridColumn;
-import org.ipro.metadata.annotation.Lookup;
 import org.ipro.metadata.annotation.RequiredMode;
 import java.time.LocalDateTime;
 
@@ -30,7 +29,7 @@ public abstract class AccountingObjectDocument extends BaseEntity implements Has
     @NotNull @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "workshop_id", nullable = false)
     @FieldMetadata(label = "Цех", required = RequiredMode.REQUIRED, order = 3,
-        grid = @GridColumn(order = 3, flexGrow = 1), lookup = @Lookup(entity = Workshop.class))
+        grid = @GridColumn(order = 3, flexGrow = 1))
     private Workshop workshop;
 
     public String getNumber() { return number; }

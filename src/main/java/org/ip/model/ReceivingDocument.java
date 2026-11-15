@@ -15,7 +15,6 @@ import org.ipro.metadata.annotation.EntityMetadata;
 import org.ipro.metadata.annotation.FieldMetadata;
 import org.ipro.metadata.annotation.FieldType;
 import org.ipro.metadata.annotation.GridColumn;
-import org.ipro.metadata.annotation.Lookup;
 import org.ipro.metadata.annotation.RequiredMode;
 import org.ipro.metadata.annotation.TableSections;
 import org.ipro.rls.RlsDimension;
@@ -115,7 +114,6 @@ public class ReceivingDocument extends BaseEntity implements RlsDimensionValue {
     @FieldMetadata(
         label = "Журнал", required = RequiredMode.REQUIRED, order = 0,
         type = FieldType.ENTITY_REFERENCE,
-        lookup = @Lookup(entity = Journal.class),
         grid = @GridColumn(order = 0, width = "180px")
     )
     private Journal journal;
@@ -149,8 +147,7 @@ public class ReceivingDocument extends BaseEntity implements RlsDimensionValue {
     @NotNull
     @FieldMetadata(
         label = "Цех приёмщик", required = RequiredMode.REQUIRED, order = 3,
-        grid = @GridColumn(order = 3, flexGrow = 1),
-        lookup = @Lookup(entity = Workshop.class)
+        grid = @GridColumn(order = 3, flexGrow = 1)
     )
     private Workshop receivingWorkshop;
 
@@ -159,8 +156,7 @@ public class ReceivingDocument extends BaseEntity implements RlsDimensionValue {
     @NotNull
     @FieldMetadata(
         label = "Цех сдатчик", required = RequiredMode.REQUIRED, order = 4,
-        grid = @GridColumn(order = 4, flexGrow = 1),
-        lookup = @Lookup(entity = Workshop.class)
+        grid = @GridColumn(order = 4, flexGrow = 1)
     )
     private Workshop transferringWorkshop;
 

@@ -9,13 +9,11 @@ import org.ipro.crud.ServiceLocator;
 import org.ipro.identity.IdentifiableEntity;
 import org.ipro.filtergrid.TextFilter;
 import org.ipro.filtergrid.jpa.JpaFilterGrid;
-import org.ipro.filtergrid.util.JpaPathUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -53,7 +51,7 @@ public class SelectionFormAssembler {
 
     /**
      * Резолв явного списка колонок (имена Java-полей, поддерживается путь через точку).
-     * Используется для per-field {@code @Lookup.columns()} и именованных вариантов —
+     * Используется для именованных вариантов —
      * вызывающая сторона (ip-слой) уже применила приоритет, сюда приходит итог.
      */
     public ResolvedSelection resolveColumns(Class<?> entityClass, List<String> columnPaths) {
@@ -126,12 +124,6 @@ public class SelectionFormAssembler {
         return form;
     }
 
-    private static <T> Specification<T> combine(Specification<T> first, Specification<T> second) {
-        if (first == null) return second;
-        if (second == null) return first;
-        return Specification.where(first).and(second);
-    }
-
     /**
      * Строит AND-спецификацию из карты path → value (скаляр — равенство, коллекция — IN).
      * Пустые ключи/значения пропускаются; пустая карта даёт null (без ограничений).
@@ -139,18 +131,8 @@ public class SelectionFormAssembler {
      * обе части строятся одинаково и комбинируются через AND вызывающей стороной.
      */
     public static <T> Specification<T> specificationFor(Map<String, Object> filters) {
-        Specification<T> result = null;
-        if (filters != null) {
-            for (Map.Entry<String, Object> entry : filters.entrySet()) {
-                if (entry.getKey() == null || entry.getKey().isBlank() || entry.getValue() == null) continue;
-                Object value = entry.getValue();
-                Specification<T> part = value instanceof Collection<?> values
-                    ? (root, query, cb) -> cb.in(JpaPathUtil.resolve(root, entry.getKey())).value(values)
-                    : (root, query, cb) -> cb.equal(JpaPathUtil.resolve(root, entry.getKey()), value);
-                result = combine(result, part);
-            }
-        }
-        return result;
+        // Б1: правило одно для диалога и автокомплита и живёт в ядре.
+        return org.ipro.data.SelectionFilters.specificationFor(filters);
     }
 
     public record ResolvedSelection(List<ColumnPath> columns, String title) {}

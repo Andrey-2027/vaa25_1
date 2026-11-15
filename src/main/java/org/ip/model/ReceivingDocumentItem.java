@@ -7,7 +7,6 @@ import org.ipro.metadata.annotation.RequiredMode;
 import org.ipro.metadata.annotation.SectionRlsPolicy;
 import org.ipro.metadata.annotation.FieldMetadata;
 import org.ipro.metadata.annotation.GridColumn;
-import org.ipro.metadata.annotation.Lookup;
 import org.ipro.metadata.annotation.TableSectionMetadata;
 import org.ipro.crud.BaseEntity;
 
@@ -51,8 +50,7 @@ public class ReceivingDocumentItem extends BaseEntity {
     @NotNull
     @FieldMetadata(
         label = "Номенклатура", required = RequiredMode.REQUIRED, order = 1,
-        grid = @GridColumn(order = 1, flexGrow = 1),
-        lookup = @Lookup(entity = Nomenclature.class)
+        grid = @GridColumn(order = 1, flexGrow = 1)
     )
     private Nomenclature nomenclature;
 

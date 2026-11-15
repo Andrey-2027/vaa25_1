@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import org.ipro.metadata.annotation.FieldMetadata;
 import org.ipro.metadata.annotation.GridColumn;
-import org.ipro.metadata.annotation.Lookup;
 import org.ipro.metadata.annotation.RequiredMode;
 import org.ipro.metadata.annotation.SectionRlsPolicy;
 import org.ipro.metadata.annotation.TableSectionMetadata;
@@ -22,7 +21,7 @@ public class AccountingObjectCorrectionItem extends AccountingObjectItem {
     @NotNull @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "accounting_type_id", nullable = false)
     @FieldMetadata(label = "Новый тип учёта", required = RequiredMode.REQUIRED, order = 3,
-        grid = @GridColumn(order = 3, width = "180px"), lookup = @Lookup(entity = AccountingType.class))
+        grid = @GridColumn(order = 3, width = "180px"))
     private AccountingType accountingType;
 
     @ManyToOne(fetch = FetchType.LAZY)

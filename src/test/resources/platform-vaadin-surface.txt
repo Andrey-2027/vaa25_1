@@ -326,7 +326,7 @@ MODULE_API org.ipro.form.registry.FormRegistry
 MODULE_API org.ipro.form.registry.FormResolver
 MODULE_API org.ipro.vaadin.search.GlobalSearchNavigationAdapter
 
-# ---- INTERNAL (53)
+# ---- INTERNAL (54)
 # UX pilot P1: internal resolved-structure projection; no new application-facing assembler.
 INTERNAL org.ipro.vaadin.explorer.EntityStructureFactsAssembler
 INTERNAL org.ipro.form.builtin.ListFormJpaFilterGrid
@@ -338,6 +338,7 @@ INTERNAL org.ipro.vaadin.telemetry.TelemetryVaadinInitListener
 INTERNAL org.ipro.form.FieldRenderer
 INTERNAL org.ipro.form.FilterGridMoreMenu
 INTERNAL org.ipro.form.FilterLookupOptions
+INTERNAL org.ipro.form.FilterableSearchFunction
 INTERNAL org.ipro.form.SectionPresence
 INTERNAL org.ipro.form.TableSectionFactory
 INTERNAL org.ipro.form.action.ActionContext

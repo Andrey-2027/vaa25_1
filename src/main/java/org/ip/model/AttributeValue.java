@@ -19,7 +19,6 @@ import org.ipro.metadata.annotation.EntityMetadata;
 import org.ipro.metadata.annotation.EntityKind;
 import org.ipro.metadata.annotation.FieldMetadata;
 import org.ipro.metadata.annotation.GridColumn;
-import org.ipro.metadata.annotation.Lookup;
 
 /**
  * Единый словарь значений атрибутов — «Код» + «Значение» с разрезом по типу ({@code attrType}).
@@ -71,8 +70,7 @@ public class AttributeValue extends BaseEntity implements HasDisplayName, Intern
     @JoinColumn(name = "attr_type_id", nullable = false)
     @FieldMetadata(
         label = "Тип атрибута", required = RequiredMode.REQUIRED, order = 1,
-        grid = @GridColumn(order = 1, width = "200px"),
-        lookup = @Lookup(entity = AttributeType.class)
+        grid = @GridColumn(order = 1, width = "200px")
     )
     private AttributeType attrType;
 

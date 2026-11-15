@@ -15,7 +15,6 @@ import org.ipro.metadata.annotation.EntityMetadata;
 import org.ipro.metadata.annotation.FieldMetadata;
 import org.ipro.metadata.annotation.FieldType;
 import org.ipro.metadata.annotation.GridColumn;
-import org.ipro.metadata.annotation.Lookup;
 
 /**
  * Привязка «Номенклатура ↔ Атрибут КСУ» — схема разреза карточки позиции
@@ -54,8 +53,7 @@ public class NomSklAttribute extends BaseEntity implements HasDisplayName {
     @JoinColumn(name = "nomenclature_id", nullable = false)
     @FieldMetadata(
         label = "Номенклатура", required = RequiredMode.REQUIRED, order = 1,
-        grid = @GridColumn(order = 1, width = "250px"),
-        lookup = @Lookup(entity = Nomenclature.class)
+        grid = @GridColumn(order = 1, width = "250px")
     )
     private Nomenclature nomenclature;
 
@@ -64,8 +62,7 @@ public class NomSklAttribute extends BaseEntity implements HasDisplayName {
     @JoinColumn(name = "attr_type_id", nullable = false)
     @FieldMetadata(
         label = "Атрибут КСУ", required = RequiredMode.REQUIRED, order = 2,
-        grid = @GridColumn(order = 2, width = "250px"),
-        lookup = @Lookup(entity = AttributeType.class)
+        grid = @GridColumn(order = 2, width = "250px")
     )
     private AttributeType attrType;
 

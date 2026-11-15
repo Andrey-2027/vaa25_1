@@ -5,6 +5,7 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -19,16 +20,24 @@ import java.util.Objects;
  *                       ({@link SearchFieldResolver})
  * @param pageable        paging; unpaged ограничивается {@link #DEFAULT_PAGE_SIZE}
  * @param additionalPaths дополнительные JPA-пути к плану сценария
+ * @param filters         отбор «путь → значение» (см. {@link SelectionFilters}); пусто — без отбора
  */
 public record SearchRead<T>(Class<T> type,
                             SearchContext context,
                             String term,
                             List<String> searchFields,
                             Pageable pageable,
-                            Collection<String> additionalPaths) {
+                            Collection<String> additionalPaths,
+                            Map<String, Object> filters) {
 
     /** Предел выдачи без paging — parity с прежним repository search (было 100). */
     public static final int DEFAULT_PAGE_SIZE = 100;
+
+    public SearchRead(Class<T> type, SearchContext context, String term,
+                      List<String> searchFields, Pageable pageable,
+                      Collection<String> additionalPaths) {
+        this(type, context, term, searchFields, pageable, additionalPaths, Map.of());
+    }
 
     public SearchRead {
         Objects.requireNonNull(type, "type must not be null");
@@ -36,6 +45,7 @@ public record SearchRead<T>(Class<T> type,
         searchFields = List.copyOf(searchFields == null ? List.<String>of() : searchFields);
         pageable = pageable == null ? defaultPage() : pageable;
         additionalPaths = List.copyOf(additionalPaths == null ? List.<String>of() : additionalPaths);
+        filters = SelectionFilters.normalized(filters);
     }
 
     /** Первая страница предела по умолчанию. */
@@ -54,11 +64,17 @@ public record SearchRead<T>(Class<T> type,
 
     /** Тот же запрос с явными полями поиска (проверяются, а не пропускаются). */
     public SearchRead<T> withFields(List<String> fields) {
-        return new SearchRead<>(type, context, term, fields, pageable, additionalPaths);
+        return new SearchRead<>(type, context, term, fields, pageable, additionalPaths, filters);
     }
 
     /** Тот же запрос с дополнительными fetch-путями. */
     public SearchRead<T> withPaths(Collection<String> paths) {
-        return new SearchRead<>(type, context, term, searchFields, pageable, paths);
+        return new SearchRead<>(type, context, term, searchFields, pageable, paths, filters);
+    }
+
+    /** Тот же запрос с отбором «путь → значение». */
+    public SearchRead<T> withFilters(Map<String, Object> selectionFilters) {
+        return new SearchRead<>(type, context, term, searchFields, pageable, additionalPaths,
+            selectionFilters);
     }
 }
