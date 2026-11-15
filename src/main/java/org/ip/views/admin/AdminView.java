@@ -31,7 +31,6 @@ import org.ipro.rls.AccessService.EffectiveGrant;
 import org.ipro.rls.RlsDimensionKind;
 import org.ipro.rls.c5.C5Operation;
 import org.ip.application.catalog.NamedOperationOwner;
-import org.ip.views.admin.menu.MenuEditorAdminTab;
 import org.ip.application.catalog.NamedOperationSource;
 import org.ip.service.AccessGrantAdminService;
 import org.ip.views.admin.menu.MenuEditorAdminTab;
@@ -45,7 +44,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * «Администрирование» (после разделения): только Доступ (RLS), Настройки,
- * Нумерация и опциональный редактор профилей интерфейса. Всё, что касается телеметрии (журнал, ошибки, трассировка,
+ * Нумерация, Меню и Списки по запросу. Всё, что касается телеметрии (журнал, ошибки, трассировка,
  * агрегаты, история изменений), переехало в отдельный вид
  * {@link DiagnosticsView} («Диагностика»).
  */
@@ -61,8 +60,10 @@ public class AdminView extends VerticalLayout implements Dirtyable, Savable {
     private final SettingsAdminTab settingsTab;
     private final NumberingAdminTab numberingTab;
     private final MenuEditorAdminTab menuTab;
+    private final ObjectProvider<QueryListsAdminTab> queryListTabs;
+    private QueryListsAdminTab queryListsTab;
     private boolean uiBuilt;
-    private boolean leavingMenuTab;
+    private boolean restoringTab;
     private final Map<String, String> entityLabels = new HashMap<>();
 
     private final Grid<DimensionValueAccessRow> accessGrid = new Grid<>();
@@ -98,8 +99,10 @@ public class AdminView extends VerticalLayout implements Dirtyable, Savable {
                      @Autowired EntityManagerFactory entityManagerFactory,
                      @Autowired MetadataResolver metadataResolver,
                      @Autowired java.util.List<NamedOperationOwner> namedOperationOwners,
-                     @Autowired java.util.List<NamedOperationSource> namedOperationSources) {
+                     @Autowired java.util.List<NamedOperationSource> namedOperationSources,
+                     @Autowired ObjectProvider<QueryListsAdminTab> queryListTabs) {
         this.accessGrantAdminService = accessGrantAdminService;
+        this.queryListTabs = queryListTabs;
         // Одиночные владельцы и источники, объявляющие несколько операций (регистровые подписи
         // приходят из платформы), для экрана неразличимы: он показывает название по id.
         for (NamedOperationOwner owner : NamedOperationSource.merge(namedOperationOwners, namedOperationSources)) {
@@ -154,24 +157,44 @@ public class AdminView extends VerticalLayout implements Dirtyable, Savable {
         Tab numberingItem = new Tab(new Span("Нумерация"), new Icon(VaadinIcon.HASH));
         Tab menuItem = new Tab(new Span("Меню"), new Icon(VaadinIcon.MENU));
         Tabs tabs = new Tabs(accessItem, workspaceItem, settingsItem, numberingItem, menuItem);
+        Tab queryListsItem = null;
+        queryListsTab = createQueryListsTab();
+        if (queryListsTab != null) {
+            queryListsItem = new Tab(new Span("Списки по запросу"), new Icon(VaadinIcon.LIST_SELECT));
+            tabs.add(queryListsItem);
+        }
         add(tabs);
 
         buildAccessTab();
 
         add(accessTab, settingsTab, numberingTab, menuTab);
         setFlexGrow(1, menuTab);
+        if (queryListsTab != null) {
+            add(queryListsTab);
+            setFlexGrow(1, queryListsTab);
+        }
         show(accessTab);
 
+        final Tab queryLists = queryListsItem;
         tabs.addSelectedChangeListener(e -> {
-            if (leavingMenuTab) { leavingMenuTab = false; return; }
+            if (restoringTab) return;
             if (e.getPreviousTab() == menuItem && e.getSelectedTab() != menuItem && menuTab.isDirty()) {
                 Tab wanted = e.getSelectedTab();
-                leavingMenuTab = true;
-                tabs.setSelectedTab(menuItem);
+                restoreTab(tabs, menuItem);
                 menuTab.guard(() -> tabs.setSelectedTab(wanted));
                 return;
             }
-            if (e.getSelectedTab() == workspaceItem) {
+            if (queryLists != null && e.getPreviousTab() == queryLists && e.getSelectedTab() != queryLists
+                    && queryListsDirty()) {
+                Tab target = e.getSelectedTab();
+                restoreTab(tabs, queryLists);
+                queryListsTab.confirmLeave(() -> tabs.setSelectedTab(target));
+                return;
+            }
+            if (e.getSelectedTab() == queryLists && queryLists != null) {
+                show(queryListsTab);
+                queryListsTab.refresh();
+            } else if (e.getSelectedTab() == workspaceItem) {
                 if (permissionWorkspace == null) {
                     try {
                         permissionWorkspace = permissionWorkspaces.getObject();
@@ -201,25 +224,49 @@ public class AdminView extends VerticalLayout implements Dirtyable, Savable {
         });
     }
 
+    private void restoreTab(Tabs tabs, Tab selected) {
+        restoringTab = true;
+        try {
+            tabs.setSelectedTab(selected);
+        } finally {
+            restoringTab = false;
+        }
+    }
+
     private void show(VerticalLayout active) {
         accessTab.setVisible(false);
         settingsTab.setVisible(false);
         numberingTab.setVisible(false);
         menuTab.setVisible(false);
+        if (queryListsTab != null) queryListsTab.setVisible(false);
         if (permissionWorkspace != null) permissionWorkspace.setVisible(false);
         active.setVisible(true);
     }
 
+    /** Вкладка «Списки по запросу» не обязательна: без её бинов экран администрирования работает без неё. */
+    private QueryListsAdminTab createQueryListsTab() {
+        try {
+            return queryListTabs.getIfAvailable();
+        } catch (RuntimeException unavailable) {
+            org.slf4j.LoggerFactory.getLogger(AdminView.class).warn("Вкладка «Списки по запросу» недоступна", unavailable);
+            return null;
+        }
+    }
+
+    private boolean queryListsDirty() { return queryListsTab != null && queryListsTab.isDirty(); }
+
     @Override public boolean isDirty() {
-        return permissionWorkspace != null && permissionWorkspace.isDirty() || menuTab.isDirty();
+        return permissionWorkspace != null && permissionWorkspace.isDirty() || menuTab.isDirty() || queryListsDirty();
     }
     @Override public String getCloseConfirmMessage() {
         if (menuTab.isDirty()) return menuTab.getCloseConfirmMessage();
-        return permissionWorkspace == null ? "" : permissionWorkspace.getCloseConfirmMessage();
+        if (permissionWorkspace != null && permissionWorkspace.isDirty()) return permissionWorkspace.getCloseConfirmMessage();
+        return queryListsDirty() ? queryListsTab.closeConfirmMessage() : "";
     }
     @Override public boolean doSave() {
-        boolean rights = permissionWorkspace == null || !permissionWorkspace.isDirty() || permissionWorkspace.doSave();
-        return rights && menuTab.doSave();
+        return (permissionWorkspace == null || !permissionWorkspace.isDirty() || permissionWorkspace.doSave())
+                && (!menuTab.isDirty() || menuTab.doSave())
+                && (!queryListsDirty() || queryListsTab.saveChanges());
     }
 
     // ------------------------------------------------------ доступ (RLS)

@@ -135,6 +135,7 @@ APP_API org.ipro.data.SearchRead
 APP_API org.ipro.data.SearchContext
 APP_API org.ipro.fetch.instance.InstanceName
 APP_API org.ipro.metadata.ColumnPath
+APP_API org.ipro.metadata.GridViewState
 APP_API org.ipro.metadata.EntityMetadataInfo
 APP_API org.ipro.metadata.StructuralAttribute
 APP_API org.ipro.metadata.FieldMetadataInfo
@@ -232,7 +233,6 @@ MODULE_API org.ipro.filter.ColumnPathFilterFieldResolver
 MODULE_API org.ipro.metadata.FilterSpec
 MODULE_API org.ipro.metadata.JpaFieldFacts
 MODULE_API org.ipro.metadata.GridMetadata
-MODULE_API org.ipro.metadata.GridViewState
 MODULE_API org.ipro.metadata.MetadataConsistencyStartupCheck
 MODULE_API org.ipro.metadata.SectionMetadataRegistry
 MODULE_API org.ipro.metadata.TableSectionGridMetadata

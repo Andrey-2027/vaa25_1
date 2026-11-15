@@ -30,6 +30,7 @@ public final class QueryBuilderMetadataCatalog {
     private final RlsReadGate readGate;
     private final RlsCurrentUser currentUser;
     private final EntityDescriptorCatalog descriptors;
+    private final boolean enforceReadAccess;
 
     public QueryBuilderMetadataCatalog(EntityManagerFactory emf, MetadataResolver metadataResolver,
                                        RlsReadGate readGate, RlsCurrentUser currentUser) {
@@ -47,11 +48,23 @@ public final class QueryBuilderMetadataCatalog {
     public QueryBuilderMetadataCatalog(ManagedEntityTypes managedEntityTypes,
             MetadataResolver metadataResolver, RlsReadGate readGate, RlsCurrentUser currentUser,
             EntityDescriptorCatalog descriptors) {
+        this(managedEntityTypes, metadataResolver, readGate, currentUser, descriptors, true);
+    }
+
+    private QueryBuilderMetadataCatalog(ManagedEntityTypes managedEntityTypes,
+            MetadataResolver metadataResolver, RlsReadGate readGate, RlsCurrentUser currentUser,
+            EntityDescriptorCatalog descriptors, boolean enforceReadAccess) {
         this.descriptors = Objects.requireNonNull(descriptors);
         this.managedEntityTypes = Objects.requireNonNull(managedEntityTypes);
         this.metadataResolver = Objects.requireNonNull(metadataResolver);
         this.readGate = Objects.requireNonNull(readGate);
         this.currentUser = Objects.requireNonNull(currentUser);
+        this.enforceReadAccess = enforceReadAccess;
+    }
+
+    QueryBuilderMetadataCatalog forStructureValidation() {
+        return new QueryBuilderMetadataCatalog(managedEntityTypes, metadataResolver, readGate, currentUser,
+                descriptors, false);
     }
 
     public List<Entity> roots() {
@@ -62,7 +75,7 @@ public final class QueryBuilderMetadataCatalog {
                 // Табличные части (@TableSectionMetadata без собственного @EntityMetadata)
                 // тоже доступны как источники запроса — как в 1С («спецификация.Компоненты»):
                 // без них пакеты вида «group by спецификация + count строк» не строятся.
-                .filter(type -> RlsContext.isBypassed() || readGate.canRead(type,
+                .filter(type -> !enforceReadAccess || RlsContext.isBypassed() || readGate.canRead(type,
                     currentUser.requireAuthenticatedUsername()))
                 .map(type -> {
                     String entityName = managedEntityTypes.entityName(type);

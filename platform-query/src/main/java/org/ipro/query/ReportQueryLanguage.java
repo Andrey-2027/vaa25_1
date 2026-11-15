@@ -13,6 +13,10 @@ public final class ReportQueryLanguage {
     public ReportQueryLanguage(QueryBuilderMetadataCatalog catalog, RegisterSliceReportTemplates recipes) {
         this.catalog = catalog; this.recipes = recipes;
     }
+    ReportQueryLanguage forStructureValidation() {
+        var schema = catalog.forStructureValidation();
+        return new ReportQueryLanguage(schema, recipes.forStructureValidation(schema));
+    }
     public record Parsed(VisualQueryPackage pack, String json, ReportQueryAssembler compiled,
                          Map<String, Class<?>> entityParameters) { }
     private record Token(String text, int start, int end, boolean quoted) { }

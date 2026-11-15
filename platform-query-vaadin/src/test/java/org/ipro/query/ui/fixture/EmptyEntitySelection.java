@@ -16,7 +16,7 @@ import java.util.function.Consumer;
  * теперь артефакт проверяет себя сам, а прикладной адаптер остаётся у потребителя.
  * Пустые колонки означают «поиск без подсказок» — само поле остаётся рабочим.
  */
-public final class EmptyEntitySelection implements EntitySelection {
+public class EmptyEntitySelection implements EntitySelection {
 
     @Override
     public List<ColumnPath> columns(Class<?> entityClass) {

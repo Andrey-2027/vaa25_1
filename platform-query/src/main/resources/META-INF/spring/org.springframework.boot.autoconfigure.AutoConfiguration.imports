@@ -1,1 +1,2 @@
 org.ipro.query.config.QueryAutoConfiguration
+org.ipro.query.config.QueryListAutoConfiguration

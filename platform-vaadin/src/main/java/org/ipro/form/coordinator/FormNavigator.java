@@ -65,6 +65,10 @@ public interface FormNavigator {
         Class<T> entityClass, String variant, ID id, Consumer<T> onSaved,
         Map<String, Object> parameters);
 
+    default <T extends IdentifiableEntity<Long>> void openReadOnlyItemForm(Class<T> type, long id) {
+        openItemForm(type, null, id, null, Map.of(FormCoordinator.READ_ONLY_PARAMETER, true));
+    }
+
     /**
      * Открыть форму списка в рабочей области текущего UI (вкладка 1С-стиля).
      *

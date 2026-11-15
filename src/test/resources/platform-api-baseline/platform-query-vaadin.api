@@ -1,4 +1,13 @@
 # platform-query-vaadin: публичная поверхность (policy: TEMPORARY_ALL_PUBLIC, перезапись: -Dplatform.api.baseline.write=true)
+class public final org.ipro.query.ui.admin.QueryListAdminPanel
+  extends com.vaadin.flow.component.orderedlayout.VerticalLayout
+  ctor public(org.ipro.query.ui.admin.QueryListAdminEnvironment)
+  method public boolean isDirty()
+  method public boolean saveChanges()
+  method public java.lang.String closeConfirmMessage()
+  method public void confirmLeave(java.lang.Runnable)
+  method public void refresh()
+
 class public final org.ipro.query.ui.catalog.QuerySourceTree
   extends com.vaadin.flow.component.treegrid.TreeGrid<T>
   type-parameter T
@@ -160,6 +169,19 @@ class public final org.ipro.query.ui.editor.QueryTestParam
   method public void setType(org.ipro.metadata.annotation.FieldType)
   method public void setValue(java.lang.Object)
 
+class public final org.ipro.query.ui.grid.QueryParameterFields
+  ctor public(java.util.List<org.ipro.query.model.QueryParameter>, org.ipro.query.ui.selection.EntitySelection)
+  method public boolean isEmpty()
+  method public com.vaadin.flow.component.Component component()
+  method public java.util.List<java.lang.String> missingRequired()
+  method public java.util.Map<java.lang.String, java.lang.Object> values()
+  method public void setValue(java.lang.String, java.lang.Object)
+
+class public final org.ipro.query.ui.grid.QueryRunHistory
+  ctor public()
+  method public synchronized java.util.Optional<java.time.Duration> lastDuration(java.lang.String)
+  method public synchronized void record(java.lang.String, java.time.Duration)
+
 class public final org.ipro.query.ui.list.ListConstructorSources
   method public static boolean matches(org.ipro.query.VisualQueryPackage, org.ipro.query.ui.list.ConstructorList)
   method public static java.lang.String attach(java.lang.String, java.util.List<org.ipro.query.ui.list.ConstructorList>)
@@ -172,11 +194,26 @@ class public final org.ipro.query.ui.list.ListCteGenerator
   method public org.ipro.query.ui.list.ConstructorList generateNamed(java.lang.String, java.lang.String, java.lang.String, java.lang.String, boolean, org.ipro.query.VisualQueryOrder$Direction)
   method public org.ipro.query.ui.list.ConstructorList generateNamed(java.lang.String, org.ipro.query.VisualQueryPackage, java.lang.String, java.lang.String, java.lang.String, boolean, org.ipro.query.VisualQueryOrder$Direction)
 
+class public final org.ipro.query.ui.listform.QueryViewsController
+  ctor public(org.ipro.query.ui.grid.QueryGridPanel, org.ipro.query.ui.listform.QueryListViews, java.lang.String)
+  method public java.util.List<org.ipro.query.ui.listform.QueryListViews$View> rows()
+  method public java.util.Optional<java.lang.String> defaultViewId()
+  method public org.ipro.query.ui.listform.QueryListViews$View copy(java.lang.String)
+  method public org.ipro.query.ui.listform.QueryListViews$View create(java.lang.String, boolean)
+  method public org.ipro.query.ui.listform.QueryListViews$View edit(java.lang.String, java.lang.String, boolean)
+  method public void applyDefault()
+  method public void delete(java.lang.String)
+  method public void load(java.lang.String)
+  method public void loadStandard()
+  method public void toggleDefault(java.lang.String)
+
 class public org.ipro.query.ui.config.QueryUiAutoConfiguration
   annotation org.springframework.boot.autoconfigure.AutoConfiguration
   ctor public()
   method public org.ipro.query.ui.editor.QueryEditorAnalysisService queryEditorAnalysisService(org.ipro.query.ReportQueryGuard)
   method public org.ipro.query.ui.editor.QueryMetadataCatalogService queryMetadataCatalogService(org.ipro.metadata.ManagedEntityTypes, org.ipro.metadata.MetadataResolver, org.ipro.rls.RlsReadGate, org.ipro.rls.RlsCurrentUser)
+  method public org.ipro.query.ui.grid.QueryGridEnvironment queryGridEnvironment(org.ipro.query.QueryProjectionCompiler, org.ipro.query.ReportProjectionReads, org.ipro.data.presentation.EntityPresentationService, org.springframework.beans.factory.ObjectProvider<org.ipro.query.ui.selection.EntitySelection>, org.springframework.beans.factory.ObjectProvider<org.ipro.query.ui.grid.QueryTaskRunner>, org.ipro.query.ui.grid.QueryRunHistory, org.ipro.rls.RlsCurrentUser)
+  method public org.ipro.query.ui.grid.QueryRunHistory queryRunHistory()
 
 class public org.ipro.query.ui.constructor.JpqlQueryBuilderDialog
   extends com.vaadin.flow.component.dialog.Dialog
@@ -222,6 +259,7 @@ class public org.ipro.query.ui.editor.ReportQueryEditor
   field public static final int DEFAULT_PREVIEW_ROWS = 50
   field public static final int MAX_PREVIEW_ROWS = 500
   method public java.lang.String getJpql()
+  method public java.util.List<java.lang.String> usedParameterNames()
   method public org.ipro.query.VisualQueryPackage visualQueryPackage()
   method public org.ipro.query.ui.editor.QueryDraft draft()
   method public org.ipro.query.ui.editor.QueryEditorAnalysis analyze()
@@ -230,11 +268,58 @@ class public org.ipro.query.ui.editor.ReportQueryEditor
   method public void open(org.ipro.query.ui.editor.QueryDraft)
   method public void open(org.ipro.query.ui.editor.QueryEditorSession)
   method public void preview()
+  method public void replaceParameters(java.util.List<org.ipro.query.model.QueryParameter>)
   method public void setAnalysisListener(java.util.function.Consumer<org.ipro.query.ui.editor.QueryEditorAnalysis>)
   method public void setChangeListener(java.util.function.Consumer<org.ipro.query.ui.editor.QueryDraft>)
   method public void setPresentationHints(java.util.List<java.lang.String>, java.util.List<org.ipro.query.model.QuerySort>)
   method public void setQueryConstructorCatalog(org.ipro.query.QueryBuilderMetadataCatalog)
   method public void setRegisterSliceRecipes(org.ipro.query.register.RegisterSliceReportTemplates)
+
+class public org.ipro.query.ui.grid.QueryGridPanel
+  extends com.vaadin.flow.component.orderedlayout.VerticalLayout
+  ctor public(org.ipro.query.ui.grid.QueryGridEnvironment, org.ipro.query.ui.grid.QueryGridSpec)
+  method protected void onAttach(com.vaadin.flow.component.AttachEvent)
+  method protected void onDetach(com.vaadin.flow.component.DetachEvent)
+  method public boolean isGroupingOpen()
+  method public java.lang.String statusText()
+  method public java.util.List<java.lang.String> queryColumnOrder()
+  method public java.util.List<org.ipro.query.ui.grid.QueryGridPanel$ColumnView> columnViews()
+  method public java.util.List<org.ipro.query.ui.grid.QueryGridPanel$TotalOption> totalOptions()
+  method public java.util.Optional<org.ipro.filtergrid.projection.GroupableProjectionFilterGrid> grid()
+  method public java.util.Optional<org.ipro.query.ui.grid.QueryGridFailure> failure()
+  method public org.ipro.query.ui.grid.QueryGridPanel$Phase phase()
+  method public org.ipro.query.ui.grid.QueryGridSpec spec()
+  method public org.ipro.query.ui.grid.QueryGridState captureState()
+  method public org.ipro.query.ui.grid.QueryParameterFields parameterFields()
+  method public void addGridListener(java.util.function.Consumer<java.util.Optional<org.ipro.filtergrid.projection.GroupableProjectionFilterGrid>>)
+  method public void applyColumnEdits(java.util.List<org.ipro.query.ui.grid.QueryGridPanel$ColumnEdit>)
+  method public void applyState(org.ipro.query.ui.grid.QueryGridState)
+  method public void applyTotals(java.util.Map<java.lang.String, org.ipro.filtergrid.FooterAggregateKind>)
+  method public void open()
+  method public void openColumnsDialog()
+  method public void openTotalsDialog()
+  method public void refresh()
+  method public void resetFilters()
+  method public void run()
+  method public void setBoundValue(java.lang.String, java.lang.Object)
+  method public void setContext(org.ipro.query.ReportContext)
+  method public void setDetailsVisible(boolean)
+  method public void setGroupingOpen(boolean)
+  method public void setParametersVisible(boolean)
+  method public void setReferenceOpener(org.ipro.query.ui.grid.QueryReferenceOpener)
+
+class public org.ipro.query.ui.listform.ProjectionListForm
+  extends com.vaadin.flow.component.orderedlayout.VerticalLayout
+  ctor public(org.ipro.query.ui.grid.QueryGridEnvironment, org.ipro.query.ui.grid.QueryGridSpec, java.lang.String, org.ipro.query.ui.listform.QueryListOptions)
+  method public java.lang.String formKey()
+  method public java.util.List<java.lang.String> moreItems()
+  method public java.util.List<java.lang.String> toolbarLabels()
+  method public java.util.Optional<org.ipro.filtergrid.projection.CompositeRowKey> selectedRow()
+  method public org.ipro.query.ui.grid.QueryGridPanel panel()
+  method public void addCommand(com.vaadin.flow.component.Component)
+  method public void addSelectionListener(java.util.function.Consumer<java.util.Optional<org.ipro.filtergrid.projection.CompositeRowKey>>)
+  method public void configureCommands(java.util.Set<org.ipro.query.list.QueryListDefinition$Command>, org.ipro.query.ui.listform.QueryListCommands)
+  method public void openViews()
 
 class public org.ipro.query.ui.result.QueryResultTable
   extends com.vaadin.flow.component.orderedlayout.VerticalLayout
@@ -295,15 +380,95 @@ enum public static final org.ipro.query.ui.editor.QueryParameterDescriptor$Infer
   method public static org.ipro.query.ui.editor.QueryParameterDescriptor$InferenceStatus valueOf(java.lang.String)
   method public static org.ipro.query.ui.editor.QueryParameterDescriptor$InferenceStatus[] values()
 
+enum public static final org.ipro.query.ui.grid.QueryGridFailure$Kind
+  extends java.lang.Enum<org.ipro.query.ui.grid.QueryGridFailure$Kind>
+  enum-constants [NO_ACCESS, TIMEOUT, QUOTA_BUSY, ROW_LIMIT, ACCESS_CHANGED, PARAMETERS, NEEDS_FIX]
+  field public static final org.ipro.query.ui.grid.QueryGridFailure$Kind ACCESS_CHANGED = enum-constant
+  field public static final org.ipro.query.ui.grid.QueryGridFailure$Kind NEEDS_FIX = enum-constant
+  field public static final org.ipro.query.ui.grid.QueryGridFailure$Kind NO_ACCESS = enum-constant
+  field public static final org.ipro.query.ui.grid.QueryGridFailure$Kind PARAMETERS = enum-constant
+  field public static final org.ipro.query.ui.grid.QueryGridFailure$Kind QUOTA_BUSY = enum-constant
+  field public static final org.ipro.query.ui.grid.QueryGridFailure$Kind ROW_LIMIT = enum-constant
+  field public static final org.ipro.query.ui.grid.QueryGridFailure$Kind TIMEOUT = enum-constant
+  method public static org.ipro.query.ui.grid.QueryGridFailure$Kind valueOf(java.lang.String)
+  method public static org.ipro.query.ui.grid.QueryGridFailure$Kind[] values()
+
+enum public static final org.ipro.query.ui.grid.QueryGridPanel$Phase
+  extends java.lang.Enum<org.ipro.query.ui.grid.QueryGridPanel$Phase>
+  enum-constants [NOT_RUN, RUNNING, READY, FAILED]
+  field public static final org.ipro.query.ui.grid.QueryGridPanel$Phase FAILED = enum-constant
+  field public static final org.ipro.query.ui.grid.QueryGridPanel$Phase NOT_RUN = enum-constant
+  field public static final org.ipro.query.ui.grid.QueryGridPanel$Phase READY = enum-constant
+  field public static final org.ipro.query.ui.grid.QueryGridPanel$Phase RUNNING = enum-constant
+  method public static org.ipro.query.ui.grid.QueryGridPanel$Phase valueOf(java.lang.String)
+  method public static org.ipro.query.ui.grid.QueryGridPanel$Phase[] values()
+
+enum public static final org.ipro.query.ui.grid.QueryGridSpec$Subject
+  extends java.lang.Enum<org.ipro.query.ui.grid.QueryGridSpec$Subject>
+  enum-constants [LIST, REPORT]
+  field public static final org.ipro.query.ui.grid.QueryGridSpec$Subject LIST = enum-constant
+  field public static final org.ipro.query.ui.grid.QueryGridSpec$Subject REPORT = enum-constant
+  method public java.lang.String noun()
+  method public static org.ipro.query.ui.grid.QueryGridSpec$Subject valueOf(java.lang.String)
+  method public static org.ipro.query.ui.grid.QueryGridSpec$Subject[] values()
+
+interface public abstract interface org.ipro.query.ui.grid.QueryProjectionSource
+  method public abstract org.ipro.query.ui.grid.QueryProjectionSource$Prepared prepare(org.ipro.query.ui.grid.QueryGridSpec, org.ipro.query.ReportContext, java.util.Map<java.lang.String, java.lang.Object>)
+  method public static org.ipro.query.ui.grid.QueryProjectionSource over(org.ipro.query.QueryProjectionCompiler, org.ipro.query.ReportProjectionReads)
+
+interface public abstract interface org.ipro.query.ui.grid.QueryReferenceLabels
+  method public abstract java.lang.String label(java.lang.Class<?>, java.lang.Long)
+  method public static org.ipro.query.ui.grid.QueryReferenceLabels identifiers()
+  method public static org.ipro.query.ui.grid.QueryReferenceLabels over(org.ipro.data.presentation.EntityPresentationService)
+
+interface public abstract interface org.ipro.query.ui.grid.QueryReferenceOpener
+  annotation java.lang.FunctionalInterface
+  method public abstract java.lang.String open(java.lang.Class<?>, long)
+  method public java.lang.String typeName(java.lang.Class<?>)
+
+interface public abstract interface org.ipro.query.ui.grid.QueryTaskRunner
+  method public abstract <T> java.util.concurrent.CompletableFuture<T> submit(java.util.concurrent.Callable<T>)
+  method public static org.ipro.query.ui.grid.QueryTaskRunner direct()
+  method public static org.ipro.query.ui.grid.QueryTaskRunner of(java.util.concurrent.Executor)
+
+interface public abstract interface org.ipro.query.ui.listform.QueryListCommands
+  method public abstract org.ipro.query.ui.listform.QueryListCommands$Decision decide(org.ipro.query.list.QueryListDefinition$Command, java.lang.Long)
+  method public abstract org.ipro.query.ui.listform.QueryListCommands$Decision execute(org.ipro.query.list.QueryListDefinition$Command, java.lang.Long, java.lang.Runnable)
+
+interface public abstract interface org.ipro.query.ui.listform.QueryListViews
+  method public abstract java.util.List<org.ipro.query.ui.listform.QueryListViews$View> views(java.lang.String)
+  method public abstract java.util.Optional<java.lang.String> defaultViewId(java.lang.String)
+  method public abstract org.ipro.query.ui.listform.QueryListViews$View create(java.lang.String, java.lang.String, boolean, org.ipro.metadata.GridViewState)
+  method public abstract org.ipro.query.ui.listform.QueryListViews$View update(java.lang.String, java.lang.String, java.lang.String, boolean, org.ipro.metadata.GridViewState)
+  method public abstract void delete(java.lang.String, java.lang.String)
+  method public abstract void setDefaultView(java.lang.String, java.lang.String)
+
 interface public abstract interface org.ipro.query.ui.selection.EntitySelection
   method public abstract java.util.List<org.ipro.metadata.ColumnPath> columns(java.lang.Class<?>)
   method public abstract org.ipro.query.ui.selection.EntitySelection$Field field(java.lang.String, java.lang.Class<?>)
+  method public java.util.Optional<org.ipro.metadata.HasDisplayName> find(java.lang.Class<?>, java.lang.Long)
 
 interface public abstract static interface org.ipro.query.ui.selection.EntitySelection$Field
   method public abstract com.vaadin.flow.component.Component component()
   method public abstract org.ipro.metadata.HasDisplayName value()
   method public abstract void addValueChangeListener(java.util.function.Consumer<org.ipro.metadata.HasDisplayName>)
   method public abstract void setValue(org.ipro.metadata.HasDisplayName)
+
+record public final org.ipro.query.ui.admin.QueryListAdminEnvironment
+  extends java.lang.Record
+  ctor public(org.ipro.query.list.QueryListRegistry, org.ipro.query.ui.grid.QueryGridEnvironment, java.util.function.Supplier<org.ipro.query.ui.editor.ReportQueryEditor>, org.ipro.query.ui.selection.EntitySelection, java.util.function.Function<java.lang.String, java.lang.String>, java.util.function.Function<java.lang.String, java.lang.String>, int)
+  ctor public(org.ipro.query.list.QueryListRegistry, org.ipro.query.ui.grid.QueryGridEnvironment, java.util.function.Supplier<org.ipro.query.ui.editor.ReportQueryEditor>, org.ipro.query.ui.selection.EntitySelection, java.util.function.Function<java.lang.String, java.lang.String>, java.util.function.Function<java.lang.String, java.lang.String>, int, java.util.List<java.lang.String>)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public int inMemoryLimit()
+  method public java.util.List<java.lang.String> commandEntities()
+  method public java.util.function.Function<java.lang.String, java.lang.String> entityTitle()
+  method public java.util.function.Function<java.lang.String, java.lang.String> link()
+  method public java.util.function.Supplier<org.ipro.query.ui.editor.ReportQueryEditor> editors()
+  method public org.ipro.query.list.QueryListRegistry registry()
+  method public org.ipro.query.ui.grid.QueryGridEnvironment grid()
+  method public org.ipro.query.ui.selection.EntitySelection selection()
 
 record public final org.ipro.query.ui.editor.QueryDraft
   extends java.lang.Record
@@ -353,6 +518,77 @@ record public final org.ipro.query.ui.editor.QueryParameterDescriptor
   method public org.ipro.query.ui.editor.QueryParameterDescriptor$InferenceStatus inferenceStatus()
   method public static org.ipro.query.ui.editor.QueryParameterDescriptor unknown(java.lang.String)
 
+record public final org.ipro.query.ui.grid.QueryGridEnvironment
+  extends java.lang.Record
+  ctor public(org.ipro.query.ui.grid.QueryProjectionSource, org.ipro.query.ui.grid.QueryReferenceLabels, org.ipro.query.ui.selection.EntitySelection, org.ipro.query.ui.grid.QueryTaskRunner, org.ipro.query.ui.grid.QueryRunHistory, java.util.function.Supplier<java.lang.String>)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.util.function.Supplier<java.lang.String> user()
+  method public org.ipro.query.ui.grid.QueryProjectionSource projections()
+  method public org.ipro.query.ui.grid.QueryReferenceLabels labels()
+  method public org.ipro.query.ui.grid.QueryRunHistory history()
+  method public org.ipro.query.ui.grid.QueryTaskRunner tasks()
+  method public org.ipro.query.ui.selection.EntitySelection selection()
+
+record public final org.ipro.query.ui.grid.QueryGridFailure
+  extends java.lang.Record
+  ctor public(org.ipro.query.ui.grid.QueryGridFailure$Kind, java.lang.String, java.lang.String, java.lang.String)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String details()
+  method public java.lang.String message()
+  method public java.lang.String title()
+  method public org.ipro.query.ui.grid.QueryGridFailure$Kind kind()
+  method public static org.ipro.query.ui.grid.QueryGridFailure missingParameters(java.util.List<java.lang.String>)
+  method public static org.ipro.query.ui.grid.QueryGridFailure of(java.lang.Throwable, org.ipro.query.ui.grid.QueryGridSpec, int)
+
+record public final org.ipro.query.ui.grid.QueryGridSpec
+  extends java.lang.Record
+  ctor public(java.lang.String, java.lang.String, org.ipro.query.model.QueryDefinition, org.ipro.filtergrid.projection.ProjectionExecutionMode, int, java.lang.String, org.ipro.query.ui.grid.QueryGridState, org.ipro.query.ui.grid.QueryGridSpec$Subject)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public int hybridMaxRows()
+  method public java.lang.String commandColumn()
+  method public java.lang.String launchKey()
+  method public java.lang.String title()
+  method public org.ipro.filtergrid.projection.ProjectionExecutionMode mode()
+  method public org.ipro.query.model.QueryDefinition query()
+  method public org.ipro.query.ui.grid.QueryGridSpec withCommandColumn(java.lang.String)
+  method public org.ipro.query.ui.grid.QueryGridSpec withMode(org.ipro.filtergrid.projection.ProjectionExecutionMode)
+  method public org.ipro.query.ui.grid.QueryGridSpec withStandardState(org.ipro.query.ui.grid.QueryGridState)
+  method public org.ipro.query.ui.grid.QueryGridSpec withSubject(org.ipro.query.ui.grid.QueryGridSpec$Subject)
+  method public org.ipro.query.ui.grid.QueryGridSpec$Subject subject()
+  method public org.ipro.query.ui.grid.QueryGridState standardState()
+  method public static org.ipro.query.ui.grid.QueryGridSpec of(java.lang.String, java.lang.String, org.ipro.query.model.QueryDefinition)
+
+record public final org.ipro.query.ui.grid.QueryGridState
+  extends java.lang.Record
+  ctor public(java.util.List<org.ipro.query.ui.grid.QueryGridState$Column>, java.util.Set<java.lang.String>, java.util.List<org.ipro.query.ui.grid.QueryGridState$Sort>, org.ipro.filtergrid.filter.FilterNode, java.util.List<java.lang.String>, java.util.List<org.ipro.query.ui.grid.QueryGridState$Aggregate>, java.util.Map<java.lang.String, org.ipro.filtergrid.FooterAggregateKind>)
+  field public static final int MAX_GROUP_LEVELS = 3
+  field public static final java.lang.String OPTION_GROUP = query.group
+  field public static final java.lang.String OPTION_GROUP_AGGREGATES = query.groupAgg
+  field public static final java.lang.String OPTION_HIDDEN = query.hidden
+  field public static final java.lang.String OPTION_SORT = query.sort
+  field public static final java.lang.String OPTION_TOTALS = query.totals
+  field public static final org.ipro.query.ui.grid.QueryGridState EMPTY
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.util.List<java.lang.String> groupLevels()
+  method public java.util.List<org.ipro.query.ui.grid.QueryGridState$Aggregate> groupAggregates()
+  method public java.util.List<org.ipro.query.ui.grid.QueryGridState$Column> columns()
+  method public java.util.List<org.ipro.query.ui.grid.QueryGridState$Sort> sort()
+  method public java.util.Map<java.lang.String, org.ipro.filtergrid.FooterAggregateKind> totals()
+  method public java.util.Set<java.lang.String> hidden()
+  method public org.ipro.filtergrid.filter.FilterNode filter()
+  method public org.ipro.metadata.GridViewState toViewState()
+  method public org.ipro.query.ui.grid.QueryGridState withFilter(org.ipro.filtergrid.filter.FilterNode)
+  method public org.ipro.query.ui.grid.QueryGridState withTotals(java.util.Map<java.lang.String, org.ipro.filtergrid.FooterAggregateKind>)
+  method public static org.ipro.query.ui.grid.QueryGridState fromViewState(org.ipro.metadata.GridViewState)
+
 record public final org.ipro.query.ui.list.ConstructorList
   extends java.lang.Record
   ctor public(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, boolean, org.ipro.query.VisualQueryOrder$Direction, java.util.List<org.ipro.query.VisualQueryPackage$Cte>, org.ipro.query.QueryBuilderMetadataCatalog$Entity, java.lang.String)
@@ -374,6 +610,23 @@ record public final org.ipro.query.ui.list.ConstructorList
   method public org.ipro.query.QueryBuilderMetadataCatalog$Entity entity()
   method public org.ipro.query.VisualQueryOrder$Direction direction()
   method public org.ipro.query.VisualQueryPackage sourceQuery()
+
+record public final org.ipro.query.ui.listform.QueryListOptions
+  extends java.lang.Record
+  ctor public(java.lang.String, boolean, org.ipro.query.ui.listform.QueryListViews, java.util.function.Supplier<java.lang.String>)
+  field public static final org.ipro.query.ui.listform.QueryListOptions DEFAULT
+  method public boolean embedded()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String formKey(java.lang.String)
+  method public java.lang.String variant()
+  method public java.util.function.Supplier<java.lang.String> link()
+  method public org.ipro.query.ui.listform.QueryListOptions asEmbedded()
+  method public org.ipro.query.ui.listform.QueryListOptions withLink(java.util.function.Supplier<java.lang.String>)
+  method public org.ipro.query.ui.listform.QueryListOptions withVariant(java.lang.String)
+  method public org.ipro.query.ui.listform.QueryListOptions withViews(org.ipro.query.ui.listform.QueryListViews)
+  method public org.ipro.query.ui.listform.QueryListViews views()
 
 record public static final org.ipro.query.ui.constructor.JpqlQueryBuilderDialog$Result
   extends java.lang.Record
@@ -431,4 +684,100 @@ record public static final org.ipro.query.ui.editor.QueryMetadataCatalogService$
   method public java.lang.String caption()
   method public java.lang.String className()
   method public java.lang.String entityName()
+
+record public static final org.ipro.query.ui.grid.QueryGridPanel$ColumnEdit
+  extends java.lang.Record
+  ctor public(java.lang.String, java.lang.String, java.lang.Integer, boolean)
+  method public boolean visible()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.Integer width()
+  method public java.lang.String alias()
+  method public java.lang.String title()
+
+record public static final org.ipro.query.ui.grid.QueryGridPanel$ColumnView
+  extends java.lang.Record
+  ctor public(java.lang.String, java.lang.String, java.lang.String, java.lang.Integer, boolean)
+  method public boolean visible()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.Integer width()
+  method public java.lang.String alias()
+  method public java.lang.String queryHeader()
+  method public java.lang.String title()
+
+record public static final org.ipro.query.ui.grid.QueryGridPanel$TotalOption
+  extends java.lang.Record
+  ctor public(java.lang.String, java.lang.String, boolean, org.ipro.filtergrid.FooterAggregateKind)
+  method public boolean numeric()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String alias()
+  method public java.lang.String title()
+  method public org.ipro.filtergrid.FooterAggregateKind current()
+
+record public static final org.ipro.query.ui.grid.QueryGridState$Aggregate
+  extends java.lang.Record
+  ctor public(java.lang.String, org.ipro.filtergrid.grouping.GroupAggregation$AggFunction)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String alias()
+  method public org.ipro.filtergrid.grouping.GroupAggregation$AggFunction function()
+
+record public static final org.ipro.query.ui.grid.QueryGridState$Column
+  extends java.lang.Record
+  ctor public(java.lang.String, java.lang.String, java.lang.String)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String alias()
+  method public java.lang.String title()
+  method public java.lang.String width()
+
+record public static final org.ipro.query.ui.grid.QueryGridState$Sort
+  extends java.lang.Record
+  ctor public(java.lang.String, boolean)
+  method public boolean descending()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String alias()
+
+record public static final org.ipro.query.ui.grid.QueryProjectionSource$Prepared
+  extends java.lang.Record
+  ctor public(org.ipro.filtergrid.projection.ProjectionDefinition, java.util.Map<java.lang.String, java.lang.Object>, org.ipro.filtergrid.projection.ExecutionStrategy, jakarta.persistence.EntityManager, int)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public int inMemoryLimit()
+  method public jakarta.persistence.EntityManager entityManager()
+  method public java.util.Map<java.lang.String, java.lang.Object> bindings()
+  method public org.ipro.filtergrid.projection.ExecutionStrategy strategy()
+  method public org.ipro.filtergrid.projection.ProjectionDefinition definition()
+
+record public static final org.ipro.query.ui.listform.QueryListCommands$Decision
+  extends java.lang.Record
+  ctor public(boolean, java.lang.String)
+  method public boolean actionable()
+  method public boolean visible()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String blockReason()
+
+record public static final org.ipro.query.ui.listform.QueryListViews$View
+  extends java.lang.Record
+  ctor public(java.lang.String, java.lang.String, boolean, boolean, org.ipro.metadata.GridViewState)
+  method public boolean editable()
+  method public boolean shared()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String id()
+  method public java.lang.String name()
+  method public org.ipro.metadata.GridViewState state()
 

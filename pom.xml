@@ -120,6 +120,13 @@
             <classifier>tests</classifier>
             <scope>test</scope>
         </dependency>
+        <!-- Проверка независимости маршрута списка от установленного, но выключенного UTR. -->
+        <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>platform-utr</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
         <!-- M1.2: UI запроса (редактор/конструктор/список/каталог) без формы платформы:
              выбор ссылки приходит портом EntitySelection, адаптер — в приложении. -->
         <dependency>

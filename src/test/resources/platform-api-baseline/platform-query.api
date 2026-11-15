@@ -34,10 +34,32 @@ class public final org.ipro.query.QueryFieldFilterFieldResolver
 class public final org.ipro.query.QueryFieldReconciler
   method public static org.ipro.query.ReconcileResult reconcile(java.util.List<org.ipro.report.data.QueryField>, java.util.List<org.ipro.report.data.QueryField>, java.util.List<java.lang.String>)
 
+class public final org.ipro.query.QueryLayoutReconciler
+  method public static org.ipro.query.QueryLayoutReconciler$Result reconcile(org.ipro.metadata.GridViewState, java.util.Set<java.lang.String>)
+
+class public final org.ipro.query.QueryProjectionCompiler
+  ctor public(jakarta.persistence.EntityManagerFactory, org.ipro.query.ReportQueryAssemblyService, org.ipro.query.ReportQueryGuard)
+  method public boolean isCommandEntity(java.lang.String)
+  method public java.util.List<org.ipro.filtergrid.projection.ColumnMeta> describe(org.ipro.query.model.QueryDefinition)
+  method public org.ipro.query.QueryProjectionCompiler$Inspection inspect(org.ipro.query.model.QueryDefinition)
+  method public org.ipro.query.QueryProjectionCompiler$PreparedProjection compile(java.lang.String, org.ipro.query.model.QueryDefinition, org.ipro.query.ReportContext, java.util.Map<java.lang.String, java.lang.Object>, org.ipro.filtergrid.projection.ProjectionExecutionMode, int, java.lang.String)
+  method public void requireReadAccess(org.ipro.query.model.QueryDefinition)
+
+class public final org.ipro.query.QueryReadRefusedException
+  extends java.lang.IllegalStateException
+  ctor public(org.ipro.query.QueryReadRefusedException$Reason, java.lang.String)
+  method public org.ipro.query.QueryReadRefusedException$Reason reason()
+
 class public final org.ipro.query.QueryResultLabelPresenter
   implements org.ipro.query.QueryResultPresenter
   ctor public(org.ipro.data.presentation.EntityPresentationService, org.ipro.register.RecorderTypeRegistry)
   method public org.ipro.report.data.ReportDataset present(org.ipro.query.QueryPresentationPlan, java.util.List<org.ipro.report.data.QueryField>, org.ipro.report.data.ReportDataset)
+
+class public final org.ipro.query.ReportProjectionReads
+  ctor public(jakarta.persistence.EntityManager, org.springframework.transaction.PlatformTransactionManager, org.ipro.query.ReportQueryGuard, org.ipro.rls.RlsCurrentUser, org.ipro.rls.RlsFilterActivator, org.ipro.query.ReportRunQuota, int)
+  method public int inMemoryLimit()
+  method public jakarta.persistence.EntityManager entityManager()
+  method public org.ipro.query.ReportProjectionReads$ReadPath create(org.ipro.filtergrid.projection.ProjectionDefinition, org.ipro.query.model.QueryLimits)
 
 class public final org.ipro.query.ReportQueryLanguage
   ctor public(org.ipro.query.QueryBuilderMetadataCatalog, org.ipro.query.register.RegisterSliceReportTemplates)
@@ -106,6 +128,20 @@ class public final org.ipro.query.VisualQueryTextParser
 class public final org.ipro.query.WhereClauseApplier
   method public static java.lang.String apply(java.lang.String, java.lang.String)
 
+class public final org.ipro.query.list.QueryListRegistry
+  ctor public(org.ipro.query.list.QueryListRepository, org.ipro.query.list.QueryListAdminAccess, org.ipro.rls.RlsCurrentUser, org.ipro.query.QueryProjectionCompiler, java.util.List<org.ipro.query.list.QueryListDeclaration>, org.springframework.transaction.PlatformTransactionManager)
+  method public java.time.Instant checkedAt()
+  method public java.util.List<org.ipro.query.list.QueryListRegistry$Entry> administrativeEntries()
+  method public java.util.List<org.ipro.query.list.QueryListRegistry$Entry> recheck()
+  method public java.util.Optional<java.lang.String> openingDiagnostic(java.lang.String)
+  method public java.util.Optional<org.ipro.query.list.QueryListRegistry$Entry> findOpenable(java.lang.String)
+  method public org.ipro.query.list.QueryListRegistry$Check check(org.ipro.query.list.QueryListDefinition)
+  method public org.ipro.query.list.QueryListRegistry$Entry create(org.ipro.query.list.QueryListDefinition, boolean)
+  method public org.ipro.query.list.QueryListRegistry$Entry setEnabled(java.lang.String, long, boolean)
+  method public org.ipro.query.list.QueryListRegistry$Entry update(org.ipro.query.list.QueryListDefinition, long, boolean)
+  method public void delete(java.lang.String, long)
+  method public void initialize()
+
 class public final org.ipro.query.register.RegisterReportReadPolicy
   implements org.ipro.query.ReportReadPolicy
   ctor public(jakarta.persistence.EntityManagerFactory, org.ipro.rls.RlsDimensionRegistry, org.ipro.register.RegisterRegistry)
@@ -131,6 +167,7 @@ class public final org.ipro.query.register.RegisterSliceReportTemplates
   method public java.util.Set<java.lang.String> constructorNamespace(org.ipro.query.register.RegisterSliceReportTemplates$ConstructorSlice)
   method public org.ipro.query.model.QueryDefinition createSliceQuery(org.ipro.register.SliceSpec, java.lang.String)
   method public org.ipro.query.model.QueryDefinition createSliceQuery(org.ipro.register.SliceSpec, java.lang.String, java.util.List<org.ipro.query.register.SliceParameterFilter>)
+  method public org.ipro.query.register.RegisterSliceReportTemplates forStructureValidation(org.ipro.query.QueryBuilderMetadataCatalog)
   method public org.ipro.query.register.RegisterSliceReportTemplates$ConstructorSlice constructorSlice(org.ipro.register.SliceSpec, java.lang.String, java.util.Set<java.lang.String>)
   method public org.ipro.query.register.RegisterSliceReportTemplates$ConstructorSlice constructorSlice(org.ipro.register.SliceSpec, java.lang.String, java.util.Set<java.lang.String>, java.util.List<org.ipro.query.register.SliceParameterFilter>)
 
@@ -201,9 +238,11 @@ class public org.ipro.query.config.QueryAutoConfiguration
   annotation org.springframework.boot.autoconfigure.AutoConfiguration
   ctor public()
   method public org.ipro.query.QueryBuilderMetadataCatalog queryBuilderMetadataCatalog(org.ipro.metadata.ManagedEntityTypes, org.ipro.metadata.MetadataResolver, org.ipro.rls.RlsReadGate, org.ipro.rls.RlsCurrentUser, org.ipro.data.EntityDescriptorCatalog)
+  method public org.ipro.query.QueryProjectionCompiler queryProjectionCompiler(jakarta.persistence.EntityManagerFactory, org.ipro.query.ReportQueryAssemblyService, org.ipro.query.ReportQueryGuard)
   method public org.ipro.query.QuerySemanticAnalyzer reportQuerySemanticAnalyzer(jakarta.persistence.EntityManagerFactory)
   method public org.ipro.query.QuerySnapshotService querySnapshotService(org.ipro.query.ReportPreviewService)
   method public org.ipro.query.ReportPreviewService reportPreviewService(org.ipro.query.ReportQueryExecutor)
+  method public org.ipro.query.ReportProjectionReads reportProjectionReads(jakarta.persistence.EntityManager, org.springframework.transaction.PlatformTransactionManager, org.ipro.query.ReportQueryGuard, org.ipro.rls.RlsCurrentUser, org.ipro.rls.RlsFilterActivator, org.ipro.query.ReportRunQuota, int)
   method public org.ipro.query.ReportQueryAssemblyService reportQueryAssemblyService(org.ipro.query.ReportQueryGuard, org.ipro.query.param.ReportParamResolver, org.ipro.query.param.EntityParamRefresher, org.ipro.query.QueryBuilderMetadataCatalog, org.ipro.query.ReportQueryLanguage)
   method public org.ipro.query.ReportQueryExecutor reportQueryExecutor(jakarta.persistence.EntityManager, org.ipro.rls.RlsFilterActivator, org.ipro.rls.RlsCurrentUser, org.ipro.query.ReportQueryGuard, org.ipro.query.ReportReadAuthorizer, org.ipro.data.presentation.EntityPresentationService, org.ipro.register.RecorderTypeRegistry)
   method public org.ipro.query.ReportQueryGuard reportQueryGuard(org.ipro.query.QuerySemanticAnalyzer, org.ipro.rls.AccessService, org.ipro.rls.RlsDimensionRegistry, org.ipro.rls.RlsCurrentUser, jakarta.persistence.EntityManagerFactory, org.ipro.query.ReportReadAuthorizer)
@@ -216,6 +255,13 @@ class public org.ipro.query.config.QueryAutoConfiguration
   method public org.ipro.query.register.RegisterReportReadPolicy registerReportReadPolicy(jakarta.persistence.EntityManagerFactory, org.ipro.rls.RlsDimensionRegistry, org.ipro.register.RegisterRegistry)
   method public org.ipro.query.register.RegisterSliceCteGenerator registerSliceCteGenerator()
   method public org.ipro.query.register.RegisterSliceReportTemplates registerSliceReportTemplates(jakarta.persistence.EntityManagerFactory, org.ipro.register.RegisterRegistry, org.ipro.query.QueryBuilderMetadataCatalog, org.ipro.query.register.RegisterSliceCteGenerator, org.ipro.rls.c5.C5PermissionEvaluator, org.ipro.rls.RlsCurrentUser)
+
+class public org.ipro.query.config.QueryListAutoConfiguration
+  annotation org.springframework.boot.autoconfigure.AutoConfiguration
+  annotation org.springframework.boot.autoconfigure.condition.ConditionalOnBean
+  annotation org.springframework.boot.persistence.autoconfigure.EntityScan
+  annotation org.springframework.data.jpa.repository.config.EnableJpaRepositories
+  ctor public()
 
 class public org.ipro.query.param.EntityParamRefresher
   ctor public(jakarta.persistence.EntityManager, org.ipro.rls.RlsFilterActivator, org.ipro.rls.RlsReadGate, org.ipro.rls.RlsCurrentUser, org.hibernate.engine.spi.SessionFactoryImplementor)
@@ -387,6 +433,16 @@ enum public static final org.ipro.query.QueryDiagnostic$Severity
   method public static org.ipro.query.QueryDiagnostic$Severity valueOf(java.lang.String)
   method public static org.ipro.query.QueryDiagnostic$Severity[] values()
 
+enum public static final org.ipro.query.QueryReadRefusedException$Reason
+  extends java.lang.Enum<org.ipro.query.QueryReadRefusedException$Reason>
+  enum-constants [ROW_LIMIT, QUOTA_BUSY, ACCESS_CHANGED, ACCESS_DENIED]
+  field public static final org.ipro.query.QueryReadRefusedException$Reason ACCESS_CHANGED = enum-constant
+  field public static final org.ipro.query.QueryReadRefusedException$Reason ACCESS_DENIED = enum-constant
+  field public static final org.ipro.query.QueryReadRefusedException$Reason QUOTA_BUSY = enum-constant
+  field public static final org.ipro.query.QueryReadRefusedException$Reason ROW_LIMIT = enum-constant
+  method public static org.ipro.query.QueryReadRefusedException$Reason valueOf(java.lang.String)
+  method public static org.ipro.query.QueryReadRefusedException$Reason[] values()
+
 enum public static final org.ipro.query.VisualQueryDefinition$HavingOperator
   extends java.lang.Enum<org.ipro.query.VisualQueryDefinition$HavingOperator>
   enum-constants [EQ, NE, GT, GE, LT, LE]
@@ -427,6 +483,16 @@ enum public static final org.ipro.query.VisualQueryOrder$Direction
   method public static org.ipro.query.VisualQueryOrder$Direction valueOf(java.lang.String)
   method public static org.ipro.query.VisualQueryOrder$Direction[] values()
 
+enum public static final org.ipro.query.list.QueryListDefinition$Command
+  extends java.lang.Enum<org.ipro.query.list.QueryListDefinition$Command>
+  enum-constants [CREATE, OPEN, EDIT, DELETE]
+  field public static final org.ipro.query.list.QueryListDefinition$Command CREATE = enum-constant
+  field public static final org.ipro.query.list.QueryListDefinition$Command DELETE = enum-constant
+  field public static final org.ipro.query.list.QueryListDefinition$Command EDIT = enum-constant
+  field public static final org.ipro.query.list.QueryListDefinition$Command OPEN = enum-constant
+  method public static org.ipro.query.list.QueryListDefinition$Command valueOf(java.lang.String)
+  method public static org.ipro.query.list.QueryListDefinition$Command[] values()
+
 enum public static final org.ipro.query.register.RegisterSliceCteGenerator$Role
   extends java.lang.Enum<org.ipro.query.register.RegisterSliceCteGenerator$Role>
   enum-constants [DIMENSION, PERIOD, RESOURCE, RECORDER]
@@ -455,6 +521,17 @@ interface public abstract interface org.ipro.query.ReportReadPolicy
   method public abstract java.util.List<java.lang.String> violations(java.util.Set<java.lang.Class<?>>)
 
 interface public abstract interface org.ipro.query.VisualQueryExpression
+
+interface public abstract interface org.ipro.query.list.QueryListAdminAccess
+  annotation java.lang.FunctionalInterface
+  method public abstract boolean isAdministrator()
+
+interface public abstract interface org.ipro.query.list.QueryListDeclaration
+  annotation java.lang.FunctionalInterface
+  method public abstract org.ipro.query.list.QueryListDefinition definition()
+
+interface public abstract interface org.ipro.query.list.QueryListRepository
+  implements org.springframework.data.jpa.repository.JpaRepository<org.ipro.query.list.QueryListEntity, java.lang.String>
 
 interface public abstract static interface org.ipro.query.ReportRunQuota$Slot
   annotation java.lang.FunctionalInterface
@@ -663,6 +740,21 @@ record public final org.ipro.query.VisualQueryParameter
   method public final java.lang.String toString()
   method public java.lang.String name()
 
+record public final org.ipro.query.list.QueryListDefinition
+  extends java.lang.Record
+  ctor public(java.lang.String, java.lang.String, org.ipro.query.model.QueryDefinition, org.ipro.metadata.GridViewState, org.ipro.filtergrid.projection.ProjectionExecutionMode, org.ipro.query.list.QueryListDefinition$CommandObject, java.util.Set<org.ipro.query.list.QueryListDefinition$Command>, org.ipro.filtergrid.projection.QueryProvenance)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String key()
+  method public java.lang.String title()
+  method public java.util.Set<org.ipro.query.list.QueryListDefinition$Command> commands()
+  method public org.ipro.filtergrid.projection.ProjectionExecutionMode mode()
+  method public org.ipro.filtergrid.projection.QueryProvenance provenance()
+  method public org.ipro.metadata.GridViewState standardView()
+  method public org.ipro.query.list.QueryListDefinition$CommandObject commandObject()
+  method public org.ipro.query.model.QueryDefinition query()
+
 record public final org.ipro.query.model.QueryDefinition
   extends java.lang.Record
   ctor public(java.lang.String, org.ipro.query.model.QuerySource, java.lang.String, java.lang.String, java.util.List<org.ipro.query.model.QueryParameter>)
@@ -863,6 +955,15 @@ record public static final org.ipro.query.QueryBuilderMetadataCatalog$Field
   method public java.lang.String name()
   method public java.util.List<java.lang.String> aliases()
 
+record public static final org.ipro.query.QueryLayoutReconciler$Result
+  extends java.lang.Record
+  ctor public(org.ipro.metadata.GridViewState, java.util.List<java.lang.String>)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.util.List<java.lang.String> missingColumns()
+  method public org.ipro.metadata.GridViewState layout()
+
 record public static final org.ipro.query.QueryPresentationPlan$Column
   extends java.lang.Record
   ctor public(java.lang.String, java.lang.String, java.lang.String, java.lang.Class<?>)
@@ -874,6 +975,37 @@ record public static final org.ipro.query.QueryPresentationPlan$Column
   method public java.lang.String name()
   method public java.lang.String typeColumn()
 
+record public static final org.ipro.query.QueryProjectionCompiler$CommandObject
+  extends java.lang.Record
+  ctor public(java.lang.String, java.lang.Class<?>)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.Class<?> entityType()
+  method public java.lang.String column()
+
+record public static final org.ipro.query.QueryProjectionCompiler$Inspection
+  extends java.lang.Record
+  ctor public(java.util.List<org.ipro.filtergrid.projection.ColumnMeta>, java.util.List<java.lang.String>, java.util.List<java.lang.String>)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.util.List<java.lang.String> entities()
+  method public java.util.List<java.lang.String> rowKey()
+  method public java.util.List<org.ipro.filtergrid.projection.ColumnMeta> columns()
+
+record public static final org.ipro.query.QueryProjectionCompiler$PreparedProjection
+  extends java.lang.Record
+  ctor public(org.ipro.filtergrid.projection.ProjectionDefinition, java.util.Map<java.lang.String, java.lang.Object>, org.ipro.query.QueryPresentationPlan, org.ipro.query.model.QueryLimits, org.ipro.query.QueryProjectionCompiler$CommandObject)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.util.Map<java.lang.String, java.lang.Object> bindings()
+  method public org.ipro.filtergrid.projection.ProjectionDefinition definition()
+  method public org.ipro.query.QueryPresentationPlan presentations()
+  method public org.ipro.query.QueryProjectionCompiler$CommandObject commandObject()
+  method public org.ipro.query.model.QueryLimits limits()
+
 record public static final org.ipro.query.ReconcileResult$TypeChange
   extends java.lang.Record
   ctor public(java.lang.String, java.lang.Class<?>, java.lang.Class<?>)
@@ -883,6 +1015,15 @@ record public static final org.ipro.query.ReconcileResult$TypeChange
   method public java.lang.Class<?> oldType()
   method public java.lang.String name()
   method public java.lang.String toString()
+
+record public static final org.ipro.query.ReportProjectionReads$ReadPath
+  extends java.lang.Record
+  ctor public(org.ipro.filtergrid.projection.ExecutionStrategy, org.ipro.filtergrid.projection.ProjectionQueryPolicy)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public org.ipro.filtergrid.projection.ExecutionStrategy strategy()
+  method public org.ipro.filtergrid.projection.ProjectionQueryPolicy policy()
 
 record public static final org.ipro.query.ReportQueryLanguage$Parsed
   extends java.lang.Record
@@ -1176,6 +1317,47 @@ record public static final org.ipro.query.VisualQueryTextParser$ParsedExpression
   method public final java.lang.String toString()
   method public java.util.List<java.lang.String> warnings()
   method public org.ipro.query.VisualQueryExpression expression()
+
+record public static final org.ipro.query.list.QueryListDefinition$CommandObject
+  extends java.lang.Record
+  ctor public(java.lang.String, java.lang.String)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String column()
+  method public java.lang.String entityClass()
+
+record public static final org.ipro.query.list.QueryListRegistry$Check
+  extends java.lang.Record
+  ctor public(java.lang.String, java.util.List<java.lang.String>, java.util.List<java.lang.String>, java.util.List<java.lang.String>)
+  ctor public(java.lang.String, java.util.List<java.lang.String>, java.util.List<java.lang.String>, java.util.List<java.lang.String>, java.util.List<org.ipro.query.list.QueryListDefinition$CommandObject>)
+  method public boolean ok()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String diagnostic()
+  method public java.util.List<java.lang.String> columns()
+  method public java.util.List<java.lang.String> entities()
+  method public java.util.List<java.lang.String> rowKey()
+  method public java.util.List<org.ipro.query.list.QueryListDefinition$CommandObject> commandColumns()
+
+record public static final org.ipro.query.list.QueryListRegistry$Entry
+  extends java.lang.Record
+  ctor public(java.lang.String, java.lang.String, org.ipro.query.list.QueryListDefinition, boolean, java.lang.Long, java.lang.String, java.time.Instant, java.lang.String, java.util.List<java.lang.String>)
+  method public boolean declared()
+  method public boolean enabled()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.Long version()
+  method public java.lang.String diagnostic()
+  method public java.lang.String key()
+  method public java.lang.String launchKey()
+  method public java.lang.String modifiedBy()
+  method public java.lang.String title()
+  method public java.time.Instant modifiedAt()
+  method public java.util.List<java.lang.String> entities()
+  method public org.ipro.query.list.QueryListDefinition definition()
 
 record public static final org.ipro.query.register.RegisterSliceCteGenerator$Column
   extends java.lang.Record

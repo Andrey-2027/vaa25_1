@@ -49,6 +49,12 @@ public class ReportQueryGuard {
     private final org.hibernate.engine.spi.SessionFactoryImplementor sessionFactory;
     private final ReportReadAuthorizer readAuthorizer;
 
+    private static final int PROJECTION_CACHE_SIZE = 256;
+    private final java.util.LinkedHashMap<String, ProjectionAnalysis> projectionAnalysis =
+            new java.util.LinkedHashMap<>(16, 0.75f, true);
+
+    private record ProjectionAnalysis(Analysis analysis, ReportReadAuthorizer.ReadShape readShape) { }
+
     /** @deprecated Structural test adapter; production must supply the C5 authorizer. */
     @Deprecated(forRemoval = true)
     public ReportQueryGuard(QuerySemanticAnalyzer analyzer, AccessService accessService,
@@ -99,7 +105,45 @@ public class ReportQueryGuard {
     public GuardResult guard(String jpql, Set<String> templateParamNames,
                              Map<String, Class<?>> paramEntityClasses, int maxColumns) {
         jpql = ServiceParams.expand(jpql);
-        Analysis analysis = analyzer.analyze(jpql);
+        return check(jpql, templateParamNames, paramEntityClasses, maxColumns, analyzer.analyze(jpql), null, true);
+    }
+
+    GuardResult guardStructure(String jpql, Set<String> parameterNames, Map<String, Class<?>> parameterTypes) {
+        jpql = ServiceParams.expand(jpql);
+        var checked = check(jpql, parameterNames, parameterTypes, MAX_COLUMNS, analyzer.analyze(jpql), null, false);
+        if (!checked.allowed()) return checked;
+        var errors = new ArrayList<String>();
+        parameterTypes.forEach((name, type) -> {
+            if (hibernateEntityName(type) == null) {
+                errors.add("Тип параметра :" + name + " не является сущностью");
+            }
+        });
+        return errors.isEmpty() ? checked : GuardResult.denied(errors, checked.warnings(), checked.analysis());
+    }
+
+    GuardResult guardProjection(String hql, Set<String> parameterNames, Map<String, Class<?>> parameterTypes) {
+        var cached = projectionAnalysis(hql);
+        return check(hql, parameterNames, parameterTypes, MAX_COLUMNS, cached.analysis(), cached.readShape(), true);
+    }
+
+    private synchronized ProjectionAnalysis projectionAnalysis(String hql) {
+        var cached = projectionAnalysis.get(hql);
+        if (cached != null) {
+            return cached;
+        }
+        var analysis = analyzer.analyze(hql);
+        var shape = analysis.valid() && readAuthorizer != null ? readAuthorizer.inspect(hql, analysis) : null;
+        cached = new ProjectionAnalysis(analysis, shape);
+        projectionAnalysis.put(hql, cached);
+        if (projectionAnalysis.size() > PROJECTION_CACHE_SIZE) {
+            projectionAnalysis.pollFirstEntry();
+        }
+        return cached;
+    }
+
+    private GuardResult check(String jpql, Set<String> templateParamNames,
+                              Map<String, Class<?>> paramEntityClasses, int maxColumns,
+                              Analysis analysis, ReportReadAuthorizer.ReadShape shape, boolean checkAccess) {
         List<String> errors = new ArrayList<>();
         List<String> warnings = new ArrayList<>();
 
@@ -130,10 +174,10 @@ public class ReportQueryGuard {
                 + " (лимит " + maxColumns + ") — сузьте запрос");
         }
 
-        List<String> rlsErrors = checkRls(analysis, declared, paramEntityClasses);
-        errors.addAll(rlsErrors);
-        if (readAuthorizer != null) {
-            errors.addAll(readAuthorizer.violations(jpql, paramEntityClasses));
+        if (checkAccess) errors.addAll(checkRls(analysis, declared, paramEntityClasses));
+        if (checkAccess && readAuthorizer != null) {
+            errors.addAll(shape == null ? readAuthorizer.violations(jpql, paramEntityClasses)
+                    : readAuthorizer.violations(shape, paramEntityClasses));
         }
 
         return new GuardResult(errors.isEmpty(), errors, warnings, analysis);

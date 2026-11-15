@@ -42,6 +42,13 @@ public final class FormEntitySelection implements EntitySelection {
     }
 
     @Override
+    public java.util.Optional<HasDisplayName> find(Class<?> entityClass, Long id) {
+        if (id == null) return java.util.Optional.empty();
+        return lookup.findSelectedById(entityClass, id).filter(HasDisplayName.class::isInstance)
+                .map(HasDisplayName.class::cast);
+    }
+
+    @Override
     @SuppressWarnings({"unchecked", "rawtypes"})
     public Field field(String label, Class<?> entityClass) {
         List<String> searchFields = columns(entityClass).stream()

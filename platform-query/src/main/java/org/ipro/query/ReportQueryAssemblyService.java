@@ -91,8 +91,52 @@ public class ReportQueryAssemblyService {
     public ReportQueryAssembler assemble(QueryDefinition definition, ReportContext context,
                                          Map<String, Object> formValues,
                                          List<String> groupFields, List<QuerySort> sorts) {
+        return assemble(definition, context, formValues, groupFields, sorts, resolveExecutableJpql(definition));
+    }
+
+    ReportQueryAssembler assembleProjection(QueryDefinition definition, ReportContext context,
+                                            Map<String, Object> formValues,
+                                            java.util.function.UnaryOperator<String> lowerManualQuery) {
+        definition = lowerProjectionQuery(definition, lowerManualQuery);
+        return assemble(definition, context, formValues, List.of(), List.of(), resolveExecutableJpql(definition));
+    }
+
+    ReportQueryAssembler describeProjection(QueryDefinition definition,
+                                             java.util.function.UnaryOperator<String> lowerManualQuery) {
+        definition = lowerProjectionQuery(definition, lowerManualQuery);
+        var catalog = visualCatalog == null ? null : visualCatalog.forStructureValidation();
+        var language = queryLanguage == null ? null : queryLanguage.forStructureValidation();
+        var visual = resolveExecutableJpql(definition, catalog, language);
+        var names = new LinkedHashSet<>(ReportQueryGuard.queryParameterNamesOf(definition.parameters()));
+        names.addAll(visual.bindings().keySet());
+        var types = visualParameterEntityClasses(definition);
+        var checked = guard.guardStructure(visual.jpql(), names, types);
+        if (!checked.allowed()) {
+            throw new IllegalArgumentException("Отказ: " + String.join("; ", checked.errors()));
+        }
+        // A placeholder list gives scalar and IN references a shape without resolving any runtime value.
+        Map<String, Object> placeholders = new HashMap<>();
+        names.forEach(name -> placeholders.put(name, List.of()));
+        ServiceParams.NAMES.forEach(name -> placeholders.put(name, List.of()));
+        String jpql = applyVisualFilter(ServiceParams.expand(visual.jpql()), checked, definition,
+                placeholders, visual.fields());
+        return new ReportQueryAssembler(jpql, placeholders, checked.selectFields(),
+                checked.warnings(), visual.presentations());
+    }
+
+    private static QueryDefinition lowerProjectionQuery(QueryDefinition definition,
+            java.util.function.UnaryOperator<String> lowerManualQuery) {
+        if (definition.source() == QuerySource.MANUAL && !ReportQueryLanguage.containsExtensions(definition.jpql())) {
+            return new QueryDefinition(lowerManualQuery.apply(definition.jpql()), definition.source(),
+                    definition.visualQueryJson(), definition.visualFilterJson(), definition.parameters(), definition.limits());
+        }
+        return definition;
+    }
+
+    private ReportQueryAssembler assemble(QueryDefinition definition, ReportContext context,
+                                          Map<String, Object> formValues,
+                                          List<String> groupFields, List<QuerySort> sorts, VisualCompile visual) {
         Set<String> names = ReportQueryGuard.queryParameterNamesOf(definition.parameters());
-        VisualCompile visual = resolveExecutableJpql(definition);
         String executableJpql = visual.jpql();
         // Внутренние bindings визуального запроса (WHERE-литералы, HAVING :params)
         // — часть контракта компилятора: guard должен знать их имена, executor — значения.
@@ -213,7 +257,7 @@ public class ReportQueryAssemblyService {
 
     // === Внутренние шаги ===
 
-    private Map<String, Class<?>> visualParameterEntityClasses(QueryDefinition definition) {
+    Map<String, Class<?>> visualParameterEntityClasses(QueryDefinition definition) {
         Map<String, Class<?>> result = new HashMap<>();
         for (QueryParameter parameter : definition.parameters()) {
             String className = parameter.entityClass();
@@ -263,6 +307,11 @@ public class ReportQueryAssemblyService {
     }
 
     private VisualCompile resolveExecutableJpql(QueryDefinition definition) {
+        return resolveExecutableJpql(definition, visualCatalog, queryLanguage);
+    }
+
+    private static VisualCompile resolveExecutableJpql(QueryDefinition definition,
+            QueryBuilderMetadataCatalog visualCatalog, ReportQueryLanguage queryLanguage) {
         if (definition.source() != QuerySource.VISUAL) {
             if (queryLanguage != null && ReportQueryLanguage.containsExtensions(definition.jpql())) {
                 var compiled = queryLanguage.parse(definition.jpql()).compiled();

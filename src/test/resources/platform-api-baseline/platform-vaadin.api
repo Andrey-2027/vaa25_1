@@ -1180,6 +1180,7 @@ interface public abstract interface org.ipro.form.builtin.ListPageReader
 
 interface public abstract interface org.ipro.form.coordinator.FormNavigator
   method public <T extends org.ipro.identity.IdentifiableEntity<java.lang.Long>, ID> org.ipro.form.builtin.ListForm<T, ID> createListForm(java.lang.Class<T>)
+  method public <T extends org.ipro.identity.IdentifiableEntity<java.lang.Long>> void openReadOnlyItemForm(java.lang.Class<T>, long)
   method public abstract <T extends org.ipro.identity.IdentifiableEntity<java.lang.Long>, ID> org.ipro.form.builtin.ListForm<T, ID> createListForm(java.lang.Class<T>, java.lang.String, java.util.Map<java.lang.String, java.lang.Object>)
   method public abstract <T extends org.ipro.identity.IdentifiableEntity<java.lang.Long>, ID> void openItemForm(java.lang.Class<T>, java.lang.String, ID, java.util.function.Consumer<T>, java.util.Map<java.lang.String, java.lang.Object>)
   method public abstract <T extends org.ipro.identity.IdentifiableEntity<java.lang.Long>, ID> void openListForm(java.lang.Class<T>, java.lang.String, java.util.Map<java.lang.String, java.lang.Object>)

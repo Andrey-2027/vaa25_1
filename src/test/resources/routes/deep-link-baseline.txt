@@ -123,6 +123,7 @@ route /entity-explorer/:entityKey org.ip.views.MainLayout
 route /lists/:entityKey org.ip.views.MainLayout
 route /login org.ip.views.login.LoginView
 route /queries org.ip.views.query.QueryWorkbenchView
+route /query-list/:key org.ip.views.query.QueryListView
 route /records/:entityKey/:id org.ip.views.MainLayout
 route /report-catalog org.ipro.report.ui.catalog.ReportCatalogView
 route /report-catalog-compact org.ipro.report.ui.catalog.ReportCatalogView

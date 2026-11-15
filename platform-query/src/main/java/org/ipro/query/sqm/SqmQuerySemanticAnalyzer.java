@@ -2,7 +2,7 @@ package org.ipro.query.sqm;
 
 import jakarta.persistence.EntityManagerFactory;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
-import org.hibernate.query.hql.HqlTranslator;
+import org.hibernate.query.spi.QueryEngine;
 import org.hibernate.query.sqm.tree.SqmStatement;
 import org.hibernate.query.sqm.tree.cte.SqmCteStatement;
 import org.hibernate.query.sqm.tree.domain.SqmEntityDomainType;
@@ -54,7 +54,7 @@ import java.util.Set;
 @Component
 public class SqmQuerySemanticAnalyzer implements QuerySemanticAnalyzer {
 
-    private final HqlTranslator translator;
+    private final QueryEngine queryEngine;
     private final MetadataResolver metadataResolver;
 
     public SqmQuerySemanticAnalyzer(EntityManagerFactory entityManagerFactory) {
@@ -64,10 +64,9 @@ public class SqmQuerySemanticAnalyzer implements QuerySemanticAnalyzer {
     /** Для тестов и веса caption из {@code @FieldMetadata(@Label)}. */
     public SqmQuerySemanticAnalyzer(EntityManagerFactory entityManagerFactory,
                                     MetadataResolver metadataResolver) {
-        this.translator = entityManagerFactory
+        this.queryEngine = entityManagerFactory
             .unwrap(SessionFactoryImplementor.class)
-            .getQueryEngine()
-            .getHqlTranslator();
+            .getQueryEngine();
         this.metadataResolver = metadataResolver;
     }
 
@@ -78,7 +77,8 @@ public class SqmQuerySemanticAnalyzer implements QuerySemanticAnalyzer {
         }
         SqmStatement<?> statement;
         try {
-            statement = translator.translate(jpql, null);
+            statement = queryEngine.getInterpretationCache()
+                .resolveHqlInterpretation(jpql, null, queryEngine.getHqlTranslator()).getSqmStatement();
         } catch (Exception e) {
             return Analysis.failed("Не удалось разобрать JPQL: " + e.getMessage());
         }

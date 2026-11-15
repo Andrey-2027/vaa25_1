@@ -280,6 +280,20 @@ public class ReportQueryEditor extends VerticalLayout {
         return draft;
     }
 
+    /** Имена параметров, которые используются в тексте запроса, в порядке появления. */
+    public List<String> usedParameterNames() {
+        return new ArrayList<>(extractParameterNames(getJpql()));
+    }
+
+    /**
+     * Заменяет объявления параметров в черновике. Подпись, источник значения и значение по умолчанию
+     * задаёт экран, где редактор встроен; сам редактор объявляет параметры только через «Параметры».
+     */
+    public void replaceParameters(List<QueryParameter> declared) {
+        draft = draft().withParameters(Objects.requireNonNull(declared, "declared"));
+        fireChanged();
+    }
+
     /**
      * Подсказки экрана для предпросмотра: группировки и сортировки отчёта.
      * В черновик не входят и на сохранение запроса не влияют.
