@@ -56,7 +56,8 @@ class PersistenceTypeRegistrationTest {
         Path.of("platform-register-vaadin/src/main/java"),
         // M2.1: persistence-регистрация JR принадлежит модулю, поэтому его корень обязан
         // быть виден забору — иначе @EntityScan/@EnableJpaRepositories объявляются вне проверки.
-        Path.of("platform-jr/src/main/java"));
+        Path.of("platform-jr/src/main/java"),
+        Path.of("platform-query/src/main/java"));
 
     /** Пакеты, которые обязаны быть объявлены в @EntityScan (reviewed). */
     private static final Set<String> REVIEWED_ENTITY_PACKAGES = Set.of(
@@ -66,7 +67,8 @@ class PersistenceTypeRegistrationTest {
         "org.ipro.rls",
         "org.ipro.numbering",
         "org.ipro.settings",
-        "org.ipro.jr.dom");
+        "org.ipro.jr.dom",
+        "org.ipro.query.list");
 
     /** Пакеты, которые обязаны быть объявлены в @EnableJpaRepositories (reviewed). */
     private static final Set<String> REVIEWED_REPOSITORY_PACKAGES = Set.of(
@@ -75,7 +77,8 @@ class PersistenceTypeRegistrationTest {
         "org.ipro.numbering",
         "org.ipro.settings",
         "org.ipro.telemetry.repository",
-        "org.ipro.jr");
+        "org.ipro.jr",
+        "org.ipro.query.list");
 
     /**
      * Артефакты, которые объявляют себе persistence-регистрацию (reviewed). Список
@@ -89,7 +92,7 @@ class PersistenceTypeRegistrationTest {
         // приложения ровно до переезда сущности.
         "platform-register",
         "platform-numbering", "platform-settings", "platform-telemetry",
-        "platform-rls", "platform-jr");
+        "platform-rls", "platform-jr", "platform-query");
 
     private static final Pattern SLICE = Pattern.compile("^\\s*@DataJpaTest\\b", Pattern.MULTILINE);
     /**

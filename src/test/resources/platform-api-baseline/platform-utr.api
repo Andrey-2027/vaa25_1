@@ -1,0 +1,86 @@
+# platform-utr: публичная поверхность (policy: TEMPORARY_ALL_PUBLIC, перезапись: -Dplatform.api.baseline.write=true)
+class public final org.ipro.utr.UtrFileStore
+  ctor public(java.nio.file.Path, org.ipro.rls.RlsCurrentUser, org.ipro.query.QueryProjectionCompiler)
+  method public java.lang.String exportJson(long)
+  method public java.util.List<org.ipro.utr.UtrFileStore$Entry> list(java.lang.String)
+  method public org.ipro.utr.UtrFileStore$Entry find(long)
+  method public org.ipro.utr.UtrFileStore$Opened open(long)
+  method public org.ipro.utr.UtrFileStore$Saved copy(long, java.lang.String)
+  method public org.ipro.utr.UtrFileStore$Saved copy(long, org.ipro.utr.UtrDocument, java.lang.String)
+  method public org.ipro.utr.UtrFileStore$Saved create(org.ipro.utr.UtrDocument, java.lang.String, org.ipro.utr.UtrVisibility)
+  method public org.ipro.utr.UtrFileStore$Saved importJson(java.lang.String, java.lang.String)
+  method public org.ipro.utr.UtrFileStore$Saved update(long, java.lang.String, org.ipro.utr.UtrDocument, java.lang.String, org.ipro.utr.UtrVisibility)
+
+class public final org.ipro.utr.UtrStoreException
+  extends java.lang.RuntimeException
+  method public org.ipro.utr.UtrStoreException$Code code()
+
+class public org.ipro.utr.UtrAutoConfiguration
+  annotation org.springframework.boot.autoconfigure.AutoConfiguration
+  annotation org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+  ctor public()
+
+enum public final org.ipro.utr.UtrVisibility
+  extends java.lang.Enum<org.ipro.utr.UtrVisibility>
+  enum-constants [ALL, AUTHOR]
+  field public static final org.ipro.utr.UtrVisibility ALL = enum-constant
+  field public static final org.ipro.utr.UtrVisibility AUTHOR = enum-constant
+  method public static org.ipro.utr.UtrVisibility valueOf(java.lang.String)
+  method public static org.ipro.utr.UtrVisibility[] values()
+
+enum public static final org.ipro.utr.UtrStoreException$Code
+  extends java.lang.Enum<org.ipro.utr.UtrStoreException$Code>
+  enum-constants [NOT_FOUND, FORBIDDEN, CONFLICT, DUPLICATE_TITLE, INVALID_FILE, IO]
+  field public static final org.ipro.utr.UtrStoreException$Code CONFLICT = enum-constant
+  field public static final org.ipro.utr.UtrStoreException$Code DUPLICATE_TITLE = enum-constant
+  field public static final org.ipro.utr.UtrStoreException$Code FORBIDDEN = enum-constant
+  field public static final org.ipro.utr.UtrStoreException$Code INVALID_FILE = enum-constant
+  field public static final org.ipro.utr.UtrStoreException$Code IO = enum-constant
+  field public static final org.ipro.utr.UtrStoreException$Code NOT_FOUND = enum-constant
+  method public static org.ipro.utr.UtrStoreException$Code valueOf(java.lang.String)
+  method public static org.ipro.utr.UtrStoreException$Code[] values()
+
+record public final org.ipro.utr.UtrDocument
+  extends java.lang.Record
+  ctor public(java.lang.String, org.ipro.query.model.QueryDefinition, org.ipro.metadata.GridViewState, org.ipro.filtergrid.projection.ProjectionExecutionMode)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String title()
+  method public org.ipro.filtergrid.projection.ProjectionExecutionMode mode()
+  method public org.ipro.metadata.GridViewState layout()
+  method public org.ipro.query.model.QueryDefinition query()
+
+record public static final org.ipro.utr.UtrFileStore$Entry
+  extends java.lang.Record
+  ctor public(long, java.lang.String, java.lang.String, java.lang.String, org.ipro.utr.UtrVisibility)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String author()
+  method public java.lang.String description()
+  method public java.lang.String title()
+  method public long id()
+  method public org.ipro.utr.UtrVisibility visibility()
+
+record public static final org.ipro.utr.UtrFileStore$Opened
+  extends java.lang.Record
+  ctor public(org.ipro.utr.UtrFileStore$Saved, boolean, java.lang.String, java.util.List<java.lang.String>)
+  method public boolean needsRepair()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String diagnostic()
+  method public java.util.List<java.lang.String> missingColumns()
+  method public org.ipro.utr.UtrFileStore$Saved saved()
+
+record public static final org.ipro.utr.UtrFileStore$Saved
+  extends java.lang.Record
+  ctor public(org.ipro.utr.UtrFileStore$Entry, java.lang.String, org.ipro.utr.UtrDocument)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String revision()
+  method public org.ipro.utr.UtrDocument document()
+  method public org.ipro.utr.UtrFileStore$Entry entry()
+

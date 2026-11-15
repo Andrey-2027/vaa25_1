@@ -26,6 +26,7 @@ import static org.mockito.Mockito.*;
 
 class NavigationAdminWiringTest {
     private final ObjectProvider<NavigationProfilesAdminTab> tabs = mock(ObjectProvider.class);
+    private final ObjectProvider<QueryListsAdminTab> queryListTabs = mock(ObjectProvider.class);
     private final NavigationAdministrationService service = mock(NavigationAdministrationService.class);
 
     @AfterEach void cleanup() { SecurityContextHolder.clearContext(); }
@@ -69,7 +70,7 @@ class NavigationAdminWiringTest {
         when(metamodel.getEntities()).thenReturn(Set.of());
         return new AdminView(mock(AccessGrantAdminService.class), new SettingsAdminTab(null, null, null, null, null),
             new NumberingAdminTab(null, null, null, null, null), factory,
-            new org.ipro.metadata.MetadataResolver(), List.of(), List.of(), tabs);
+            new org.ipro.metadata.MetadataResolver(), List.of(), List.of(), tabs, queryListTabs);
     }
     private static void login(String role) {
         SecurityContextHolder.getContext().setAuthentication(UsernamePasswordAuthenticationToken.authenticated(

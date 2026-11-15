@@ -95,6 +95,11 @@
             <version>${filtergrid.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.ipro</groupId>
+            <artifactId>filtergrid-projection</artifactId>
+            <version>${filtergrid.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.vaadin</groupId>
             <artifactId>vaadin-spring-boot-starter</artifactId>
             <scope>provided</scope>

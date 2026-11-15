@@ -50,8 +50,11 @@ class ReportQueryAssemblyServiceVisualFilterTest {
             List.of());
         var result = new ReportQueryAssemblyService(guard, resolver, mock(EntityParamRefresher.class))
                 .assemble(query, null, Map.of());
-        assertThat(result.jpql()).contains("p.code <> :visualFilter_1", "p.code = :reportFilter_1");
-        assertThat(result.bindings()).containsEntry("visualFilter_1", "inner").containsEntry("reportFilter_1", "outer");
+        assertThat(result.jpql()).contains("p.code <> :visualFilter_1");
+        var outer = java.util.regex.Pattern.compile("p\\.code = :([A-Za-z_][A-Za-z0-9_]*)").matcher(result.jpql());
+        assertThat(outer.find()).isTrue();
+        assertThat(outer.group(1)).isNotEqualTo("visualFilter_1");
+        assertThat(result.bindings()).containsEntry("visualFilter_1", "inner").containsEntry(outer.group(1), "outer");
     }
 
     @Test

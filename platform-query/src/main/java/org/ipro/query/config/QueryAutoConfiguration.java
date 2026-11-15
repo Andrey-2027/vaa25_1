@@ -129,6 +129,18 @@ public class QueryAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
+    public org.ipro.query.ReportProjectionReads reportProjectionReads(
+            EntityManager entityManager,
+            org.springframework.transaction.PlatformTransactionManager transactions,
+            ReportQueryGuard guard, RlsCurrentUser currentUser, RlsFilterActivator rls,
+            ReportRunQuota quota, @Value("${app.query.in-memory.max-rows:30000}") int inMemoryLimit) {
+        return new org.ipro.query.ReportProjectionReads(entityManager, transactions, guard, currentUser,
+                rls, quota, inMemoryLimit);
+    }
+
+
+    @Bean
+    @ConditionalOnMissingBean
     public ReportPreviewService reportPreviewService(ReportQueryExecutor executor) {
         return new ReportPreviewService(executor);
     }
@@ -190,4 +202,11 @@ public class QueryAutoConfiguration {
             ReportQueryAssemblyService assembly, ReportQueryExecutor executor) {
         return new ReportQueryRunService(assembly, executor);
     }
+    @Bean
+    @ConditionalOnMissingBean
+    public org.ipro.query.QueryProjectionCompiler queryProjectionCompiler(EntityManagerFactory factory,
+            ReportQueryAssemblyService assembly, ReportQueryGuard guard) {
+        return new org.ipro.query.QueryProjectionCompiler(factory, assembly, guard);
+    }
+
 }

@@ -1,10 +1,7 @@
 package org.ip.unidr.config;
 
 import com.vaadin.flow.component.UI;
-import org.ipro.crud.EntityLookup;
-import org.ipro.form.SelectionFormAssembler;
 import org.ipro.query.ReportContext;
-import org.ipro.query.ui.selection.EntitySelection;
 import org.ipro.report.ui.ReportUiPreferences;
 import org.ipro.report.ui.unidr.UniDrCatalogGateway;
 import org.ipro.report.ui.unidr.UniDrRunLauncher;
@@ -13,7 +10,6 @@ import org.ipro.unidr.store.UniDrFileStore;
 import org.ipro.unidr.ui.UniDrRunDialogFactory;
 import org.ip.unidr.model.UniDrDefinitions;
 import org.ip.views.preferences.UserPreferencesStore;
-import org.ip.views.query.FormEntitySelection;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,19 +18,12 @@ import org.springframework.context.annotation.Configuration;
  * Application side of the M2.2.2 report/UniDR ports.
  *
  * <p>The platform UI module knows only the ports; this configuration is the one place
- * that names the application's file store, run dialog factory, entity selection form
- * and preference store. It is enabled together with the UniDR pilot, so a supply
- * without UniDR simply has no gateway/launcher/selection beans.</p>
+ * that names the application's file store, run dialog factory and preference store.
+ * It is enabled together with the UniDR pilot.</p>
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty(prefix = "app.unidr", name = "enabled", havingValue = "true")
 public class UniDrUiConfiguration {
-
-    /** Query editor and UniDR parameter forms use the same entity selection as the application. */
-    @Bean
-    public EntitySelection uniDrEntitySelection(SelectionFormAssembler assembler, EntityLookup lookup) {
-        return new FormEntitySelection(assembler, lookup);
-    }
 
     /** The saved catalogue, exposed without leaking the concrete file store into report UI. */
     @Bean

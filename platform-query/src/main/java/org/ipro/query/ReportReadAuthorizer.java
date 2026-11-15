@@ -38,23 +38,38 @@ public final class ReportReadAuthorizer {
     }
 
     public List<String> violations(String hql, Map<String, Class<?>> parameterTypes) {
-        String username = currentUser.requireAuthenticatedUsername();
-        var statement = factory.getQueryEngine().getHqlTranslator().translate(hql, null);
+        var shape = inspect(hql, null);
+        return violations(shape, parameterTypes);
+    }
+
+    /** Immutable facts about the HQL. All user-dependent checks run in violations. */
+    record ReadShape(Set<Class<?>> types, Set<String> parameters,
+                     List<Class<?>> unjoinedAssociations, List<String> errors) {
+        ReadShape {
+            types = Collections.unmodifiableSet(new LinkedHashSet<>(types));
+            parameters = Set.copyOf(parameters);
+            unjoinedAssociations = List.copyOf(unjoinedAssociations);
+            errors = List.copyOf(errors);
+        }
+    }
+
+    ReadShape inspect(String hql, Analysis analysis) {
+        var statement = factory.getQueryEngine().getInterpretationCache()
+                .resolveHqlInterpretation(hql, null, factory.getQueryEngine().getHqlTranslator())
+                .getSqmStatement();
         if (!(statement instanceof SqmSelectStatement<?> select)) {
-            return List.of("Report C5: разрешён только SELECT");
+            return new ReadShape(Set.of(), Set.of(), List.of(), List.of("Report C5: разрешён только SELECT"));
         }
         var collector = new EntityCollector();
         select.accept(collector);
-        if (parameterTypes != null) {
-            for (var parameter : select.getSqmParameters()) {
-                Class<?> type = parameterTypes.get(parameter.getName());
-                if (type != null) {
-                    emf.getMetamodel().entity(type); // Неизвестный класс — ошибка, не пропуск проверки.
-                    collector.types.add(type);
-                }
+        var parameters = new HashSet<String>();
+        for (var parameter : select.getSqmParameters()) {
+            if (parameter.getName() != null) {
+                parameters.add(parameter.getName());
             }
         }
-        List<String> errors = new ArrayList<>();
+        var errors = new ArrayList<String>();
+        var unjoinedAssociations = new ArrayList<Class<?>>();
         for(var origin:collector.entityOrigins.entrySet()) {
             var section=origin.getValue().getAnnotation(org.ipro.metadata.annotation.TableSectionMetadata.class);
             if(section==null)continue;
@@ -65,28 +80,49 @@ public final class ReportReadAuthorizer {
         }
         for (SqmPath<?> path : collector.filteredAssociationPaths) {
             Class<?> type = collector.entityClass((SqmEntityDomainType<?>) path.getNodeType());
-            boolean restricted = dimensionRegistry.policyOf(type).dimensions().entrySet().stream()
-                .anyMatch(entry -> entry.getValue() == org.ipro.rls.RlsDimensionKind.FILTERABLE
-                    && accessService.getReadableIds(entry.getKey(), username) != null);
             boolean joined = collector.identityJoins.getOrDefault(path.getLhs(), Set.of())
                 .contains(path.getReferencedPathSource().getPathName());
             // A LEFT entity join applies the target's filter in ON. Reading the joined alias
             // is safe; selecting the owner's raw FK outside that ON would bypass visibility.
             joined |= collector.optionalIdentityJoins.getOrDefault(path.getLhs(),Set.of()).contains(path.getReferencedPathSource().getPathName())
                 && !collector.foreignKeysOutsideJoin.contains(path);
-            if (restricted && !joined) {
-                errors.add("RLS_ASSOCIATION_JOIN_REQUIRED: " + type.getName()
-                    + " — нужен INNER JOIN целевого типа по id; association JOIN/FK не гарантирует row filter");
+            if (!joined) {
+                unjoinedAssociations.add(type);
             }
         }
-        var schema = new org.ipro.query.sqm.SqmQuerySemanticAnalyzer(emf).analyze(hql);
+        var schema = analysis == null ? new org.ipro.query.sqm.SqmQuerySemanticAnalyzer(emf).analyze(hql) : analysis;
         for (var field : schema.selectFields()) {
             if (!scalar(field.javaType())) {
                 errors.add("Report C5: поддерживается только scalar-проекция; поле " + field.name()
                     + " имеет тип " + field.javaType().getName());
             }
         }
-        for (Class<?> type : collector.types) {
+        return new ReadShape(collector.types, parameters, unjoinedAssociations, errors);
+    }
+
+    List<String> violations(ReadShape shape, Map<String, Class<?>> parameterTypes) {
+        String username = currentUser.requireAuthenticatedUsername();
+        var types = new LinkedHashSet<>(shape.types());
+        var errors = new ArrayList<>(shape.errors());
+        if (parameterTypes != null) {
+            for (var name : shape.parameters()) {
+                Class<?> type = parameterTypes.get(name);
+                if (type != null) {
+                    emf.getMetamodel().entity(type);
+                    types.add(type);
+                }
+            }
+        }
+        for (Class<?> type : shape.unjoinedAssociations()) {
+            boolean restricted = dimensionRegistry.policyOf(type).dimensions().entrySet().stream()
+                .anyMatch(entry -> entry.getValue() == org.ipro.rls.RlsDimensionKind.FILTERABLE
+                    && accessService.getReadableIds(entry.getKey(), username) != null);
+            if (restricted) {
+                errors.add("RLS_ASSOCIATION_JOIN_REQUIRED: " + type.getName()
+                    + " — нужен INNER JOIN целевого типа по id; association JOIN/FK не гарантирует row filter");
+            }
+        }
+        for (Class<?> type : types) {
             for (String dimension : dimensionRegistry.dimensionsOf(type)) {
                 var ids = accessService.getReadableIds(dimension, username);
                 if (ids != null && ids.size() == 1 && ids.getFirst() == AccessService.NO_ACCESS_SENTINEL) {
@@ -101,7 +137,7 @@ public final class ReportReadAuthorizer {
             // entity read and RLS; there are no independent attribute permissions (ADR-0018).
         }
         for (ReportReadPolicy policy : policies) {
-            errors.addAll(policy.violations(Set.copyOf(collector.types)));
+            errors.addAll(policy.violations(Set.copyOf(types)));
         }
         return List.copyOf(errors);
     }
@@ -140,9 +176,7 @@ public final class ReportReadAuthorizer {
                     // Hibernate can read association.id straight from FK without joining the target.
                     // C5 admission alone cannot guarantee that its FILTERABLE row visibility applies.
                     if ((part instanceof SqmEntityValuedSimplePath<?>
-                            || part instanceof org.hibernate.query.sqm.tree.from.SqmAttributeJoin<?, ?>)
-                        && dimensionRegistry.policyOf(type).dimensions().containsValue(
-                            org.ipro.rls.RlsDimensionKind.FILTERABLE)) {
+                            || part instanceof org.hibernate.query.sqm.tree.from.SqmAttributeJoin<?, ?>)) {
                         filteredAssociationPaths.add(part);
                         if(!inJoinOn)foreignKeysOutsideJoin.add(part);
                     }
@@ -196,6 +230,13 @@ public final class ReportReadAuthorizer {
                     .add(association.getReferencedPathSource().getPathName());
             }
         }
+        @Override
+        public Object visitSortSpecification(org.hibernate.query.sqm.tree.select.SqmSortSpecification sort) {
+            // An ORDER BY alias/ordinal references a selection already visited by this walker.
+            return sort.getSortExpression() instanceof org.hibernate.query.sqm.tree.expression.SqmAliasedNodeRef
+                    ? sort : super.visitSortSpecification(sort);
+        }
+
         @Override public Object visitFkExpression(SqmFkExpression<?> expression) {
             // A foreign key belongs to the owner. No target row is read in this SQL operation.
             capture(expression.getLhs().getLhs());

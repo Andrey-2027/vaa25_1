@@ -60,6 +60,8 @@ public class AdminView extends VerticalLayout implements Dirtyable, Savable {
     private final NumberingAdminTab numberingTab;
     private final ObjectProvider<NavigationProfilesAdminTab> navigationTabs;
     private NavigationProfilesAdminTab navigationTab;
+    private final ObjectProvider<QueryListsAdminTab> queryListTabs;
+    private QueryListsAdminTab queryListsTab;
     private boolean uiBuilt;
     private final Map<String, String> entityLabels = new HashMap<>();
 
@@ -96,9 +98,11 @@ public class AdminView extends VerticalLayout implements Dirtyable, Savable {
                      @Autowired MetadataResolver metadataResolver,
                      @Autowired java.util.List<NamedOperationOwner> namedOperationOwners,
                      @Autowired java.util.List<NamedOperationSource> namedOperationSources,
-                     @Autowired ObjectProvider<NavigationProfilesAdminTab> navigationTabs) {
+                     @Autowired ObjectProvider<NavigationProfilesAdminTab> navigationTabs,
+                     @Autowired ObjectProvider<QueryListsAdminTab> queryListTabs) {
         this.accessGrantAdminService = accessGrantAdminService;
         this.navigationTabs = navigationTabs;
+        this.queryListTabs = queryListTabs;
         // Одиночные владельцы и источники, объявляющие несколько операций (регистровые подписи
         // приходят из платформы), для экрана неразличимы: он показывает название по id.
         for (NamedOperationOwner owner : NamedOperationSource.merge(namedOperationOwners, namedOperationSources)) {
@@ -154,16 +158,38 @@ public class AdminView extends VerticalLayout implements Dirtyable, Savable {
         Tab navigationItem = new Tab(new Span("Интерфейс"), new Icon(VaadinIcon.MENU));
         navigationTab = navigationTabs.getObject();
         tabs.add(navigationItem);
+        Tab queryListsItem = null;
+        queryListsTab = createQueryListsTab();
+        if (queryListsTab != null) {
+            queryListsItem = new Tab(new Span("Списки по запросу"), new Icon(VaadinIcon.LIST_SELECT));
+            tabs.add(queryListsItem);
+        }
         add(tabs);
 
         buildAccessTab();
 
         add(accessTab, settingsTab, numberingTab);
         add(navigationTab);
+        if (queryListsTab != null) {
+            add(queryListsTab);
+            setFlexGrow(1, queryListsTab);
+        }
         show(accessTab);
 
+        final Tab queryLists = queryListsItem;
         tabs.addSelectedChangeListener(e -> {
-            if (e.getSelectedTab() == workspaceItem) {
+            if (queryLists != null && e.getPreviousTab() == queryLists && e.getSelectedTab() != queryLists
+                    && queryListsTab.isDirty()) {
+                // Несохранённый список: остаёмся на вкладке и спрашиваем, как во вкладке «Меню».
+                Tab target = e.getSelectedTab();
+                tabs.setSelectedTab(queryLists);
+                queryListsTab.confirmLeave(() -> tabs.setSelectedTab(target));
+                return;
+            }
+            if (e.getSelectedTab() == queryLists && queryLists != null) {
+                show(queryListsTab);
+                queryListsTab.refresh();
+            } else if (e.getSelectedTab() == workspaceItem) {
                 if (permissionWorkspace == null) {
                     try {
                         permissionWorkspace = permissionWorkspaces.getObject();
@@ -198,15 +224,34 @@ public class AdminView extends VerticalLayout implements Dirtyable, Savable {
         settingsTab.setVisible(false);
         numberingTab.setVisible(false);
         navigationTab.setVisible(false);
+        if (queryListsTab != null) queryListsTab.setVisible(false);
         if (permissionWorkspace != null) permissionWorkspace.setVisible(false);
         active.setVisible(true);
     }
 
-    @Override public boolean isDirty() { return permissionWorkspace != null && permissionWorkspace.isDirty(); }
-    @Override public String getCloseConfirmMessage() {
-        return permissionWorkspace == null ? "" : permissionWorkspace.getCloseConfirmMessage();
+    /** Вкладка «Списки по запросу» не обязательна: без её бинов экран администрирования работает без неё. */
+    private QueryListsAdminTab createQueryListsTab() {
+        try {
+            return queryListTabs.getIfAvailable();
+        } catch (RuntimeException unavailable) {
+            org.slf4j.LoggerFactory.getLogger(AdminView.class).warn("Вкладка «Списки по запросу» недоступна", unavailable);
+            return null;
+        }
     }
-    @Override public boolean doSave() { return permissionWorkspace == null || permissionWorkspace.doSave(); }
+
+    private boolean queryListsDirty() { return queryListsTab != null && queryListsTab.isDirty(); }
+
+    @Override public boolean isDirty() {
+        return permissionWorkspace != null && permissionWorkspace.isDirty() || queryListsDirty();
+    }
+    @Override public String getCloseConfirmMessage() {
+        if (permissionWorkspace != null && permissionWorkspace.isDirty()) return permissionWorkspace.getCloseConfirmMessage();
+        return queryListsDirty() ? queryListsTab.closeConfirmMessage() : "";
+    }
+    @Override public boolean doSave() {
+        return (permissionWorkspace == null || permissionWorkspace.doSave())
+                && (!queryListsDirty() || queryListsTab.saveChanges());
+    }
 
     // ------------------------------------------------------ доступ (RLS)
 

@@ -90,6 +90,26 @@ class QueryUiBoundaryTest {
                 .isEmpty();
     }
 
+    /**
+     * FQ-3: ядро просмотра общее для списка и UTR и обязано собираться без портов видов и команд над
+     * объектом. Иначе виды и команды попадут в ядро, и у отчёта UTR снова появится лишнее.
+     */
+    @Test
+    void viewingCoreKnowsNeitherViewsNorObjectCommands() throws IOException {
+        List<String> shell = List.of("GridViewStore", "FormSettings", "GridFormView", "ActionResolvers",
+                "FormNavigator", "ListForm", "ProjectionListForm", "ViewStore", "ObjectCommands");
+        List<String> offenders = new ArrayList<>();
+        try (Stream<Path> files = Files.walk(SOURCES.resolve("org/ipro/query/ui/grid"))) {
+            files.filter(path -> path.toString().endsWith(".java")).forEach(path -> {
+                String source = read(path);
+                for (String word : shell) {
+                    if (source.contains(word)) offenders.add(path.getFileName() + " -> " + word);
+                }
+            });
+        }
+        assertThat(offenders).as("ядро просмотра не знает оболочек: видов, команд над объектом, ListForm").isEmpty();
+    }
+
     private static String read(Path path) {
         try {
             return Files.readString(path, StandardCharsets.UTF_8);

@@ -30,6 +30,14 @@ public interface EntitySelection {
      */
     List<ColumnPath> columns(Class<?> entityClass);
 
+    /**
+     * Сущность по идентификатору — чтобы показать сохранённое значение в поле выбора. Читается с правами
+     * текущего пользователя; пусто, если объекта нет, он недоступен или реализация чтения не даёт.
+     */
+    default java.util.Optional<HasDisplayName> find(Class<?> entityClass, Long id) {
+        return java.util.Optional.empty();
+    }
+
     /** Поле выбора сущности; поиск и модальный выбор собирает реализация. */
     Field field(String label, Class<?> entityClass);
 

@@ -260,6 +260,11 @@ public final class RegisterSliceReportTemplates {
         this(factory, registers, catalog, generator, null, null);
     }
 
+    /** Шаблоны для разбора структуры среза. Допуск проверяет рабочий запрос при выполнении. */
+    public RegisterSliceReportTemplates forStructureValidation(QueryBuilderMetadataCatalog schema) {
+        return new RegisterSliceReportTemplates(factory, registers, schema, generator);
+    }
+
     public RegisterSliceReportTemplates(EntityManagerFactory factory, RegisterRegistry registers,
                                         QueryBuilderMetadataCatalog catalog, RegisterSliceCteGenerator generator,
                                         org.ipro.rls.c5.C5PermissionEvaluator permissions, org.ipro.rls.RlsCurrentUser currentUser) {

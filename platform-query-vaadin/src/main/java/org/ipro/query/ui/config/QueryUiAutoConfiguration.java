@@ -9,8 +9,19 @@ import org.ipro.query.ui.editor.QueryMetadataCatalogService;
 import org.ipro.rls.RlsCurrentUser;
 import org.ipro.rls.RlsReadGate;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
+import org.ipro.data.presentation.EntityPresentationService;
+import org.ipro.query.QueryProjectionCompiler;
+import org.ipro.query.ReportProjectionReads;
+import org.ipro.query.ui.grid.QueryGridEnvironment;
+import org.ipro.query.ui.grid.QueryProjectionSource;
+import org.ipro.query.ui.grid.QueryReferenceLabels;
+import org.ipro.query.ui.grid.QueryRunHistory;
+import org.ipro.query.ui.grid.QueryTaskRunner;
+import org.ipro.query.ui.selection.EntitySelection;
 
 /**
  * M1.2: бины query-UI принадлежат артефакту, а не приложению.
@@ -37,5 +48,32 @@ public class QueryUiAutoConfiguration {
             RlsReadGate rlsReadGate,
             RlsCurrentUser currentUser) {
         return new QueryMetadataCatalogService(managedEntityTypes, metadataResolver, rlsReadGate, currentUser);
+    }
+
+    /** FQ-3: время прошлого выполнения для подсказки «Не выполнялся»; только в памяти процесса. */
+    @Bean
+    @ConditionalOnMissingBean
+    public QueryRunHistory queryRunHistory() {
+        return new QueryRunHistory();
+    }
+
+    /**
+     * FQ-3: окружение ядра просмотра. Фоновое выполнение даёт адаптер приложения: он переносит
+     * пользователя в рабочий поток. Пока адаптера нет, выполнение идёт в потоке запроса.
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnBean({QueryProjectionCompiler.class, ReportProjectionReads.class,
+            EntityPresentationService.class, RlsCurrentUser.class})
+    public QueryGridEnvironment queryGridEnvironment(QueryProjectionCompiler compiler,
+                                                     ReportProjectionReads reads,
+                                                     EntityPresentationService presentations,
+                                                     ObjectProvider<EntitySelection> selection,
+                                                     ObjectProvider<QueryTaskRunner> tasks,
+                                                     QueryRunHistory history,
+                                                     RlsCurrentUser currentUser) {
+        return new QueryGridEnvironment(QueryProjectionSource.over(compiler, reads),
+                QueryReferenceLabels.over(presentations), selection.getIfAvailable(),
+                tasks.getIfAvailable(QueryTaskRunner::direct), history, currentUser::requireAuthenticatedUsername);
     }
 }

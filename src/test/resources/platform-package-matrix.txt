@@ -29,6 +29,8 @@ org.ipro.data -> org.ipro.lifecycle
 org.ipro.data -> org.ipro.metadata
 org.ipro.data -> org.ipro.metadata.annotation
 org.ipro.data -> org.ipro.numbering
+# ET7: validated numbering facts consumed above the metadata layer.
+org.ipro.data -> org.ipro.numbering.annotation
 org.ipro.data -> org.ipro.rls
 org.ipro.data -> org.ipro.rls.c5
 org.ipro.data.config -> org.ipro.crud
@@ -54,9 +56,9 @@ org.ipro.data.presentation -> org.ipro.metadata.annotation
 org.ipro.events.config -> org.ipro.events
 org.ipro.events.config -> org.ipro.lifecycle
 org.ipro.fetch -> org.ipro.metadata
-org.ipro.fetch.config -> org.ipro.fetch
 # AF2: конфигурация валидирует представление и подключает независимые подписи RLS.
 org.ipro.fetch.config -> org.ipro.data
+org.ipro.fetch.config -> org.ipro.fetch
 org.ipro.fetch.config -> org.ipro.fetch.instance
 org.ipro.fetch.config -> org.ipro.fetch.plan
 org.ipro.fetch.config -> org.ipro.metadata
@@ -65,9 +67,9 @@ org.ipro.fetch.config -> org.ipro.rls
 org.ipro.fetch.instance -> org.ipro.metadata
 org.ipro.fetch.instance -> org.ipro.telemetry.api
 org.ipro.fetch.instance -> org.ipro.telemetry.core
-org.ipro.fetch.plan -> org.ipro.fetch
 # AF2: LOOKUP и углубление ссылок используют потребности представления вместо колонок выбора.
 org.ipro.fetch.plan -> org.ipro.data
+org.ipro.fetch.plan -> org.ipro.fetch
 org.ipro.fetch.plan -> org.ipro.fetch.instance
 org.ipro.fetch.plan -> org.ipro.metadata
 org.ipro.fetch.plan -> org.ipro.metadata.annotation
@@ -194,7 +196,6 @@ org.ipro.metadata.config -> org.ipro.lifecycle
 org.ipro.metadata.config -> org.ipro.metadata
 org.ipro.metadata.config -> org.ipro.rls
 org.ipro.metadata.facet -> org.ipro.metadata
-org.ipro.navigation -> org.ipro.metadata
 org.ipro.navigation -> org.ipro.navigation.store
 org.ipro.navigation.config -> org.ipro.metadata
 org.ipro.navigation.config -> org.ipro.navigation
@@ -213,6 +214,8 @@ org.ipro.numbering.annotation -> org.ipro.numbering
 org.ipro.numbering.config -> org.ipro.metadata
 org.ipro.numbering.config -> org.ipro.metadata.annotation
 org.ipro.numbering.config -> org.ipro.numbering
+# ET6: query category and production wiring consume the final core descriptor catalog.
+org.ipro.query -> org.ipro.data
 org.ipro.query -> org.ipro.data.presentation
 org.ipro.query -> org.ipro.fetch.instance
 org.ipro.query -> org.ipro.metadata
@@ -225,15 +228,21 @@ org.ipro.query -> org.ipro.register
 org.ipro.query -> org.ipro.report.data
 org.ipro.query -> org.ipro.rls
 org.ipro.query -> org.ipro.rls.c5
+org.ipro.query.config -> org.ipro.data
 org.ipro.query.config -> org.ipro.data.presentation
 org.ipro.query.config -> org.ipro.metadata
 org.ipro.query.config -> org.ipro.query
+org.ipro.query.config -> org.ipro.query.list
 org.ipro.query.config -> org.ipro.query.param
 org.ipro.query.config -> org.ipro.query.register
 org.ipro.query.config -> org.ipro.query.sqm
 org.ipro.query.config -> org.ipro.register
 org.ipro.query.config -> org.ipro.rls
 org.ipro.query.config -> org.ipro.rls.c5
+org.ipro.query.list -> org.ipro.metadata
+org.ipro.query.list -> org.ipro.query
+org.ipro.query.list -> org.ipro.query.model
+org.ipro.query.list -> org.ipro.rls
 org.ipro.query.param -> org.ipro.query
 org.ipro.query.param -> org.ipro.query.model
 org.ipro.query.param -> org.ipro.rls
@@ -246,11 +255,13 @@ org.ipro.query.sqm -> org.ipro.metadata
 org.ipro.query.sqm -> org.ipro.query
 org.ipro.query.sqm -> org.ipro.report.data
 org.ipro.query.ui -> org.ipro.crud
+org.ipro.query.ui -> org.ipro.data.presentation
 org.ipro.query.ui -> org.ipro.fetch.instance
 org.ipro.query.ui -> org.ipro.metadata
 org.ipro.query.ui -> org.ipro.metadata.annotation
 org.ipro.query.ui -> org.ipro.query
 org.ipro.query.ui -> org.ipro.query.config
+org.ipro.query.ui -> org.ipro.query.list
 org.ipro.query.ui -> org.ipro.query.model
 org.ipro.query.ui -> org.ipro.query.register
 org.ipro.query.ui -> org.ipro.register
@@ -426,6 +437,11 @@ org.ipro.unidr.ui -> org.ipro.unidr.render
 org.ipro.unidr.ui -> org.ipro.unidr.run
 org.ipro.unidr.ui -> org.ipro.unidr.source
 org.ipro.unidr.ui -> org.ipro.unidr.store
+org.ipro.utr -> org.ipro.metadata
+org.ipro.utr -> org.ipro.query
+org.ipro.utr -> org.ipro.query.config
+org.ipro.utr -> org.ipro.query.model
+org.ipro.utr -> org.ipro.rls
 org.ipro.vaadin.explorer -> org.ipro.autoconfigure
 org.ipro.vaadin.explorer -> org.ipro.data
 org.ipro.vaadin.explorer -> org.ipro.data.config
@@ -467,10 +483,3 @@ org.ipro.vaadin.search -> org.ipro.search.config
 org.ipro.vaadin.telemetry -> org.ipro.telemetry.api
 org.ipro.vaadin.telemetry -> org.ipro.telemetry.config
 org.ipro.vaadin.telemetry -> org.ipro.telemetry.core
-
-# ET7: validated numbering facts consumed above the metadata layer.
-org.ipro.data -> org.ipro.numbering.annotation
-
-# ET6: query category and production wiring consume the final core descriptor catalog.
-org.ipro.query -> org.ipro.data
-org.ipro.query.config -> org.ipro.data

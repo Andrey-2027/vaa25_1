@@ -110,7 +110,7 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "b87c21d2d3c3711c31f787d1f3b02fcbbe63222c64444bf0130d3978a9c1b33a",
+        "sha256": "d927f6ae36e329afab5a1239a8c30f8ef708babd573f0ca2529c5d62193c8771",
         "fileCount": 44,
         "inputs": [
           "pom.xml",
@@ -264,7 +264,7 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "1cfdfeb1a5c41c651bdfb647c79aebbe548a4a3520d13932d0e783107cfc6b55",
+        "sha256": "dc14006d57b0e2529211b747808324e1425ebbd8f2606dbf138537b7aaabd86b",
         "fileCount": 10,
         "inputs": [
           "pom.xml",
@@ -355,8 +355,8 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "0bab74fb32add84152e43c30d04ee15d511da2f5c1e7663c61b6f5226f2e8ba0",
-        "fileCount": 184,
+        "sha256": "87b30b20a9e7562cf84620433c3d38e428594150572fa45cb7e5e24eff32307a",
+        "fileCount": 186,
         "inputs": [
           "pom.xml",
           "filtergrid-core/pom.xml",
@@ -433,7 +433,7 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "907ab6b2d3eac7f3a18ae2d3e8d1816c59c660c3ae484bcd062d419fb54d61f1",
+        "sha256": "b54c4e58cd493882823e6574358e9b04523d31fd5b720da1de12a76b4b5e40d6",
         "fileCount": 192,
         "inputs": [
           "pom.xml",
@@ -516,8 +516,8 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "29a26b723b05a6a24289f07e2569a2b36fce0d7614c04faf531d27d271bc7629",
-        "fileCount": 128,
+        "sha256": "d0e4c2926111db42733a6f4c7754163f820a272b060881844587c1b6ae0ffb23",
+        "fileCount": 145,
         "inputs": ["pom.xml", "src"]
       },
       "artifacts": ["org.ipro:platform-query:1.0-SNAPSHOT"],
@@ -534,8 +534,8 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "6f5c8d0f6e0136150bf3095e060cb3ee73cbc0ddd82d96dc96fcced9699f4715",
-        "fileCount": 61,
+        "sha256": "51b2d0a87071f6af9e97b47af6dfbb47599751ce9b4865db0bf06409a5e469d9",
+        "fileCount": 85,
         "inputs": ["pom.xml", "src"]
       },
       "artifacts": ["org.ipro:platform-query-vaadin:1.0-SNAPSHOT"],
@@ -570,7 +570,7 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "d1a6843d59dcb9923c5fd66a093adea55beef1b76d7a6d7978c6e6a04f0b7afe",
+        "sha256": "080883a0bcfcf5ede02ec76791d3f3a2c9682e0cb1b16145f42937274709f0e2",
         "fileCount": 18,
         "inputs": [
           "pom.xml",
@@ -598,7 +598,7 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "e9a66045b2109db29937ca6cc7f01f457ac8db231832e3102dd4470aad7c499a",
+        "sha256": "e5e5433fa7138aa2e24ecb5b41a796b448e1a20539ec18d5637093d7e9e61796",
         "fileCount": 315,
         "inputs": [
           "pom.xml",
@@ -644,8 +644,8 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "51624956d9f7e6f378c58b0fb5e07bc2b1b9b79f4a8ffdb141ec36489e03657a",
-        "fileCount": 60,
+        "sha256": "c7757d7277053f6a4bbcc8c2a9846d7e0fc1401dbfd355339844242d5d555c42",
+        "fileCount": 59,
         "inputs": [
           "pom.xml",
           "src"
@@ -672,8 +672,8 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "2895a05adc850c738bb4cf6c9ba2e13b1de4d0ea41fac44d526db28eaa0dd116",
-        "fileCount": 37,
+        "sha256": "8d7962f3a14e8147a64424e05ab2cb15ba35ba275227966cd809de8a92a58773",
+        "fileCount": 36,
         "inputs": [
           "pom.xml",
           "src"
@@ -700,7 +700,7 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "f84a47ce41d7d5ad1ef73ab7a1a706da9b370da998bda893185c323bcec1a512",
+        "sha256": "e440b169854e3855b1062ac52c0c246df363c0020545aca32d001fe93580d984",
         "fileCount": 1,
         "inputs": [
           "pom.xml"
@@ -829,6 +829,24 @@
         "inputs": ["pom.xml", "src"]
       },
       "artifacts": ["org.ipro:platform-unidr:1.0-SNAPSHOT"],
+      "buildSteps": [{"pom": "pom.xml", "arguments": ["clean", "install"]}]
+    },
+    {
+      "id": "platform-utr",
+      "relativePath": "platform-utr",
+      "dependsOn": ["platform-query"],
+      "source": {
+        "kind": "in-repo-project",
+        "gitCommit": null,
+        "state": "FQ-4: документ и файловое хранилище табличных отчётов UTR, JSON v1 и проверка структуры при открытии."
+      },
+      "fingerprint": {
+        "algorithm": "gitvaa-source-tree-sha256-v2",
+        "sha256": "daf9859713fad70c6fc9e1c2b7632259022a080e5d5071bed615acbf2f191826",
+        "fileCount": 11,
+        "inputs": ["pom.xml", "src"]
+      },
+      "artifacts": ["org.ipro:platform-utr:1.0-SNAPSHOT"],
       "buildSteps": [{"pom": "pom.xml", "arguments": ["clean", "install"]}]
     },
     {
