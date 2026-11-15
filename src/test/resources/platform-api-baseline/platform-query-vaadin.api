@@ -306,6 +306,7 @@ class public org.ipro.query.ui.grid.QueryGridPanel
   method public void setDetailsVisible(boolean)
   method public void setGroupingOpen(boolean)
   method public void setParametersVisible(boolean)
+  method public void setReferenceOpener(org.ipro.query.ui.grid.QueryReferenceOpener)
 
 class public org.ipro.query.ui.listform.ProjectionListForm
   extends com.vaadin.flow.component.orderedlayout.VerticalLayout
@@ -317,6 +318,7 @@ class public org.ipro.query.ui.listform.ProjectionListForm
   method public org.ipro.query.ui.grid.QueryGridPanel panel()
   method public void addCommand(com.vaadin.flow.component.Component)
   method public void addSelectionListener(java.util.function.Consumer<java.util.Optional<org.ipro.filtergrid.projection.CompositeRowKey>>)
+  method public void configureCommands(java.util.Set<org.ipro.query.list.QueryListDefinition$Command>, org.ipro.query.ui.listform.QueryListCommands)
   method public void openViews()
 
 class public org.ipro.query.ui.result.QueryResultTable
@@ -419,10 +421,19 @@ interface public abstract interface org.ipro.query.ui.grid.QueryReferenceLabels
   method public static org.ipro.query.ui.grid.QueryReferenceLabels identifiers()
   method public static org.ipro.query.ui.grid.QueryReferenceLabels over(org.ipro.data.presentation.EntityPresentationService)
 
+interface public abstract interface org.ipro.query.ui.grid.QueryReferenceOpener
+  annotation java.lang.FunctionalInterface
+  method public abstract java.lang.String open(java.lang.Class<?>, long)
+  method public java.lang.String typeName(java.lang.Class<?>)
+
 interface public abstract interface org.ipro.query.ui.grid.QueryTaskRunner
   method public abstract <T> java.util.concurrent.CompletableFuture<T> submit(java.util.concurrent.Callable<T>)
   method public static org.ipro.query.ui.grid.QueryTaskRunner direct()
   method public static org.ipro.query.ui.grid.QueryTaskRunner of(java.util.concurrent.Executor)
+
+interface public abstract interface org.ipro.query.ui.listform.QueryListCommands
+  method public abstract org.ipro.query.ui.listform.QueryListCommands$Decision decide(org.ipro.query.list.QueryListDefinition$Command, java.lang.Long)
+  method public abstract org.ipro.query.ui.listform.QueryListCommands$Decision execute(org.ipro.query.list.QueryListDefinition$Command, java.lang.Long, java.lang.Runnable)
 
 interface public abstract interface org.ipro.query.ui.listform.QueryListViews
   method public abstract java.util.List<org.ipro.query.ui.listform.QueryListViews$View> views(java.lang.String)
@@ -446,10 +457,12 @@ interface public abstract static interface org.ipro.query.ui.selection.EntitySel
 record public final org.ipro.query.ui.admin.QueryListAdminEnvironment
   extends java.lang.Record
   ctor public(org.ipro.query.list.QueryListRegistry, org.ipro.query.ui.grid.QueryGridEnvironment, java.util.function.Supplier<org.ipro.query.ui.editor.ReportQueryEditor>, org.ipro.query.ui.selection.EntitySelection, java.util.function.Function<java.lang.String, java.lang.String>, java.util.function.Function<java.lang.String, java.lang.String>, int)
+  ctor public(org.ipro.query.list.QueryListRegistry, org.ipro.query.ui.grid.QueryGridEnvironment, java.util.function.Supplier<org.ipro.query.ui.editor.ReportQueryEditor>, org.ipro.query.ui.selection.EntitySelection, java.util.function.Function<java.lang.String, java.lang.String>, java.util.function.Function<java.lang.String, java.lang.String>, int, java.util.List<java.lang.String>)
   method public final boolean equals(java.lang.Object)
   method public final int hashCode()
   method public final java.lang.String toString()
   method public int inMemoryLimit()
+  method public java.util.List<java.lang.String> commandEntities()
   method public java.util.function.Function<java.lang.String, java.lang.String> entityTitle()
   method public java.util.function.Function<java.lang.String, java.lang.String> link()
   method public java.util.function.Supplier<org.ipro.query.ui.editor.ReportQueryEditor> editors()
@@ -543,6 +556,7 @@ record public final org.ipro.query.ui.grid.QueryGridSpec
   method public java.lang.String title()
   method public org.ipro.filtergrid.projection.ProjectionExecutionMode mode()
   method public org.ipro.query.model.QueryDefinition query()
+  method public org.ipro.query.ui.grid.QueryGridSpec withCommandColumn(java.lang.String)
   method public org.ipro.query.ui.grid.QueryGridSpec withMode(org.ipro.filtergrid.projection.ProjectionExecutionMode)
   method public org.ipro.query.ui.grid.QueryGridSpec withStandardState(org.ipro.query.ui.grid.QueryGridState)
   method public org.ipro.query.ui.grid.QueryGridSpec withSubject(org.ipro.query.ui.grid.QueryGridSpec$Subject)
@@ -744,6 +758,16 @@ record public static final org.ipro.query.ui.grid.QueryProjectionSource$Prepared
   method public java.util.Map<java.lang.String, java.lang.Object> bindings()
   method public org.ipro.filtergrid.projection.ExecutionStrategy strategy()
   method public org.ipro.filtergrid.projection.ProjectionDefinition definition()
+
+record public static final org.ipro.query.ui.listform.QueryListCommands$Decision
+  extends java.lang.Record
+  ctor public(boolean, java.lang.String)
+  method public boolean actionable()
+  method public boolean visible()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String blockReason()
 
 record public static final org.ipro.query.ui.listform.QueryListViews$View
   extends java.lang.Record

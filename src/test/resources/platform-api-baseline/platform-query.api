@@ -39,6 +39,7 @@ class public final org.ipro.query.QueryLayoutReconciler
 
 class public final org.ipro.query.QueryProjectionCompiler
   ctor public(jakarta.persistence.EntityManagerFactory, org.ipro.query.ReportQueryAssemblyService, org.ipro.query.ReportQueryGuard)
+  method public boolean isCommandEntity(java.lang.String)
   method public java.util.List<org.ipro.filtergrid.projection.ColumnMeta> describe(org.ipro.query.model.QueryDefinition)
   method public org.ipro.query.QueryProjectionCompiler$Inspection inspect(org.ipro.query.model.QueryDefinition)
   method public org.ipro.query.QueryProjectionCompiler$PreparedProjection compile(java.lang.String, org.ipro.query.model.QueryDefinition, org.ipro.query.ReportContext, java.util.Map<java.lang.String, java.lang.Object>, org.ipro.filtergrid.projection.ProjectionExecutionMode, int, java.lang.String)
@@ -1329,6 +1330,7 @@ record public static final org.ipro.query.list.QueryListDefinition$CommandObject
 record public static final org.ipro.query.list.QueryListRegistry$Check
   extends java.lang.Record
   ctor public(java.lang.String, java.util.List<java.lang.String>, java.util.List<java.lang.String>, java.util.List<java.lang.String>)
+  ctor public(java.lang.String, java.util.List<java.lang.String>, java.util.List<java.lang.String>, java.util.List<java.lang.String>, java.util.List<org.ipro.query.list.QueryListDefinition$CommandObject>)
   method public boolean ok()
   method public final boolean equals(java.lang.Object)
   method public final int hashCode()
@@ -1337,6 +1339,7 @@ record public static final org.ipro.query.list.QueryListRegistry$Check
   method public java.util.List<java.lang.String> columns()
   method public java.util.List<java.lang.String> entities()
   method public java.util.List<java.lang.String> rowKey()
+  method public java.util.List<org.ipro.query.list.QueryListDefinition$CommandObject> commandColumns()
 
 record public static final org.ipro.query.list.QueryListRegistry$Entry
   extends java.lang.Record

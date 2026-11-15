@@ -26,14 +26,17 @@ public class QueryListView extends VerticalLayout implements BeforeEnterObserver
     private final QueryListViews views;
     private final QueryWorkbenchAccess access;
     private final QueryListAdminAccess admin;
+    private final ApplicationQueryActions actions;
 
     public QueryListView(QueryListRegistry registry, QueryGridEnvironment environment,
-                         QueryListViews views, QueryWorkbenchAccess access, QueryListAdminAccess admin) {
+                         QueryListViews views, QueryWorkbenchAccess access, QueryListAdminAccess admin,
+                         ApplicationQueryActions actions) {
         this.registry = registry;
         this.environment = environment;
         this.views = views;
         this.access = access;
         this.admin = admin;
+        this.actions = actions;
         setSizeFull();
     }
 
@@ -54,11 +57,14 @@ public class QueryListView extends VerticalLayout implements BeforeEnterObserver
         var definition = entry.get().definition();
         var spec = QueryGridSpec.of(definition.title(), entry.get().launchKey(), definition.query())
                 .withMode(definition.mode())
-                .withStandardState(QueryGridState.fromViewState(definition.standardView()));
+                .withStandardState(QueryGridState.fromViewState(definition.standardView()))
+                .withCommandColumn(definition.commandObject() == null ? null : definition.commandObject().column());
         String url = listUrl(definition.key());
         var form = new ProjectionListForm(environment, spec, definition.key(),
                 QueryListOptions.DEFAULT.withViews(views).withLink(() -> url));
         form.panel().setDetailsVisible(admin.isAdministrator());
+        form.panel().setReferenceOpener(actions);
+        form.configureCommands(definition.commands(), actions.forList(entry.get()));
         addAndExpand(form);
     }
 

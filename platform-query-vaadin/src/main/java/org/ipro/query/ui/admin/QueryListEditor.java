@@ -52,7 +52,7 @@ import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
 /**
- * Редактор списка по запросу: «Основное», «Запрос», «Параметры», «Вид».
+ * Редактор списка по запросу: «Основное», «Запрос», «Параметры», «Вид», «Команды».
  *
  * <p>«Сохранить» сначала проверяет определение: реестр не записывает непроверенное. Конфликт версии
  * показывается сообщением с «Перечитать». Список, объявленный в коде, открывается только для просмотра.</p>
@@ -115,7 +115,8 @@ final class QueryListEditor extends VerticalLayout {
         }
     }
 
-    private record Snapshot(String title, boolean enabled, Choice choice, Integer rows, QueryDefinition query) { }
+    private record Snapshot(String title, boolean enabled, Choice choice, Integer rows, QueryDefinition query,
+                            QueryListDefinition.CommandObject object, Set<QueryListDefinition.Command> commands) { }
 
     private final QueryListAdminEnvironment env;
     private final Runnable back;
@@ -145,14 +146,14 @@ final class QueryListEditor extends VerticalLayout {
     private final Tab queryTab = new Tab("Запрос");
     private final Tab parametersTab = new Tab("Параметры");
     private final Tab viewTab = new Tab("Вид");
+    private final Tab commandsTab = new Tab("Команды");
     private final Div body = new Div();
     private final QueryListParametersTab parameters;
     private final QueryListViewTab view;
+    private final QueryListCommandsTab commands;
 
     private QueryListRegistry.Entry entry;
     private QueryDefinition baseQuery;
-    private QueryListDefinition.CommandObject commandObject;
-    private Set<QueryListDefinition.Command> commands;
     private ReportQueryEditor queryEditor;
     private QueryListRegistry.Check lastCheck;
     private Snapshot baseline;
@@ -167,6 +168,7 @@ final class QueryListEditor extends VerticalLayout {
         this.readOnly = entry != null && entry.declared();
         this.parameters = new QueryListParametersTab(env.selection(), env.entityTitle(), this::refreshState);
         this.view = new QueryListViewTab(env.grid(), this::refreshState, () -> select(queryTab));
+        this.commands = new QueryListCommandsTab(env, readOnly, this::refreshState);
         setPadding(false);
         setSpacing(false);
         setSizeFull();
@@ -177,14 +179,15 @@ final class QueryListEditor extends VerticalLayout {
         add(banner, tabs, body);
         setFlexGrow(1, body);
         banner.setVisible(false);
-        tabs.add(generalTab, queryTab, parametersTab, viewTab);
+        tabs.add(generalTab, queryTab, parametersTab, viewTab, commandsTab);
         tabs.addSelectedChangeListener(event -> showTab(event.getSelectedTab()));
         body.setSizeFull();
         body.getStyle().set("min-height", "0").set("overflow", "auto").set("display", "flex")
                 .set("flex-direction", "column");
-        body.add(generalBox, queryBox, parameters, view);
+        body.add(generalBox, queryBox, parameters, view, commands);
         parameters.setVisible(false);
         view.setVisible(false);
+        commands.setVisible(false);
         queryBox.setVisible(false);
         apply(draft);
         if (readOnly) {
@@ -321,8 +324,7 @@ final class QueryListEditor extends VerticalLayout {
         loading = true;
         try {
             baseQuery = draft.query();
-            commandObject = draft.commandObject();
-            commands = draft.commands();
+            commands.load(draft.commandObject(), draft.commands());
             title.setValue(draft.title());
             heading.setText(draft.title().isBlank() ? "Новый список" : draft.title());
             key.setValue(draft.key());
@@ -386,6 +388,7 @@ final class QueryListEditor extends VerticalLayout {
         queryBox.setVisible(tab == queryTab);
         parameters.setVisible(tab == parametersTab);
         view.setVisible(tab == viewTab);
+        commands.setVisible(tab == commandsTab);
         try {
             if (tab == queryTab) {
                 ensureQueryEditor();
@@ -397,6 +400,9 @@ final class QueryListEditor extends VerticalLayout {
                 syncParameters();
                 var check = runCheck();
                 view.show(title.getValue().strip(), currentQuery(), choice.getValue().mode(), check);
+            } else if (tab == commandsTab) {
+                ensureQueryEditor();
+                commands.show(runCheck());
             }
         } catch (RuntimeException failure) {
             note("error", "Вкладка не открылась", message(failure), null, null);
@@ -472,7 +478,8 @@ final class QueryListEditor extends VerticalLayout {
 
     private Snapshot snapshot() {
         return new Snapshot(title.getValue().strip(), enabled.getValue(), choice.getValue(),
-                choice.getValue() == Choice.FIRST ? rows.getValue() : null, currentQuery());
+                choice.getValue() == Choice.FIRST ? rows.getValue() : null, currentQuery(),
+                commands.object(), commands.commands());
     }
 
     boolean isDirty() {
@@ -499,7 +506,7 @@ final class QueryListEditor extends VerticalLayout {
             if (listTitle.isEmpty()) listTitle = "Проверка";
         }
         return new QueryListDefinition(listKey, listTitle, currentQuery(), view.state().toViewState(),
-                choice.getValue().mode(), commandObject, commands, QueryProvenance.REGISTERED);
+                choice.getValue().mode(), commands.object(), commands.commands(), QueryProvenance.REGISTERED);
     }
 
     private QueryListRegistry.Check runCheck() {

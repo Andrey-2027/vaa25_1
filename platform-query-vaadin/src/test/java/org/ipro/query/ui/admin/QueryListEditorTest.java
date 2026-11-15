@@ -2,6 +2,7 @@ package org.ipro.query.ui.admin;
 
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextField;
@@ -128,6 +129,35 @@ class QueryListEditorTest {
 
         verify(registry, never()).create(any(), anyBoolean());
         assertThat(editor.noteText()).contains("Не сохранено").contains("Ключ");
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void commandSettingsMarkTheEditorDirtyAndSaveCreationWithoutAnIdentityColumn() {
+        var editor = existing(stored(0, "admin"));
+        var tab = (QueryListCommandsTab) ReflectionTestUtils.getField(editor, "commands");
+        var part = new QueryListDefinition.CommandObject("org.example.Part", "partId");
+        tab.show(new QueryListRegistry.Check(null, List.of("Part"), List.of("partId", "code"),
+                List.of("ID"), List.of(part)));
+        var entity = (ComboBox<String>) ReflectionTestUtils.getField(tab, "entity");
+        var column = (ComboBox<String>) ReflectionTestUtils.getField(tab, "column");
+        var choices = (java.util.Map<QueryListDefinition.Command, Checkbox>) ReflectionTestUtils.getField(tab, "choices");
+
+        entity.setValue(part.entityClass());
+        assertThat(choices.get(QueryListDefinition.Command.EDIT).isEnabled()).isFalse();
+        column.setValue(part.column());
+        choices.get(QueryListDefinition.Command.EDIT).setValue(true);
+        column.clear();
+        choices.get(QueryListDefinition.Command.CREATE).setValue(true);
+
+        assertThat(editor.isDirty()).isTrue();
+        when(registry.update(any(), anyLong(), anyBoolean())).thenReturn(stored(1, "admin"));
+        editor.save();
+
+        var definition = ArgumentCaptor.forClass(QueryListDefinition.class);
+        verify(registry).update(definition.capture(), eq(0L), eq(true));
+        assertThat(definition.getValue().commandObject()).isEqualTo(new QueryListDefinition.CommandObject(part.entityClass(), null));
+        assertThat(definition.getValue().commands()).containsExactly(QueryListDefinition.Command.CREATE);
     }
 
     @Test

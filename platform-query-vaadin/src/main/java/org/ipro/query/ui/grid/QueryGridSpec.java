@@ -12,8 +12,7 @@ import java.util.Objects;
  * @param launchKey       ключ запуска: идентификатор и ревизия описания; по нему запоминается
  *                        время прошлого выполнения для подсказки «не выполнялся»
  * @param hybridMaxRows   предел для {@code HYBRID}; для других режимов не используется
- * @param commandColumn   колонка объекта команды (FQ-7); ядро её не читает, только передаёт в
- *                        компилятор для проверки типа
+ * @param commandColumn   проверяемая колонка идентичности объекта команды
  * @param standardState   настройки сетки при открытии
  * @param subject         как называть объект в сообщениях об ошибке
  */
@@ -58,6 +57,10 @@ public record QueryGridSpec(String title, String launchKey, QueryDefinition quer
 
     public QueryGridSpec withStandardState(QueryGridState value) {
         return new QueryGridSpec(title, launchKey, query, mode, hybridMaxRows, commandColumn, value, subject);
+    }
+
+    public QueryGridSpec withCommandColumn(String value) {
+        return new QueryGridSpec(title, launchKey, query, mode, hybridMaxRows, value, standardState, subject);
     }
 
     public QueryGridSpec withSubject(Subject value) {

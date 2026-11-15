@@ -50,11 +50,17 @@ public final class QueryListRegistry {
      * @param columns    алиасы колонок результата в порядке запроса
      * @param rowKey     заголовки колонок ключа строки; пусто, если ключ определить нельзя
      */
-    public record Check(String diagnostic, List<String> entities, List<String> columns, List<String> rowKey) {
+    public record Check(String diagnostic, List<String> entities, List<String> columns, List<String> rowKey,
+                        List<QueryListDefinition.CommandObject> commandColumns) {
+        public Check(String diagnostic, List<String> entities, List<String> columns, List<String> rowKey) {
+            this(diagnostic, entities, columns, rowKey, List.of());
+        }
+
         public Check {
             columns = List.copyOf(columns == null ? List.of() : columns);
             entities = List.copyOf(entities == null ? List.of() : entities);
             rowKey = List.copyOf(rowKey == null ? List.of() : rowKey);
+            commandColumns = List.copyOf(commandColumns);
         }
 
         public boolean ok() {
@@ -331,14 +337,22 @@ public final class QueryListRegistry {
             var columns = inspection.columns();
             var object = definition.commandObject();
             String diagnostic = null;
-            if (object != null && columns.stream().noneMatch(column -> column.key().equals(object.column())
-                    && column.referenceType() != null && column.referenceType().getName().equals(object.entityClass()))) {
-                diagnostic = "Колонка объекта команды должна содержать идентификатор сущности: " + object.column();
+            var commandColumns = columns.stream()
+                    .filter(column -> column.referenceType() != null
+                            && org.ipro.identity.IdentifiableEntity.class.isAssignableFrom(column.referenceType()))
+                    .map(column -> new QueryListDefinition.CommandObject(column.referenceType().getName(), column.key()))
+                    .toList();
+            if (object != null) {
+                if (!compiler.isCommandEntity(object.entityClass())) {
+                    diagnostic = "Основная сущность списка недоступна: " + object.entityClass();
+                } else if (object.column() != null && !commandColumns.contains(object)) {
+                    diagnostic = "Колонка объекта команды должна содержать идентификатор сущности: " + object.column();
+                }
             }
             var rowKey = columns.stream().filter(column -> inspection.rowKey().contains(column.key()))
                     .map(org.ipro.filtergrid.projection.ColumnMeta::header).toList();
             return new Check(diagnostic, inspection.entities(),
-                    columns.stream().map(org.ipro.filtergrid.projection.ColumnMeta::key).toList(), rowKey);
+                    columns.stream().map(org.ipro.filtergrid.projection.ColumnMeta::key).toList(), rowKey, commandColumns);
         } catch (IllegalArgumentException | org.hibernate.HibernateException invalid) {
             return new Check(invalid.getMessage() == null ? "Запрос списка не прошёл проверку"
                     : invalid.getMessage(), List.of(), List.of(), List.of());

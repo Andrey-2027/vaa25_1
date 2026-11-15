@@ -5,12 +5,12 @@
 Карта [`d1-platform-boundary-map.md`](d1-platform-boundary-map.md) — исторический снимок на baseline `3793165` / тег `c4.8-d1-baseline`: её числа описывают состояние на тот момент и намеренно не правятся задним числом. Актуальные замеры — ниже.
 
 ```text
-app-source-files=270
+app-source-files=271
 platform-tree-files=0
-platform-artifact-files=922
-named-platform-types=381
-api-types=304
-spi-types=43
+platform-artifact-files=925
+named-platform-types=385
+api-types=305
+spi-types=45
 legacy-internal-types=7
 legacy-internal-usage-links=18
 ```

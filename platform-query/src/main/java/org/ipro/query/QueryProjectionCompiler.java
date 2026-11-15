@@ -135,6 +135,13 @@ public final class QueryProjectionCompiler {
         requireAllowed(guard.guard(shape.wrapped(), prepared.bindings().keySet(), parameterTypes));
     }
 
+    public boolean isCommandEntity(String className) {
+        return factory.getMetamodel().getEntities().stream()
+                .map(entity -> entity.getJavaType())
+                .anyMatch(type -> type.getName().equals(className)
+                        && org.ipro.identity.IdentifiableEntity.class.isAssignableFrom(type));
+    }
+
     private ProjectionShape projectionShape(String hql, SqmSelectStatement<?> statement,
                                             QueryPresentationPlan presentations) {
         var spec = statement.getQuerySpec();

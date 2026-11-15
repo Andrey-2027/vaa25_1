@@ -447,13 +447,16 @@ API org.ipro.query.ui.admin.QueryListAdminEnvironment
 API org.ipro.query.ui.admin.QueryListAdminPanel
 API org.ipro.query.ui.editor.ReportQueryEditor
 SPI org.ipro.query.list.QueryListAdminAccess
+API org.ipro.query.list.QueryListDefinition
 API org.ipro.query.list.QueryListRegistry
 API org.ipro.query.ui.grid.QueryGridEnvironment
 API org.ipro.query.ui.grid.QueryGridSpec
 API org.ipro.query.ui.grid.QueryGridState
+SPI org.ipro.query.ui.grid.QueryReferenceOpener
 SPI org.ipro.query.ui.grid.QueryTaskRunner
 API org.ipro.query.ui.listform.ProjectionListForm
 API org.ipro.query.ui.listform.QueryListOptions
+SPI org.ipro.query.ui.listform.QueryListCommands
 SPI org.ipro.query.ui.listform.QueryListViews
 SPI org.ipro.query.ui.selection.EntitySelection
 API org.ipro.report.data.EntityRef

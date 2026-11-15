@@ -1,15 +1,19 @@
 package org.ip.views.query;
 
 import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.provider.Query;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.RouteParameters;
+import jakarta.persistence.Tuple;
 import org.ip.config.DataInitializer;
 import org.ip.model.Journal;
 import org.ip.repository.JournalRepository;
 import org.ipro.filtergrid.projection.QueryProvenance;
 import org.ipro.metadata.GridViewState;
 import org.ipro.query.list.QueryListDefinition;
+import org.ipro.query.list.QueryListDefinition.Command;
 import org.ipro.query.list.QueryListRegistry;
 import org.ipro.query.model.QueryDefinition;
 import org.ipro.query.ui.listform.ProjectionListForm;
@@ -44,6 +48,7 @@ class QueryListRouteIT {
     @Autowired QueryListViews views;
     @Autowired AccessGrantRepository grants;
     @Autowired JournalRepository journals;
+    @Autowired ApplicationQueryActions actions;
 
     @AfterEach
     void clearContext() {
@@ -59,12 +64,14 @@ class QueryListRouteIT {
         String alice = "fq6-alice-" + suffix;
         String bob = "fq6-bob-" + suffix;
         String code = "FQ6-" + suffix;
-        grant(alice, journal(code + "-a"));
+        long aliceJournal = journal(code + "-a");
+        grant(alice, aliceJournal);
         grant(bob, journal(code + "-b"));
         RlsTestFixture.grantC5EntityOperations(grants, alice, org.ip.model.GridFormView.class);
         var definition = new QueryListDefinition("journals." + suffix, "Журналы",
                 new QueryDefinition("select j.id as journalId, j.code as code from Journal j where j.code like '"
-                        + code + "%'", null, null, null, List.of()), null, null, null, Set.of(),
+                        + code + "%'", null, null, null, List.of()), null, null,
+                new QueryListDefinition.CommandObject(Journal.class.getName(), "journalId"), Set.of(Command.OPEN),
                 QueryProvenance.REGISTERED);
         login("fq6-admin", true);
         var saved = lists.create(definition, true);
@@ -72,6 +79,8 @@ class QueryListRouteIT {
             login(alice, false);
             var aliceForm = enter(definition.key());
             assertThat(codes(aliceForm)).containsExactly(code + "-a");
+            assertThat(actions.forList(saved).decide(Command.OPEN, aliceJournal).actionable()).isTrue();
+            assertThat(referenceLink(aliceForm)).isInstanceOf(Button.class);
             var layout = new GridViewState(List.of(), List.of(), null, null, Map.of("query.sort", "code:DESC"));
             var personal = views.create(aliceForm.formKey(), "Мой вид", false, layout);
             views.setDefaultView(aliceForm.formKey(), personal.id());
@@ -79,6 +88,8 @@ class QueryListRouteIT {
                     .containsEntry("query.sort", "code:DESC");
 
             login(bob, false);
+            assertThat(actions.forList(saved).execute(Command.OPEN, aliceJournal, () -> { }).blockReason())
+                    .contains("Запись недоступна");
             assertThat(codes(enter(definition.key()))).containsExactly(code + "-b");
             assertThat(views.views(aliceForm.formKey())).isEmpty();
             assertThat(views.defaultViewId(aliceForm.formKey())).isEmpty();
@@ -86,6 +97,13 @@ class QueryListRouteIT {
             login("fq6-admin", true);
             lists.delete(definition.key(), saved.version());
         }
+    }
+
+    private static Object referenceLink(ProjectionListForm form) {
+        var grid = form.panel().grid().orElseThrow().getGrid();
+        var row = grid.getDataProvider().fetch(new Query<>()).findFirst().orElseThrow();
+        var renderer = (ComponentRenderer<?, Tuple>) grid.getColumnByKey("journalId").getRenderer();
+        return renderer.createComponent(row).getChildren().findFirst().orElseThrow();
     }
 
     private ProjectionListForm enter(String key) {

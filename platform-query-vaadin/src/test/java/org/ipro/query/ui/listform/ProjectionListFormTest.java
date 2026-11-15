@@ -2,9 +2,11 @@ package org.ipro.query.ui.listform;
 
 import com.vaadin.flow.component.button.Button;
 import org.ipro.filtergrid.FooterAggregateKind;
+import org.ipro.filtergrid.projection.NullKeyPolicy;
 import org.ipro.filtergrid.projection.ProjectionExecutionMode;
 import org.ipro.metadata.GridViewState;
 import org.ipro.query.model.QueryDefinition;
+import org.ipro.query.list.QueryListDefinition.Command;
 import org.ipro.query.ui.grid.QueryGridEnvironment;
 import org.ipro.query.ui.grid.QueryGridSpec;
 import org.ipro.query.ui.grid.QueryGridState;
@@ -16,11 +18,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class ProjectionListFormTest {
@@ -29,17 +33,26 @@ class ProjectionListFormTest {
     private static jakarta.persistence.Tuple row(Long id, String name) {
         var tuple = mock(jakarta.persistence.Tuple.class);
         when(tuple.get("id")).thenReturn(id);
+        when(tuple.get("objectId")).thenReturn(100L + id);
         when(tuple.get("name")).thenReturn(name);
         return tuple;
     }
 
     private static QueryGridEnvironment environment() {
+        return environment(NullKeyPolicy.REJECT);
+    }
+
+    private static QueryGridEnvironment environment(NullKeyPolicy keyPolicy) {
         return new QueryGridEnvironment((spec, context, values) -> {
-            var definition = org.ipro.filtergrid.projection.ProjectionDefinition.define("fixture")
-                    .hql("select x.id as id, x.name as name from X x").rowKey("id")
+            var builder = org.ipro.filtergrid.projection.ProjectionDefinition.define("fixture")
+                    .hql("select x.id as id, x.name as name, x.objectId as objectId from X x").rowKey("id")
+                    .rowKeyNullPolicy(keyPolicy)
                     .column("id", "ID", org.ipro.filtergrid.projection.DataType.LONG, false, false)
-                    .column("name", "Имя", org.ipro.filtergrid.projection.DataType.STRING, true, true, true)
-                    .mode(ProjectionExecutionMode.IN_MEMORY).build();
+                    .column("name", "Имя", org.ipro.filtergrid.projection.DataType.STRING, true, true, true);
+            if (spec.commandColumn() != null) {
+                builder.column("objectId", "Объект", org.ipro.filtergrid.projection.DataType.LONG, false, false);
+            }
+            var definition = builder.mode(ProjectionExecutionMode.IN_MEMORY).build();
             var strategy = new org.ipro.filtergrid.projection.ExecutionStrategy() {
                 @Override public org.ipro.filtergrid.projection.ProjectionDefinition definition() { return definition; }
                 @Override public long count(org.ipro.filtergrid.projection.ExecutionContext context) { return ROWS.size(); }
@@ -148,6 +161,38 @@ class ProjectionListFormTest {
         form.panel().run();
         assertThat(form.selectedRow()).as("новый результат — выбора нет").isEmpty();
         assertThat(seen).isNotEmpty();
+    }
+
+    @Test
+    void decidesRowCommandsUsingTheConfiguredIdentityInsteadOfTheRowKey() {
+        var actions = mock(QueryListCommands.class);
+        when(actions.decide(Command.EDIT, null)).thenReturn(new QueryListCommands.Decision(true, "Выберите запись"));
+        when(actions.decide(Command.EDIT, 102L)).thenReturn(new QueryListCommands.Decision(true, null));
+        var form = new ProjectionListForm(environment(), spec(null).withCommandColumn("objectId"), "k", null);
+
+        form.configureCommands(Set.of(Command.EDIT), actions);
+        form.panel().run();
+        form.panel().grid().orElseThrow().getGrid().select(ROWS.get(1));
+
+        verify(actions).decide(Command.EDIT, 102L);
+        assertThat(form.selectedRow().orElseThrow().toString()).contains("2");
+    }
+
+    @Test
+    void groupedResultKeepsCreateAndHidesCommandsOnSelectedObjects() {
+        var actions = mock(QueryListCommands.class);
+        var available = new QueryListCommands.Decision(true, null);
+        when(actions.decide(Command.CREATE, null)).thenReturn(available);
+        when(actions.decide(Command.EDIT, null)).thenReturn(available);
+        var form = new ProjectionListForm(environment(NullKeyPolicy.ALLOW),
+                spec(null).withCommandColumn("objectId"), "k", null);
+
+        form.configureCommands(Set.of(Command.CREATE, Command.EDIT), actions);
+        form.panel().run();
+
+        assertThat(form.panel().grid()).as("Результат: %s", form.panel().failure()).isPresent();
+        assertThat(form.panel().grid().orElseThrow().definition().rowKeyNullPolicy()).isEqualTo(NullKeyPolicy.ALLOW);
+        assertThat(form.toolbarLabels()).contains("Создать").doesNotContain("Изменить");
     }
 
     @Test

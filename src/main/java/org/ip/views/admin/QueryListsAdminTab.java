@@ -5,6 +5,7 @@ import com.vaadin.flow.spring.annotation.SpringComponent;
 import jakarta.persistence.EntityManagerFactory;
 import org.ip.views.query.QueryListView;
 import org.ipro.crud.EntityLookup;
+import org.ipro.identity.IdentifiableEntity;
 import org.ipro.metadata.EntityMetadataInfo;
 import org.ipro.metadata.MetadataResolver;
 import org.ipro.query.QueryBuilderMetadataCatalog;
@@ -22,6 +23,7 @@ import org.ipro.query.ui.grid.QueryGridEnvironment;
 import org.ipro.query.ui.selection.EntitySelection;
 import org.springframework.context.annotation.Scope;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -42,18 +44,21 @@ public class QueryListsAdminTab extends VerticalLayout {
                               QuerySnapshotService snapshots, QueryBuilderMetadataCatalog visualCatalog,
                               EntityManagerFactory entityManagerFactory, MetadataResolver metadata) {
         Map<String, String> titles = new HashMap<>();
+        var commandEntities = new ArrayList<String>();
         for (var entity : entityManagerFactory.getMetamodel().getEntities()) {
             Class<?> type = entity.getJavaType();
             String title = metadata.find(type).map(EntityMetadataInfo::getItemFormTitle).orElse(type.getSimpleName());
             titles.put(type.getName(), title);
             titles.put(entity.getName(), title);
+            if (IdentifiableEntity.class.isAssignableFrom(type)
+                    && MetadataResolver.isApplicable(type)) commandEntities.add(type.getName());
         }
         var environment = new QueryListAdminEnvironment(registry, grid, () -> {
             var editor = new ReportQueryEditor(analysis, catalogs, previews, lookup, selection, assembly, snapshots);
             editor.setQueryConstructorCatalog(visualCatalog);
             return editor;
         }, selection, name -> titles.getOrDefault(name, name.substring(name.lastIndexOf('.') + 1)),
-                QueryListView::listUrl, reads.inMemoryLimit());
+                QueryListView::listUrl, reads.inMemoryLimit(), commandEntities);
         this.panel = new QueryListAdminPanel(environment);
         setSizeFull();
         setPadding(false);

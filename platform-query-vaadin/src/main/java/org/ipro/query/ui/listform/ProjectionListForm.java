@@ -3,6 +3,7 @@ package org.ipro.query.ui.listform;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
@@ -14,6 +15,8 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import org.ipro.filtergrid.projection.CompositeRowKey;
+import org.ipro.filtergrid.projection.NullKeyPolicy;
+import org.ipro.query.list.QueryListDefinition.Command;
 import org.ipro.query.ui.grid.QueryGridEnvironment;
 import org.ipro.query.ui.grid.QueryGridPanel;
 import org.ipro.query.ui.grid.QueryGridSpec;
@@ -21,6 +24,8 @@ import org.ipro.query.ui.grid.QueryGridSpec;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.EnumMap;
+import java.util.Set;
 import java.util.function.Consumer;
 
 /**
@@ -41,6 +46,8 @@ public class ProjectionListForm extends VerticalLayout {
     private final QueryViewsController viewsController;
     private Button viewsButton;
     private CompositeRowKey selected;
+    private final EnumMap<Command, Button> commandButtons = new EnumMap<>(Command.class);
+    private QueryListCommands actions;
 
     /**
      * @param listKey ключ списка (не ревизия запуска): по нему и варианту строится ключ «Видов»
@@ -112,10 +119,113 @@ public class ProjectionListForm extends VerticalLayout {
         commandSlot.setVisible(true);
     }
 
+    public void configureCommands(Set<Command> enabled, QueryListCommands port) {
+        actions = java.util.Objects.requireNonNull(port);
+        commandButtons.values().forEach(commandSlot::remove);
+        commandButtons.clear();
+        for (Command command : Command.values()) {
+            if (!enabled.contains(command)) continue;
+            Button button = new Button(commandTitle(command), new Icon(commandIcon(command)), event -> runCommand(command));
+            button.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
+            if (command == Command.DELETE) button.addThemeVariants(ButtonVariant.LUMO_ERROR);
+            commandButtons.put(command, button);
+            addCommand(button);
+        }
+        updateCommands();
+    }
+
+    private void updateCommands() {
+        if (actions == null) return;
+        boolean groupedQuery = isGroupedQuery();
+        Long objectId = selectedObjectId();
+        commandButtons.forEach((command, button) -> {
+            if (groupedQuery && command != Command.CREATE) {
+                button.setVisible(false);
+                return;
+            }
+            var decision = actions.decide(command, command == Command.CREATE ? null : objectId);
+            button.setVisible(decision.visible());
+            button.setEnabled(decision.actionable());
+            button.setTooltipText(decision.blockReason());
+        });
+        commandSlot.setVisible(commandSlot.getChildren().anyMatch(Component::isVisible));
+    }
+
+    private boolean isGroupedQuery() {
+        return panel.grid().map(grid -> grid.definition().rowKeyNullPolicy() == NullKeyPolicy.ALLOW).orElse(false);
+    }
+
+    private Long selectedObjectId() {
+        String alias = panel.spec().commandColumn();
+        if (selected == null || alias == null) return null;
+        Object id = panel.grid()
+                .filter(grid -> grid.definition().hasRowKey() && grid.definition().rowKeyNullPolicy() != NullKeyPolicy.ALLOW)
+                .flatMap(grid -> grid.getGrid().getSelectedItems().stream().findFirst())
+                .map(row -> row.get(alias)).orElse(null);
+        return id instanceof Number number ? number.longValue() : null;
+    }
+
+    private void runCommand(Command command) {
+        if (command != Command.CREATE && isGroupedQuery()) return;
+        Long objectId = command == Command.CREATE ? null : selectedObjectId();
+        if (command != Command.DELETE) {
+            execute(command, objectId);
+            return;
+        }
+        var decision = actions.decide(command, objectId);
+        if (!decision.actionable()) {
+            showRefusal(decision);
+            return;
+        }
+        ConfirmDialog confirmation = new ConfirmDialog();
+        confirmation.setHeader("Удалить запись?");
+        confirmation.setText("Выбранная запись будет удалена.");
+        confirmation.setCancelable(true);
+        confirmation.setCancelText("Отмена");
+        confirmation.setConfirmText("Удалить");
+        confirmation.setConfirmButtonTheme("error primary");
+        confirmation.addConfirmListener(event -> execute(command, objectId));
+        confirmation.open();
+    }
+
+    private void execute(Command command, Long objectId) {
+        showRefusal(actions.execute(command, objectId, () -> {
+            if (command == Command.DELETE) panel.grid().ifPresent(grid -> grid.getGrid().deselectAll());
+            panel.refresh();
+        }));
+        updateCommands();
+    }
+
+    private static void showRefusal(QueryListCommands.Decision decision) {
+        if (!decision.actionable() && decision.blockReason() != null && com.vaadin.flow.component.UI.getCurrent() != null) {
+            Notification.show(decision.blockReason());
+        }
+    }
+
+    private static String commandTitle(Command command) {
+        return switch (command) {
+            case CREATE -> "Создать";
+            case OPEN -> "Открыть";
+            case EDIT -> "Изменить";
+            case DELETE -> "Удалить";
+        };
+    }
+
+    private static VaadinIcon commandIcon(Command command) {
+        return switch (command) {
+            case CREATE -> VaadinIcon.PLUS;
+            case OPEN -> VaadinIcon.EXTERNAL_LINK;
+            case EDIT -> VaadinIcon.EDIT;
+            case DELETE -> VaadinIcon.TRASH;
+        };
+    }
+
     /** Кнопки toolbar по подписям — для проверок и тем, кто расширяет оболочку. */
     public List<String> toolbarLabels() {
         List<String> labels = new ArrayList<>();
         toolbar.getChildren().forEach(child -> {
+            if (child == commandSlot) commandButtons.values().stream().filter(Component::isVisible)
+                    .map(Button::getText).forEach(labels::add);
             if (child instanceof Button button && !button.getText().isBlank()) labels.add(button.getText());
             if (child instanceof MenuBar menu) menu.getItems().forEach(item -> labels.add(item.getText()));
         });
@@ -141,8 +251,10 @@ public class ProjectionListForm extends VerticalLayout {
         toolbar.setWidthFull();
         toolbar.setAlignItems(FlexComponent.Alignment.CENTER);
         toolbar.getStyle().set("padding", "var(--lumo-space-xs) var(--lumo-space-m)")
+                .set("flex-wrap", "wrap")
                 .set("border-bottom", "1px solid var(--lumo-contrast-10pct)");
         commandSlot.setPadding(false);
+        commandSlot.getStyle().set("flex-wrap", "wrap").set("gap", "var(--lumo-space-xs)");
         commandSlot.setVisible(false);
         toolbar.add(commandSlot);
 
@@ -177,6 +289,7 @@ public class ProjectionListForm extends VerticalLayout {
     }
 
     private void fireSelection() {
+        updateCommands();
         for (var listener : List.copyOf(selectionListeners)) listener.accept(Optional.ofNullable(selected));
     }
 }

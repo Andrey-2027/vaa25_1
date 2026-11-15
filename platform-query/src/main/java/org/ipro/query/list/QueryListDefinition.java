@@ -19,9 +19,10 @@ public record QueryListDefinition(String key, String title, QueryDefinition quer
 
     public record CommandObject(String entityClass, String column) {
         public CommandObject {
-            if (entityClass == null || entityClass.isBlank() || column == null || column.isBlank()) {
-                throw new IllegalArgumentException("Укажите сущность и колонку объекта команды");
+            if (entityClass == null || entityClass.isBlank()) {
+                throw new IllegalArgumentException("Укажите основную сущность");
             }
+            column = column == null || column.isBlank() ? null : column.strip();
         }
     }
 

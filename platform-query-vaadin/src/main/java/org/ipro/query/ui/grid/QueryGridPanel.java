@@ -6,6 +6,7 @@ import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.contextmenu.ContextMenu;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridSortOrder;
 import com.vaadin.flow.component.grid.ColumnTextAlign;
@@ -16,7 +17,9 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.data.provider.SortDirection;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.shared.Registration;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Tuple;
@@ -88,6 +91,7 @@ public class QueryGridPanel extends VerticalLayout {
     private Built built;
     private Phase phase = Phase.NOT_RUN;
     private QueryGridFailure failure;
+    private QueryReferenceOpener referenceOpener;
     private boolean detailsVisible;
     private boolean opened;
     private boolean groupingOpen;
@@ -175,6 +179,11 @@ public class QueryGridPanel extends VerticalLayout {
     /** Сетка текущего результата; пусто, пока запрос не выполнен или отклонён. */
     public Optional<GroupableProjectionFilterGrid> grid() {
         return Optional.ofNullable(grid);
+    }
+
+    public void setReferenceOpener(QueryReferenceOpener opener) {
+        referenceOpener = opener;
+        if (grid != null) configureReferenceRenderers(grid);
     }
 
     public QueryParameterFields parameterFields() {
@@ -519,6 +528,37 @@ public class QueryGridPanel extends VerticalLayout {
                 }
             }
         }
+        configureReferenceRenderers(target);
+    }
+
+    private void configureReferenceRenderers(PanelGrid target) {
+        if (referenceOpener == null) return;
+        for (ColumnMeta column : target.definition().columns()) {
+            if (column.referenceType() == null) continue;
+            target.getGrid().getColumnByKey(column.key())
+                    .setRenderer(new ComponentRenderer<>(tuple -> referenceCell(column, tuple.get(column.key()))));
+        }
+    }
+
+    private Component referenceCell(ColumnMeta column, Object value) {
+        if (!(value instanceof Number id)) return new Span();
+        Class<?> type = column.referenceType();
+        String label = env.labels().label(type, id.longValue());
+        if (referenceOpener == null) return new Span(label);
+        Runnable open = () -> {
+            if (referenceOpener == null) return;
+            String refusal = referenceOpener.open(type, id.longValue());
+            if (refusal != null && UI.getCurrent() != null) Notification.show(refusal);
+        };
+        Button link = new Button(label, event -> open.run());
+        link.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE, ButtonVariant.LUMO_SMALL);
+        link.getStyle().set("text-decoration", "underline").set("max-width", "100%").set("overflow", "hidden");
+        link.setAriaLabel("Открыть " + label);
+        Span cell = new Span(link);
+        cell.getStyle().set("display", "block").set("width", "100%");
+        var menu = new ContextMenu(cell);
+        menu.addItem("Открыть «" + referenceOpener.typeName(type) + "»", event -> open.run());
+        return cell;
     }
 
     private void configureState(PanelGrid target, ProjectionDefinition definition, QueryGridState value) {

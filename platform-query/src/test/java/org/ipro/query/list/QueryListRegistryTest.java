@@ -56,6 +56,29 @@ class QueryListRegistryTest {
     }
 
     @Test
+    void registryAcceptsAnEntityWithoutAnIdentityColumnForCreation() {
+        var compiler = compiler();
+        var entityName = "org.example.Item";
+        when(compiler.isCommandEntity(entityName)).thenReturn(true);
+        var createOnly = new QueryListDefinition("stock.parts", "Номенклатура", QUERY, null, null,
+                new QueryListDefinition.CommandObject(entityName, null),
+                Set.of(QueryListDefinition.Command.CREATE), QueryProvenance.REGISTERED);
+        var wrongColumn = new QueryListDefinition("stock.parts", "Номенклатура", QUERY, null, null,
+                new QueryListDefinition.CommandObject(entityName, "code"),
+                Set.of(QueryListDefinition.Command.EDIT), QueryProvenance.REGISTERED);
+
+        database("jdbc:h2:mem:fq7_" + UUID.randomUUID(), "create-drop", new AtomicBoolean(true), compiler)
+                .run(context -> {
+                    assertThat(context).hasNotFailed();
+                    var registry = context.getBean(QueryListRegistry.class);
+                    assertThat(registry.check(wrongColumn).diagnostic()).contains("идентификатор");
+                    var saved = registry.create(createOnly, true);
+                    registry.recheck();
+                    assertThat(registry.findOpenable(saved.key()).orElseThrow().definition()).isEqualTo(createOnly);
+                });
+    }
+
+    @Test
     void writesRequireMenuAdminAndEnforceKeysVersionsAndEnabledState() {
         var admin = new AtomicBoolean();
         var compiler = compiler();

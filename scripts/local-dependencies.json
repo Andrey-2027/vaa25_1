@@ -516,8 +516,8 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "d0e4c2926111db42733a6f4c7754163f820a272b060881844587c1b6ae0ffb23",
-        "fileCount": 145,
+        "sha256": "71628eb27186c7588e5b259d7859b9f0be810347f48267f7e779e44a02fc21f1",
+        "fileCount": 147,
         "inputs": ["pom.xml", "src"]
       },
       "artifacts": ["org.ipro:platform-query:1.0-SNAPSHOT"],
@@ -534,8 +534,8 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "51b2d0a87071f6af9e97b47af6dfbb47599751ce9b4865db0bf06409a5e469d9",
-        "fileCount": 85,
+        "sha256": "31831fcbfc9646843cb9e242a0432a99a1470de0b2dcf382979662c568e75435",
+        "fileCount": 97,
         "inputs": ["pom.xml", "src"]
       },
       "artifacts": ["org.ipro:platform-query-vaadin:1.0-SNAPSHOT"],
@@ -598,7 +598,7 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "e5e5433fa7138aa2e24ecb5b41a796b448e1a20539ec18d5637093d7e9e61796",
+        "sha256": "0ba82e047cb5618e179d00d970f4dd825476121ffff21a51c7cc9e194af0764f",
         "fileCount": 315,
         "inputs": [
           "pom.xml",
@@ -842,8 +842,8 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "daf9859713fad70c6fc9e1c2b7632259022a080e5d5071bed615acbf2f191826",
-        "fileCount": 11,
+        "sha256": "13290e8f0d8c39f20b69276a2965b29be31bc423e2eb4a3dfb9048239c4dd034",
+        "fileCount": 10,
         "inputs": ["pom.xml", "src"]
       },
       "artifacts": ["org.ipro:platform-utr:1.0-SNAPSHOT"],
