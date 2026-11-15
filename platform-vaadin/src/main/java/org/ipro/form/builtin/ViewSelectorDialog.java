@@ -3,7 +3,7 @@ package org.ipro.form.builtin;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
-import com.vaadin.flow.component.dialog.Dialog;
+import org.ipro.form.DialogForm;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
@@ -34,7 +34,7 @@ import java.util.function.Consumer;
  * личный — только автор) — этот диалог просто ловит исключение и показывает сообщение,
  * сам ничего не решает про права.
  */
-public class ViewSelectorDialog extends Dialog {
+public class ViewSelectorDialog extends DialogForm<GridView> {
     private GridViewState currentState;
     public ViewSelectorDialog withCurrentState(GridViewState state) { currentState = state; return this; }
 
@@ -52,6 +52,9 @@ public class ViewSelectorDialog extends Dialog {
 
     private final Grid<GridView> grid = new Grid<>(GridView.class, false);
     private String currentDefaultViewId;
+    private Command copyCommand;
+    private Command editCommand;
+    private Command deleteCommand;
 
     public ViewSelectorDialog(org.ipro.metadata.GridMetadata metadata,
                               MetadataResolver metadataResolver,
@@ -66,6 +69,7 @@ public class ViewSelectorDialog extends Dialog {
                               Consumer<GridView> onSetDefault,
                               Runnable onClearDefault,
                               Runnable onStandardView) {
+        super("Виды: " + metadata.getListFormTitle());
         this.metadata = metadata;
         this.metadataResolver = metadataResolver;
         this.gridViewStore = gridViewStore;
@@ -79,20 +83,24 @@ public class ViewSelectorDialog extends Dialog {
         this.onClearDefault = onClearDefault;
         this.onStandardView = onStandardView;
 
-        setHeaderTitle("Виды: " + metadata.getListFormTitle());
-        setModal(true);
-        setDraggable(true);
-        setResizable(true);
-        setWidth("620px");
-        setHeight("500px");
-
         configureColumns();
         grid.setItems(views);
         grid.setSelectionMode(Grid.SelectionMode.SINGLE);
         grid.setSizeFull();
         add(grid);
 
-        configureButtons();
+        // Окно, размер и закрытие задаёт оболочка DialogForm; здесь — только состав команд.
+        size(Size.MEDIUM);
+        withOk("Загрузить", this::selectedView).withCancel("Закрыть").onResult(onApply);
+        configureCommands();
+
+        grid.asSingleSelect().addValueChangeListener(e -> updateAvailability());
+        grid.addItemDoubleClickListener(e -> {
+            if (e.getItem() != null) {
+                closeWith(e.getItem());
+            }
+        });
+        updateAvailability();
     }
 
     private void configureColumns() {
@@ -124,51 +132,50 @@ public class ViewSelectorDialog extends Dialog {
         return toggle;
     }
 
-    private void configureButtons() {
-        Button standard = new Button("Стандартный вид", e -> {
-            onStandardView.run();
-            close();
-        });
-        standard.setTooltipText("Состав колонок из метаданных, без сохранённого вида");
-
-        Button create = new Button("Создать", e -> openEditor(null,
+    /**
+     * Командная панель окна: «Создать», «Копировать», «Изменить», «Удалить» (только иконка),
+     * «Стандартный вид» — последней. Команды над видом доступны только при выделении.
+     */
+    private void configureCommands() {
+        addCommand("create", "Создать", VaadinIcon.PLUS, () -> openEditor(null,
             currentState == null ? metadata.getListColumnPaths() : toColumnPaths(currentState),
             currentState == null ? null : currentState.userFilterOrLegacy(), "", currentState));
 
-        Button copy = new Button("Копировать", e -> {
-            GridView selected = requireSelection();
+        copyCommand = addCommand("copy", "Копировать", VaadinIcon.COPY, () -> {
+            GridView selected = selectedView();
             if (selected == null) return;
             GridViewState state = GridViewState.fromJson(selected.columns());
             openEditor(null, toColumnPaths(state), state.userFilterOrLegacy(),
                 selected.name() + " (копия)", state);
         });
 
-        Button edit = new Button("Изменить", e -> {
-            GridView selected = requireSelection();
+        editCommand = addCommand("edit", "Изменить", VaadinIcon.EDIT, () -> {
+            GridView selected = selectedView();
             if (selected == null) return;
             GridViewState state = GridViewState.fromJson(selected.columns());
             openEditor(selected, toColumnPaths(state), state.userFilterOrLegacy(),
                 selected.name(), state);
         });
 
-        Button delete = new Button("Удалить", e -> {
-            GridView selected = requireSelection();
+        deleteCommand = addDangerCommand("delete", "Удалить", VaadinIcon.TRASH, () -> {
+            GridView selected = selectedView();
             if (selected == null) return;
             confirmAndDelete(selected);
         });
-        delete.addThemeVariants(ButtonVariant.LUMO_ERROR);
+        deleteCommand.iconOnly();
 
-        Button apply = new Button("Загрузить", e -> {
-            GridView selected = requireSelection();
-            if (selected == null) return;
-            onApply.accept(selected);
+        addCommand("standard-view", "Стандартный вид", VaadinIcon.LIST, () -> {
+            onStandardView.run();
             close();
-        });
-        apply.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        }).setTooltip("Состав колонок из метаданных, без сохранённого вида");
+    }
 
-        Button closeBtn = new Button("Закрыть", e -> close());
-
-        getFooter().add(standard, create, copy, edit, delete, closeBtn, apply);
+    private void updateAvailability() {
+        boolean selected = selectedView() != null;
+        setOkEnabled(selected);
+        copyCommand.setEnabled(selected);
+        editCommand.setEnabled(selected);
+        deleteCommand.setEnabled(selected);
     }
 
     private void openEditor(GridView editingView, List<ColumnPath> initialColumns,
@@ -177,7 +184,7 @@ public class ViewSelectorDialog extends Dialog {
             editingView, initialColumns, initialFilter, initialName, supportsFilters,
             savedView -> {
                 onApply.accept(savedView);
-                grid.setItems(gridViewStore.findVisibleViews(formKey));
+                reloadViews();
             },
             entitySelector
         ).withStateOptions(initialState).open();
@@ -194,12 +201,9 @@ public class ViewSelectorDialog extends Dialog {
         return result;
     }
 
-    private GridView requireSelection() {
-        GridView selected = grid.asSingleSelect().getValue();
-        if (selected == null) {
-            Notification.show("Выберите вид", 3000, Notification.Position.MIDDLE);
-        }
-        return selected;
+    /** Выделенный вид или null; команды и «Загрузить» без выделения недоступны, уведомления не нужны. */
+    private GridView selectedView() {
+        return grid.asSingleSelect().getValue();
     }
 
     private void confirmAndDelete(GridView view) {
@@ -209,19 +213,34 @@ public class ViewSelectorDialog extends Dialog {
         confirm.setCancelable(true);
         confirm.setConfirmText("Удалить");
         confirm.setConfirmButtonTheme("error primary");
-        confirm.addConfirmListener(e -> {
-            try {
-                gridViewStore.deleteView(view.id());
-                grid.setItems(gridViewStore.findVisibleViews(formKey));
-                if (view.id().toString().equals(currentDefaultViewId)) {
-                    currentDefaultViewId = null;
-                }
-                Notification.show("Вид удалён", 2000, Notification.Position.BOTTOM_START);
-            } catch (Exception ex) {
-                showError(ex);
-            }
-        });
+        confirm.addConfirmListener(e -> deleteView(view));
         confirm.open();
+    }
+
+    /** Удаление после подтверждения: права проверяет хранилище, отказ показывается уведомлением. */
+    void deleteView(GridView view) {
+        try {
+            gridViewStore.deleteView(view.id());
+            reloadViews();
+            if (view.id().toString().equals(currentDefaultViewId)) {
+                currentDefaultViewId = null;
+            }
+            Notification.show("Вид удалён", 2000, Notification.Position.BOTTOM_START);
+        } catch (Exception ex) {
+            showError(ex);
+        }
+    }
+
+    /** Перечитать список видов; выделение сбрасывается, команды над видом блокируются. */
+    private void reloadViews() {
+        grid.deselectAll();
+        grid.setItems(gridViewStore.findVisibleViews(formKey));
+        updateAvailability();
+    }
+
+    /** Текущий вид по умолчанию (для проверки без разбора грида). */
+    String defaultViewId() {
+        return currentDefaultViewId;
     }
 
     private void showError(Exception ex) {

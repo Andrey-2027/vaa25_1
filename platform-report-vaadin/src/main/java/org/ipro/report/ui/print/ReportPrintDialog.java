@@ -1,18 +1,14 @@
 package org.ipro.report.ui.print;
 
 import com.vaadin.flow.component.UI;
-import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.contextmenu.MenuItem;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.html.Paragraph;
-import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.QueryParameters;
+import org.ipro.form.DialogForm;
 import org.ipro.query.ReportContext;
 import org.ipro.report.catalog.ReportCatalogItem;
 import org.ipro.report.catalog.ReportCatalogItemFactory;
@@ -80,30 +76,27 @@ public class ReportPrintDialog {
             return;
         }
         List<ReportCatalogItem> items = mergedItems(context);
-        Dialog dialog = new Dialog();
-        dialog.setHeaderTitle("Выберите печатную форму");
-        dialog.setWidth("min(820px, 95vw)");
+        DialogForm<ReportCatalogItem> dialog = new DialogForm<>("Печать");
+        dialog.size(DialogForm.Size.MEDIUM);
 
         Grid<ReportCatalogItem> templates = new Grid<>(ReportCatalogItem.class, false);
         templates.addColumn(this::typeLabel)
-                .setHeader("Тип").setAutoWidth(true);
+                .setHeader("Тип").setAutoWidth(true).setFlexGrow(0);
         templates.addColumn(ReportCatalogItem::name).setHeader("Наименование").setFlexGrow(1);
         templates.addColumn(item -> item.enabled() ? "Опубликован" : "Черновик")
-                .setHeader("Состояние").setAutoWidth(true);
+                .setHeader("Состояние").setAutoWidth(true).setFlexGrow(0);
         templates.setItems(items);
-        templates.setHeight("340px");
+        templates.setSizeFull();
+        dialog.add(templates);
 
-        Button run = new Button("Открыть параметры и запустить", event -> {
-            ReportCatalogItem selected = templates.asSingleSelect().getValue();
-            if (selected == null) {
-                showError("Выберите шаблон отчёта");
-                return;
-            }
-            dialog.close();
-            runSelected(selected, context);
-        });
-        run.setEnabled(false);
-        Button edit = new Button("Редактировать", event -> {
+        // OK: окно закрывается до запуска, поэтому параметры отчёта открываются без вложенности.
+        dialog.withOk("Сформировать…", () -> templates.asSingleSelect().getValue())
+                .withCancel("Закрыть")
+                .onResult(selected -> runSelected(selected, context));
+        dialog.setOkEnabled(false);
+
+        addCreateCommands(dialog, context);
+        DialogForm.Command edit = dialog.addCommand("edit", "Изменить", VaadinIcon.EDIT, () -> {
             ReportCatalogItem selected = templates.asSingleSelect().getValue();
             if (selected == null) {
                 return;
@@ -112,30 +105,27 @@ public class ReportPrintDialog {
             editSelected(selected);
         });
         edit.setEnabled(false);
+
         templates.asSingleSelect().addValueChangeListener(valueChange -> {
-            boolean hasSelection = valueChange.getValue() != null;
-            run.setEnabled(hasSelection);
+            ReportCatalogItem selected = valueChange.getValue();
+            boolean hasSelection = selected != null;
+            dialog.setOkEnabled(hasSelection);
             edit.setEnabled(hasSelection);
+            dialog.setHint(hasSelection ? selected.description() : null);
         });
-        Button create = buildCreateMenu(dialog, context);
-        Button cancel = new Button("Закрыть", event -> dialog.close());
-        dialog.add(new VerticalLayout(
-                new Paragraph("UniDR — отчёт, привязанный к типу сущности. "
-                        + "JR — макет .jrxml из Jaspersoft Studio. "
-                        + "UDR-шаблоны не печатаются: конструктор удалён (R3). "
-                        + "Параметры CONTEXT/COMPUTED разрешаются на сервере."),
-                templates,
-                new HorizontalLayout(create, edit, run, cancel)));
+        templates.addItemDoubleClickListener(event -> {
+            if (event.getItem() != null) {
+                dialog.closeWith(event.getItem());
+            }
+        });
         presenter.accept(dialog);
     }
 
-    /** Кнопка «Создать»: UniDR и JR. Пункт показывается только при наличии сервиса. */
-    private Button buildCreateMenu(Dialog dialog, ReportContext context) {
-        MenuBar menu = new MenuBar();
-        MenuItem createItem = menu.addItem("Создать");
+    /** Команды «Создать UniDR» и «Создать JR»: каждая — только при наличии своего сервиса. */
+    private void addCreateCommands(DialogForm<ReportCatalogItem> dialog, ReportContext context) {
         boolean hasEntity = context.entityClass() != null;
         if (uniDrFiles != null) {
-            createItem.getSubMenu().addItem("UniDR — универсальный отчёт", event -> {
+            dialog.addCommand("create-unidr", "Создать UniDR", VaadinIcon.PLUS, () -> {
                 if (!hasEntity) {
                     showError("Текущий реестр не определяет тип сущности");
                     return;
@@ -143,52 +133,46 @@ public class ReportPrintDialog {
                 dialog.close();
                 UI.getCurrent().navigate("unidr", QueryParameters.simple(Map.of(
                         "targetEntityClass", context.entityClass().getName())));
-            });
+            }).setTooltip("Универсальный отчёт, привязанный к типу сущности");
         }
         if (jrTemplateService != null) {
-            createItem.getSubMenu().addItem("JR — Jaspersoft Studio (.jrxml)", event -> {
+            dialog.addCommand("create-jr", "Создать JR", VaadinIcon.PLUS, () -> {
                 if (!hasEntity) {
                     showError("Текущий реестр не определяет тип сущности");
                     return;
                 }
                 dialog.close();
                 createJr(context);
-            });
+            }).setTooltip("Макет .jrxml из Jaspersoft Studio");
         }
-        Button button = new Button("Создать", menu);
-        button.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        return button;
     }
 
     /** Создание JR-шаблона с привязкой к текущему реестру. */
     private void createJr(ReportContext context) {
-        Dialog input = new Dialog();
-        input.setHeaderTitle("Новый отчёт JR (.jrxml) для реестра");
-        input.setWidth("460px");
-        com.vaadin.flow.component.textfield.TextField name =
-                new com.vaadin.flow.component.textfield.TextField("Наименование");
+        DialogForm<JrxmlTemplate> input = new DialogForm<>("Новый отчёт JR");
+        input.size(DialogForm.Size.SMALL);
+        TextField name = new TextField("Наименование");
         name.setWidthFull();
-        Button create = new Button("Создать", event -> {
+        input.add(name);
+        // Проверка и создание — внутри обработчика OK: при ошибке окно остаётся открытым.
+        input.withOk("Создать", () -> {
             if (name.getValue() == null || name.getValue().isBlank()) {
                 showError("Укажите наименование");
-                return;
+                return null;
             }
             try {
-                JrxmlTemplate created = jrTemplateService.createTemplate(
+                return jrTemplateService.createTemplate(
                         name.getValue(), null, context.entityClass().getName());
-                input.close();
-                Notification.show("Создан отчёт JR «" + created.getName()
-                                + "» (" + created.getFileName()
-                                + "). Макет правится в Jaspersoft Studio.",
-                        5_000, Notification.Position.MIDDLE);
             } catch (RuntimeException exception) {
                 showError("Не удалось создать отчёт JR: " + exception.getMessage());
+                return null;
             }
-        });
-        create.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        Button cancel = new Button("Отмена", event -> input.close());
-        input.add(new VerticalLayout(name, new HorizontalLayout(create, cancel)));
+        }).onResult(created -> Notification.show("Создан отчёт JR «" + created.getName()
+                        + "» (" + created.getFileName()
+                        + "). Макет правится в Jaspersoft Studio.",
+                5_000, Notification.Position.MIDDLE));
         input.open();
+        name.focus();
     }
 
     private List<ReportCatalogItem> mergedItems(ReportContext context) {

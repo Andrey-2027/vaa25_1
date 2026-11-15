@@ -325,6 +325,46 @@ class public final org.ipro.vaadin.search.GlobalSearchNavigationAdapter
   ctor public(org.ipro.search.GlobalSearchCatalog, org.springframework.beans.factory.ObjectProvider<org.ipro.form.coordinator.FormNavigator>)
   method public void open(org.ipro.search.GlobalSearchResult)
 
+class public org.ipro.form.DialogForm
+  extends com.vaadin.flow.component.dialog.Dialog
+  type-parameter R
+  ctor public(java.lang.String)
+  method public boolean isMaximized()
+  method public com.vaadin.flow.component.Component getComponentAt(int)
+  method public com.vaadin.flow.component.button.Button getCancelButton()
+  method public com.vaadin.flow.component.button.Button getOkButton()
+  method public com.vaadin.flow.component.orderedlayout.HorizontalLayout getFooterStart()
+  method public com.vaadin.flow.component.orderedlayout.VerticalLayout getBody()
+  method public int getComponentCount()
+  method public int indexOf(com.vaadin.flow.component.Component)
+  method public org.ipro.form.DialogForm$Command addCommand(java.lang.String, java.lang.String, com.vaadin.flow.component.icon.VaadinIcon, java.lang.Runnable)
+  method public org.ipro.form.DialogForm$Command addDangerCommand(java.lang.String, java.lang.String, com.vaadin.flow.component.icon.VaadinIcon, java.lang.Runnable)
+  method public org.ipro.form.DialogForm$Command addMenuCommand(java.lang.String, java.lang.String, java.lang.Runnable)
+  method public org.ipro.form.DialogForm<R> closeGuard(org.ipro.form.DialogForm$CloseGuard)
+  method public org.ipro.form.DialogForm<R> onCancel(java.lang.Runnable)
+  method public org.ipro.form.DialogForm<R> onResult(java.util.function.Consumer<R>)
+  method public org.ipro.form.DialogForm<R> size(org.ipro.form.DialogForm$Size)
+  method public org.ipro.form.DialogForm<R> withCancel(java.lang.String)
+  method public org.ipro.form.DialogForm<R> withOk(java.lang.String, java.util.function.Supplier<R>)
+  method public org.ipro.form.DialogForm<R> withoutOk()
+  method public transient void add(com.vaadin.flow.component.Component[])
+  method public transient void remove(com.vaadin.flow.component.Component[])
+  method public void add(java.lang.String)
+  method public void add(java.util.Collection<com.vaadin.flow.component.Component>)
+  method public void addComponentAsFirst(com.vaadin.flow.component.Component)
+  method public void addComponentAtIndex(int, com.vaadin.flow.component.Component)
+  method public void cancel()
+  method public void closeWith(R)
+  method public void ok()
+  method public void remove(java.util.Collection<com.vaadin.flow.component.Component>)
+  method public void removeAll()
+  method public void replace(com.vaadin.flow.component.Component, com.vaadin.flow.component.Component)
+  method public void setEnterIsOk(boolean)
+  method public void setHint(java.lang.String)
+  method public void setMaximized(boolean)
+  method public void setOkEnabled(boolean)
+  method public void setResizable(boolean)
+
 class public org.ipro.form.EntityField
   extends com.vaadin.flow.component.html.Div
   implements com.vaadin.flow.component.HasLabel
@@ -780,6 +820,12 @@ class public org.ipro.vaadin.search.GlobalSearchHeader
   extends com.vaadin.flow.component.html.Div
   ctor public(org.ipro.search.GlobalSearchService, org.ipro.vaadin.search.GlobalSearchNavigationAdapter)
 
+class public static final org.ipro.form.DialogForm$Command
+  method public org.ipro.form.DialogForm$Command iconOnly()
+  method public org.ipro.form.DialogForm$Command setEnabled(boolean)
+  method public org.ipro.form.DialogForm$Command setTooltip(java.lang.String)
+  method public org.ipro.form.DialogForm$Command setVisible(boolean)
+
 class public static final org.ipro.form.builder.ListCommandLayout$Builder
   ctor public()
   method public org.ipro.form.builder.ListCommandLayout build()
@@ -910,6 +956,15 @@ enum public final org.ipro.form.registry.FormType
   field public static final org.ipro.form.registry.FormType SELECTION = enum-constant
   method public static org.ipro.form.registry.FormType valueOf(java.lang.String)
   method public static org.ipro.form.registry.FormType[] values()
+
+enum public static final org.ipro.form.DialogForm$Size
+  extends java.lang.Enum<org.ipro.form.DialogForm$Size>
+  enum-constants [SMALL, MEDIUM, LARGE]
+  field public static final org.ipro.form.DialogForm$Size LARGE = enum-constant
+  field public static final org.ipro.form.DialogForm$Size MEDIUM = enum-constant
+  field public static final org.ipro.form.DialogForm$Size SMALL = enum-constant
+  method public static org.ipro.form.DialogForm$Size valueOf(java.lang.String)
+  method public static org.ipro.form.DialogForm$Size[] values()
 
 enum public static final org.ipro.form.action.ActionDecision$Reason
   extends java.lang.Enum<org.ipro.form.action.ActionDecision$Reason>
@@ -1266,6 +1321,10 @@ interface public abstract interface org.ipro.vaadin.explorer.ui.ExplorerSourcePo
   annotation java.lang.FunctionalInterface
   method public abstract org.ipro.vaadin.explorer.ui.ExplorerSourcePort$Source read(org.ipro.vaadin.explorer.EntitySummary, org.ipro.vaadin.explorer.ui.ExplorerSourcePort$Target)
   method public static org.ipro.vaadin.explorer.ui.ExplorerSourcePort unavailable()
+
+interface public abstract static interface org.ipro.form.DialogForm$CloseGuard
+  annotation java.lang.FunctionalInterface
+  method public abstract void beforeClose(java.lang.Runnable)
 
 interface public abstract static interface org.ipro.form.EntityField$LegacyValueChangeListener
   implements com.vaadin.flow.component.HasValue$ValueChangeListener<com.vaadin.flow.component.HasValue$ValueChangeEvent<?>>

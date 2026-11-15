@@ -84,6 +84,7 @@ class VaadinModuleCompositionTest {
         "org.ipro.form.builtin.ListPageReader",
         "org.ipro.form.builtin.ListFormJpaFilterGrid",
         "org.ipro.form.link.ListViewStateToken",
+        "org.ipro.form.DialogForm",
         "org.ipro.form.Dirtyable",
         "org.ipro.form.EntityField",
         "org.ipro.form.FieldFactory",
@@ -184,7 +185,9 @@ class VaadinModuleCompositionTest {
         "org.ipro.form.coordinator.AccessDenialPresentation",
         "org.ipro.form.coordinator.FormCoordinator",
         "org.ipro.form.coordinator.FormNavigator",
+        "org.ipro.form.coordinator.FormOpenEvent",
         "org.ipro.form.coordinator.FormOpenMode",
+        "org.ipro.form.coordinator.FormOpenObserver",
         "org.ipro.form.coordinator.ItemFormAccessBinder",
         "org.ipro.form.coordinator.ItemFormLinkAffordance",
         "org.ipro.form.coordinator.FormStructureAffordance",
@@ -368,8 +371,9 @@ class VaadinModuleCompositionTest {
                 + " ET2 добавила внутренний сборщик структурных фактов (`EntityStructureFactsAssembler`) — итого 139;"
                 + " Б1 добавила поиск автокомплита с отбором выбора (`FilterableSearchFunction`) — итого 141;"
                 + " КИ-9 добавила решатели действий (`ActionResolvers`) и правило доступности команд"
-                + " (`NavigationCommandAvailability`) — итого 193")
-            .hasSize(193); // R2: +22 explicitly reviewed Explorer UI types; no application dependency.
+                + " (`NavigationCommandAvailability`) — итого 193; ДФ-1 добавила оболочку диалоговой"
+                + " формы (`DialogForm`) — итого 194 (с учётом FormOpenEvent/FormOpenObserver: события открытия форм — итого 196)")
+            .hasSize(196); // R2: +22 explicitly reviewed Explorer UI types; ДФ-1: +1 DialogForm.
     }
 
     @Test

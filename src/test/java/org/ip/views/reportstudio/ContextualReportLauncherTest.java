@@ -4,6 +4,7 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
+import org.ipro.form.DialogForm;
 import org.ipro.query.ReportContext;
 import org.ipro.unidr.model.UniDrDefinitionJsonCodec;
 import org.ipro.unidr.model.UniDrDefinitionValidator;
@@ -27,7 +28,9 @@ import java.util.List;
 import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -92,10 +95,11 @@ class ContextualReportLauncherTest {
 
         launcher.click();
 
-        Button edit = button(launcher.openedDialog, "Редактировать");
-        Button run = button(launcher.openedDialog, "Открыть параметры и запустить");
+        DialogForm<?> dialog = (DialogForm<?>) launcher.openedDialog;
+        Button run = dialog.getOkButton();
+        Button edit = button(dialog, "Изменить");
+        assertEquals("Сформировать…", run.getText());
         assertNotNull(edit);
-        assertNotNull(run);
         assertFalse(edit.isEnabled());
         assertFalse(run.isEnabled());
 
@@ -115,23 +119,41 @@ class ContextualReportLauncherTest {
         assertFalse(run.isEnabled());
     }
 
-    /** UDR-пункта «Создать» больше нет: вход снят вместе с редактором. */
+    /** UDR-пункта создания больше нет: вход снят вместе с редактором. */
     @Test
-    void createMenuHasNoUdrEntry() {
+    void createCommandsHaveNoUdrEntry() {
+        ReportContext context = ReportContext.of(Printable.class, 5L, List.of(5L),
+            "form", "tester", Instant.now());
+        var store = new UniDrFileStore(directory,
+            new UniDrDefinitionJsonCodec(new UniDrDefinitionValidator(UniDrDefinitions.catalog())),
+            new UniDrAccess(() -> true, () -> "alice"));
+        TestLauncher launcher = new TestLauncher(() -> context, store, null);
+
+        launcher.click();
+
+        DialogForm<?> dialog = (DialogForm<?>) launcher.openedDialog;
+        assertNotNull(button(dialog, "Создать UniDR"));
+        assertNull(button(dialog, "Создать UDR"));
+    }
+
+    /** Без сервисов («Создать UniDR»/«Создать JR» зависят от них) команд создания нет. */
+    @Test
+    void createCommandsAreOfferedOnlyWithTheirServices() {
         ReportContext context = ReportContext.of(Printable.class, 5L, List.of(5L),
             "form", "tester", Instant.now());
         TestLauncher launcher = new TestLauncher(() -> context, null, null);
 
         launcher.click();
 
-        assertThat(descendants(launcher.openedDialog, com.vaadin.flow.component.menubar.MenuBar.class))
-            .flatExtracting(bar -> bar.getItems())
-            .flatExtracting(item -> item.getSubMenu().getItems())
-            .extracting(com.vaadin.flow.component.contextmenu.MenuItem::getText)
-            .noneMatch(text -> text != null && text.startsWith("UDR"));
+        DialogForm<?> dialog = (DialogForm<?>) launcher.openedDialog;
+        assertNull(button(dialog, "Создать UniDR"));
+        assertNull(button(dialog, "Создать JR"));
+        assertNotNull(button(dialog, "Изменить"));
     }
 
-    private static Button button(Dialog dialog, String caption) {
+
+    /** Кнопка команды панели (панель — потомок корня диалога) по подписи; null, если нет. */
+    private static Button button(DialogForm<?> dialog, String caption) {
         return descendants(dialog, Button.class).stream()
                 .filter(b -> caption.equals(b.getText()))
                 .findFirst()

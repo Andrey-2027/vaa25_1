@@ -1,7 +1,6 @@
 package org.ipro.report.ui.print;
 
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import org.ip.unidr.model.UniDrDefinitions;
@@ -15,6 +14,7 @@ import org.ipro.report.ui.UniDrStoreGateway;
 import org.ipro.report.ui.unidr.UniDrRunLauncher;
 import org.ipro.crud.EntityLookup;
 import org.ipro.form.SelectionFormAssembler;
+import org.ipro.form.DialogForm;
 import org.ipro.jr.run.JrxmlExecutionService;
 import org.ipro.jr.service.JrxmlTemplateService;
 import org.ipro.report.catalog.ReportCatalogItem;
@@ -80,13 +80,15 @@ class ReportPrintDialogUniDrTest {
             Printable.class.getName() + "-list", "alice", Instant.now());
         dialog.open(context);
 
+        assertThat(presented.get().getHeaderTitle()).isEqualTo("Печать");
+        assertThat(((DialogForm<?>) presented.get()).getOkButton().getText()).isEqualTo("Сформировать…");
         Grid<ReportCatalogItem> grid = grid(presented.get());
         assertThat(grid.getListDataView().getItems().toList())
             .extracting(ReportCatalogItem::type, ReportCatalogItem::name)
             .containsExactly(org.assertj.core.groups.Tuple.tuple(ReportEngineType.UNIDR, "Накладная"));
 
         grid.asSingleSelect().setValue(grid.getListDataView().getItems().findFirst().orElseThrow());
-        button(presented.get(), "Открыть параметры и запустить").click();
+        ((DialogForm<?>) presented.get()).getOkButton().click();
 
         verify(launcher).open(any(UniDrDefinition.class), same(context));
         assertThat(store.load(bound.id()).definition().targetEntityClass())
@@ -119,12 +121,6 @@ class ReportPrintDialogUniDrTest {
         return grid;
     }
 
-    private static Button button(Dialog dialog, String caption) {
-        return descendants(dialog, Button.class).stream()
-            .filter(button -> caption.equals(button.getText()))
-            .findFirst()
-            .orElseThrow(() -> new AssertionError("Кнопка не найдена: " + caption));
-    }
 
     private static <T extends Component> List<T> descendants(Component root, Class<T> type) {
         List<T> result = new ArrayList<>();
