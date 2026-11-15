@@ -281,7 +281,8 @@ public class SubsystemStructureView extends VerticalLayout {
         InMemoryFilterGrid<EntityFacet> grid =
             new InMemoryFilterGrid<>(EntityFacet.class, group.entities());
         grid.addColumn("entity", "Сущность",
-            r -> r.displayName().value() + "  (" + r.simpleName() + ")")
+            r -> r.displayName().value() + "  (" + r.simpleName() + ")"
+                + (r.additional() ? " · дополнительно" : ""))
             .setResizable(true).setFlexGrow(1);
         grid.addColumn("numbering", "Нумерация", r -> text(r.numbering()))
             .setResizable(true).setWidth("230px").setFlexGrow(0);

@@ -535,6 +535,17 @@ public class EntitySummaryAssembler {
             resolve(FacetKey.of(FacetKind.SUBSYSTEM_MEMBERSHIP, entityClass), subsystemCode,
                 subsystemOrigin, subsystemSymbol)));
 
+        if (!meta.getAdditionalSubsystems().isEmpty()) {
+            String additionalTitles = meta.getAdditionalSubsystems().stream()
+                .map(section -> subsystemRegistry.findByMarker(section)
+                    .map(SubsystemNode::getTitle).orElseGet(section::getSimpleName))
+                .collect(java.util.stream.Collectors.joining(", "));
+            rows.add(new EntitySummary.OverviewRow("Также в разделах",
+                FacetKey.of(FacetKind.SUBSYSTEM_MEMBERSHIP, entityClass, null, "alsoIn"),
+                ResolvedValue.fact(additionalTitles, meta.getPropertyOrigin("alsoIn"),
+                    meta.getPropertySymbol("alsoIn"))));
+        }
+
         rows.add(new EntitySummary.OverviewRow("Тип сущности",
             FacetKey.of(FacetKind.ENTITY_KIND, entityClass),
             ResolvedValue.fact(classification(entityClass).kind().name(), classification(entityClass).origin(),
@@ -1150,6 +1161,9 @@ public class EntitySummaryAssembler {
      * действием. Порядок — default, затем по имени (П4).
      */
     private List<String> actionVariants(ActionSurface surface, Class<?> entityClass) {
+        if (surface == ActionSurface.NAVIGATION) {
+            return java.util.Collections.singletonList(null);
+        }
         Set<String> named = new TreeSet<>();
         FormType formType = formTypeOf(surface);
         for (FormRegistry.Registration registration : formRegistry.registrationsOf(entityClass)) {
@@ -1176,6 +1190,7 @@ public class EntitySummaryAssembler {
         return switch (surface) {
             case LIST_TOOLBAR -> FormType.LIST;
             case ITEM_FOOTER, ITEM_MENU -> FormType.ITEM;
+            case NAVIGATION -> throw new IllegalArgumentException("Navigation commands have no form type");
         };
     }
 

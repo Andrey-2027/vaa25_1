@@ -144,6 +144,11 @@ public final class EntityMetadataInfo implements GridMetadata {
         return explicitSelectColumns;
     }
 
+    /** Additional menu placements declared on the entity. */
+    public List<Class<?>> getAdditionalSubsystems() {
+        return annotation == null ? List.of() : List.of(annotation.alsoIn());
+    }
+
     /** Origin of effective entity properties, independent of annotation presence. */
     public FactOrigin getPropertyOrigin(String property) {
         return switch (property) {
@@ -160,6 +165,8 @@ public final class EntityMetadataInfo implements GridMetadata {
                 ? FactOrigin.EXPLICIT : standardBase() != null ? FactOrigin.DERIVED : FactOrigin.PLATFORM_DEFAULT;
             case "listColumns" -> hasExplicitListColumns() ? FactOrigin.EXPLICIT : FactOrigin.DERIVED;
             case "selectColumns" -> hasExplicitSelectColumns() ? FactOrigin.EXPLICIT : FactOrigin.DERIVED;
+            case "alsoIn" -> getAdditionalSubsystems().isEmpty()
+                ? FactOrigin.PLATFORM_DEFAULT : FactOrigin.EXPLICIT;
             case "subsystem" -> getSubsystem() != org.ipro.metadata.annotation.Subsystem.NoSubsystem.class
                 ? FactOrigin.EXPLICIT : FactOrigin.PLATFORM_DEFAULT;
             case "icon" -> annotation != null && !annotation.icon().equals("FILE")

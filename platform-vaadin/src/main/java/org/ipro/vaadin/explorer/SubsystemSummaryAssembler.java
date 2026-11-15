@@ -48,7 +48,7 @@ public class SubsystemSummaryAssembler {
             int entityCount) {
     }
 
-    /** Строка сущности в каталоге: подсистема-владелец, наименование и грани. */
+    /** Строка сущности в каталоге: вид размещения, наименование и грани. */
     public record EntityFacet(
             Class<?> entityClass,
             String simpleName,
@@ -56,10 +56,15 @@ public class SubsystemSummaryAssembler {
             String numbering,
             boolean customForms,
             boolean contextFilters,
-            boolean rlsGate) {
+            boolean rlsGate,
+            boolean additional) {
+        public EntityFacet(Class<?> entityClass, String simpleName, ResolvedValue displayName,
+                           String numbering, boolean customForms, boolean contextFilters, boolean rlsGate) {
+            this(entityClass, simpleName, displayName, numbering, customForms, contextFilters, rlsGate, false);
+        }
     }
 
-    /** Группа строк каталога: одна подсистема и её собственные сущности. */
+    /** Основные и дополнительные размещения в одной подсистеме. */
     public record Group(
             Class<?> markerClass,
             String title,
@@ -97,7 +102,7 @@ public class SubsystemSummaryAssembler {
         List<EntityFacet> unassigned = new ArrayList<>();
         for (EntitySummaryAssembler.EntityRef ref : entityAssembler.entities()) {
             if (entityAssembler.subsystemOf(ref.entityClass()) == Subsystem.NoSubsystem.class) {
-                unassigned.add(facetOf(ref.entityClass()));
+                unassigned.add(facetOf(ref.entityClass(), false));
             }
         }
         return new Catalog(refs, unassigned);
@@ -105,7 +110,7 @@ public class SubsystemSummaryAssembler {
 
     /**
      * Группы сущностей подсистемы: собственная группа узла и рекурсивно группы детей
-     * (пустые узлы пропускаются — как {@code SubsystemNode.getEntityGroupsRecursive()}).
+     * (основные и дополнительные размещения, пустые узлы пропускаются).
      *
      * @param markerClass маркер {@code @Subsystem}; {@code null} — сущности без подсистемы
      */
@@ -136,7 +141,7 @@ public class SubsystemSummaryAssembler {
     }
 
     private int entityCountOf(SubsystemNode node) {
-        int count = node.getOwnEntities().size();
+        int count = node.getOwnEntities().size() + node.getAdditionalEntities().size();
         for (SubsystemNode child : node.getChildren()) {
             count += entityCountOf(child);
         }
@@ -144,7 +149,7 @@ public class SubsystemSummaryAssembler {
     }
 
     private void collectGroup(SubsystemNode node, List<Group> out) {
-        if (!node.getOwnEntities().isEmpty()) {
+        if (!node.getOwnEntities().isEmpty() || !node.getAdditionalEntities().isEmpty()) {
             out.add(toGroup(node));
         }
         for (SubsystemNode child : node.getChildren()) {
@@ -155,9 +160,11 @@ public class SubsystemSummaryAssembler {
     private Group toGroup(SubsystemNode node) {
         List<EntityFacet> facets = new ArrayList<>();
         for (var entity : node.getOwnEntities()) {
-            facets.add(facetOf(entity.getEntityClass()));
+            facets.add(facetOf(entity.getEntityClass(), false));
         }
-        // Собственные сущности узла уже отсортированы по @EntityMetadata.order (SubsystemRegistry).
+        for (var entity : node.getAdditionalEntities()) {
+            facets.add(facetOf(entity.getEntityClass(), true));
+        }
         return new Group(node.getMarkerClass(), node.getTitle(), pathOf(node), facets);
     }
 
@@ -169,7 +176,7 @@ public class SubsystemSummaryAssembler {
         return String.join(" / ", titles);
     }
 
-    private EntityFacet facetOf(Class<?> entityClass) {
+    private EntityFacet facetOf(Class<?> entityClass, boolean additional) {
         EntitySummary summary = entityAssembler.summarize(entityClass);
         String numbering = summary.numbering().stream()
             .map(row -> {
@@ -191,7 +198,8 @@ public class SubsystemSummaryAssembler {
             numbering,
             customForms,
             filters,
-            rlsGate);
+            rlsGate,
+            additional);
     }
 
     /**

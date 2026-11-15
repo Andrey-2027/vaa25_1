@@ -224,12 +224,19 @@ class EntitySummaryAssemblerTest {
                 assertThat(row.value().symbol()).isEqualTo(Nomenclature.class.getName());
             });
         assertThat(nomenclature.overview())
-            .filteredOn(row -> row.key().kind() == FacetKind.SUBSYSTEM_MEMBERSHIP)
+            .filteredOn(row -> row.key().kind() == FacetKind.SUBSYSTEM_MEMBERSHIP && row.key().variant() == null)
             .singleElement()
             .satisfies(row -> {
                 assertThat(row.value().origin()).isEqualTo(FactOrigin.REGISTRATION);
                 assertThat(row.value().symbol()).isEqualTo(
                     org.ip.subsystem.Subsystems.Directories.class.getName());
+            });
+
+        assertThat(nomenclature.overview()).filteredOn(row -> "alsoIn".equals(row.key().variant()))
+            .singleElement().satisfies(row -> {
+                assertThat(row.caption()).isEqualTo("Также в разделах");
+                assertThat(row.value().value()).isEqualTo("Производство");
+                assertThat(row.value().origin()).isEqualTo(FactOrigin.EXPLICIT);
             });
 
         assertThat(nomenclature.fieldsForm())

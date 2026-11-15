@@ -1,6 +1,6 @@
 package org.ipro.navigation.internal;
 
-import org.ipro.navigation.NavigationCatalog;
+import org.ipro.navigation.NavigationCatalogProvider;
 import org.ipro.navigation.NavigationProfile;
 import org.ipro.navigation.NavigationProfileReader;
 import org.ipro.navigation.NavigationUserDirectory;
@@ -19,11 +19,11 @@ public final class DefaultNavigationProfileReader implements NavigationProfileRe
     private final NavigationUserDirectory users;
     private final NavigationAssignmentRepository assignments;
     private final NavigationOverrideRepository overrides;
-    private final NavigationCatalog catalog;
+    private final NavigationCatalogProvider catalog;
     private final PlatformTransactionManager transactions;
 
     public DefaultNavigationProfileReader(NavigationUserDirectory users, NavigationAssignmentRepository assignments,
-            NavigationOverrideRepository overrides, NavigationCatalog catalog, PlatformTransactionManager transactions) {
+            NavigationOverrideRepository overrides, NavigationCatalogProvider catalog, PlatformTransactionManager transactions) {
         this.users = Objects.requireNonNull(users);
         this.assignments = Objects.requireNonNull(assignments);
         this.overrides = Objects.requireNonNull(overrides);

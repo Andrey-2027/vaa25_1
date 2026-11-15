@@ -1,6 +1,9 @@
 package org.ip.views.admin;
 
 import org.ipro.navigation.NavigationCatalog;
+import org.ipro.navigation.NavigationCommand;
+import org.ip.navigation.ApplicationNavigationCommands;
+import org.ipro.form.action.ActionDecision;
 import org.ipro.navigation.NavigationNode;
 import org.ipro.navigation.NavigationProfile;
 import org.ipro.navigation.NavigationResolver;
@@ -23,13 +26,18 @@ final class NavigationProfileDraft {
     private final NavigationCatalog catalog;
     private final NavigationResolver resolver;
     private final List<Row> roots;
+    private final ApplicationNavigationCommands commands;
+    private final Map<String, NavigationCommand> commandRows = new HashMap<>();
+    private final Map<String, ActionDecision> commandDecisions = new HashMap<>();
     private final Map<String, Row> rows = new LinkedHashMap<>();
     private final Map<String, NavigationVisibility> values = new HashMap<>();
     private NavigationProfile profile;
     private NavigationTree preview;
     private final Set<String> visibleKeys = new HashSet<>();
 
-    NavigationProfileDraft(NavigationCatalog catalog, NavigationResolver resolver) {
+    NavigationProfileDraft(NavigationCatalog catalog, NavigationResolver resolver,
+                           ApplicationNavigationCommands commands) {
+        this.commands = commands;
         this.catalog = catalog;
         this.resolver = resolver;
         roots = catalog.roots().stream().map(node -> row(node, List.of())).toList();
@@ -40,8 +48,16 @@ final class NavigationProfileDraft {
         nestedAncestors.add(node.key());
         var children = new ArrayList<Row>();
         for (var item : node.items()) {
-            var row = new Row(item.key(), item.title(), false, item.defaultVisible(),
+            String title = item.additional() ? item.title() + " · дополнительно" : item.title();
+            var row = new Row(item.key(), title, false, item.defaultVisible(),
                 List.copyOf(nestedAncestors), List.of());
+            rows.put(row.key(), row);
+            children.add(row);
+        }
+        for (var command : node.commands()) {
+            var row = new Row(command.key(), command.title() + " · команда", false, command.defaultVisible(),
+                List.copyOf(nestedAncestors), List.of());
+            commandRows.put(row.key(), command);
             rows.put(row.key(), row);
             children.add(row);
         }
@@ -79,6 +95,11 @@ final class NavigationProfileDraft {
         }
         if (!requested(row)) return visibility(row) == NavigationVisibility.DEFAULT
             ? "Скрыто настройкой разработчика" : "Скрыто профилем";
+        var command = commandRows.get(row.key());
+        if (command != null) {
+            var decision = commandDecision(command);
+            if (!decision.actionable()) return decision.message();
+        }
         return visibleKeys.contains(row.key()) ? "Отображается" : "Скрыто: нет видимых пунктов";
     }
 
@@ -91,14 +112,20 @@ final class NavigationProfileDraft {
     }
 
     private void updatePreview() {
-        preview = resolver.resolve(catalog, values, type -> true);
+        commandDecisions.clear();
+        preview = resolver.resolve(catalog, values, type -> true, command -> commandDecision(command).actionable());
         visibleKeys.clear();
         preview.roots().forEach(this::indexVisible);
+    }
+
+    private ActionDecision commandDecision(NavigationCommand command) {
+        return commandDecisions.computeIfAbsent(command.key(), key -> commands.decide(command));
     }
 
     private void indexVisible(NavigationTree.Node node) {
         visibleKeys.add("subsystem:" + node.id());
         node.items().forEach(item -> visibleKeys.add(item.key()));
+        node.commands().forEach(command -> visibleKeys.add(command.key()));
         node.children().forEach(this::indexVisible);
     }
 }

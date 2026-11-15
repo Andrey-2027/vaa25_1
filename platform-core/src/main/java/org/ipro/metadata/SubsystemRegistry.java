@@ -44,10 +44,12 @@ public class SubsystemRegistry implements InitializingBean {
     public void rebuild() {
         Map<Class<?>, SubsystemNode> nodesByMarker = scanSubsystemNodes();
         linkParentChild(nodesByMarker);
+        nodesByMarker.values().forEach(SubsystemRegistry::validateCommands);
 
         List<EntityMetadataInfo> entities = scanEntities();
         for (EntityMetadataInfo entity : entities) {
             Class<?> subsystemMarker = entity.getSubsystem();
+            registerAdditionalPlacements(entity, nodesByMarker);
             if (subsystemMarker == Subsystem.NoSubsystem.class) {
                 continue;
             }
@@ -64,7 +66,7 @@ public class SubsystemRegistry implements InitializingBean {
 
         List<SubsystemNode> topLevel = new ArrayList<>();
         for (SubsystemNode node : nodesByMarker.values()) {
-            node.sortOwnEntities();
+            node.sortEntities();
             if (node.isRoot()) {
                 topLevel.add(node);
             }
@@ -74,6 +76,42 @@ public class SubsystemRegistry implements InitializingBean {
         topLevel.forEach(SubsystemNode::sortChildren);
 
         this.roots = List.copyOf(topLevel);
+    }
+
+    private static void validateCommands(SubsystemNode node) {
+        for (var command : node.getCommands()) {
+            if (!command.entity().isAnnotationPresent(EntityMetadata.class) || command.title().isBlank()
+                    || command.action().isBlank() == command.variant().isBlank()) {
+                throw new IllegalStateException("Invalid @SubsystemCommand in " + node.getMarkerClass().getName()
+                    + ": " + command.title());
+            }
+        }
+    }
+
+    private static void registerAdditionalPlacements(EntityMetadataInfo entity,
+                                                      Map<Class<?>, SubsystemNode> nodes) {
+        String source = "Entity " + entity.getEntityClass().getName() + " @EntityMetadata.alsoIn(): ";
+        Set<Class<?>> seen = new HashSet<>();
+        for (Class<?> marker : entity.getAdditionalSubsystems()) {
+            if (marker == Subsystem.NoSubsystem.class) {
+                throw new IllegalStateException(source + "NoSubsystem is not a placement");
+            }
+            if (entity.getSubsystem() == Subsystem.NoSubsystem.class) {
+                throw new IllegalStateException(source + "a primary subsystem is required");
+            }
+            if (marker == entity.getSubsystem()) {
+                throw new IllegalStateException(source + "repeats the primary subsystem " + marker.getName());
+            }
+            if (!seen.add(marker)) {
+                throw new IllegalStateException(source + "repeated marker " + marker.getName());
+            }
+            SubsystemNode node = nodes.get(marker);
+            if (node == null) {
+                throw new IllegalStateException(source + marker.getName()
+                    + " is not a registered @Subsystem");
+            }
+            node.addAdditionalEntity(entity);
+        }
     }
 
     public List<SubsystemNode> getRoots() {

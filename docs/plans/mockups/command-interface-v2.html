@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Командный интерфейс v2</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+:root{--surface-0:#f5f4ef;--surface-1:#faf9f5;--surface-2:#ffffff;--text-primary:#1f1e1d;--text-secondary:#5e5d59;--text-muted:#8f8d87;--text-accent:#185FA5;--bg-accent:#E6F1FB;--border-accent:#378ADD;--bg-warning:#FAEEDA;--text-warning:#854F0B;--border:rgba(31,30,29,.15);--border-strong:rgba(31,30,29,.3);--radius:8px}
+@media (prefers-color-scheme: dark){:root{--surface-0:#1f1e1d;--surface-1:#262624;--surface-2:#30302e;--text-primary:#f5f4ef;--text-secondary:#c2c0b6;--text-muted:#8f8d87;--text-accent:#85B7EB;--bg-accent:#0C447C;--border-accent:#85B7EB;--bg-warning:#633806;--text-warning:#FAC775;--border:rgba(245,244,239,.15);--border-strong:rgba(245,244,239,.3)}}
+body{margin:0;padding:24px 16px;background:var(--surface-0);color:var(--text-primary);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+.wrap{max-width:780px;margin:0 auto}
+h1{font-size:20px;font-weight:500;margin:0 0 4px}
+.sub{color:var(--text-secondary);font-size:14px;margin:0 0 20px}
+.fr{border:0.5px solid var(--border-strong);border-radius:12px;overflow:hidden;background:var(--surface-2);font-size:13px;line-height:1.5}
+.cap{font-size:13px;color:var(--text-secondary);margin:0 0 6px}
+.n{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:var(--bg-accent);color:var(--text-accent);font-size:11px;font-weight:500;margin-left:6px;vertical-align:1px}
+.side a,.lk{display:block;color:var(--text-primary);text-decoration:none;padding:3px 0}
+.grp{color:var(--text-accent);font-size:14px;margin:12px 0 4px}
+.imp{font-weight:500}
+.row{display:flex;align-items:center;gap:8px;padding:5px 10px;border-top:0.5px solid var(--border)}
+.mut{color:var(--text-muted)}
+.tag{font-size:11px;padding:1px 6px;border-radius:var(--radius);background:var(--bg-warning);color:var(--text-warning)}
+.seg{display:inline-flex;border:0.5px solid var(--border-strong);border-radius:var(--radius);overflow:hidden;font-size:11px;flex-shrink:0}
+.seg span{padding:1px 7px;color:var(--text-muted)}
+.seg span+span{border-left:0.5px solid var(--border)}
+.seg .on{background:var(--bg-accent);color:var(--text-accent)}
+button{font:inherit;font-size:13px;padding:4px 12px;border-radius:var(--radius);border:0.5px solid var(--border-strong);background:transparent;color:var(--text-primary)}
+code{font-size:12px}
+ol{font-size:13px;color:var(--text-secondary);padding-left:20px;margin:10px 0 0}
+ol li{margin:2px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Командный интерфейс v2 — макет</h1>
+<p class="sub">Согласован 2026-11-12, ревизия 5: группы только предметные, без автоматического «Создать», команды как действия над объектом, три уровня важности, личное «Главное». Разделы и пункты условные: состав решается отдельно (Р2 в command-interface-v2-plan.md).</p>
+
+<p class="cap">Экран 1 — главное окно, открыт раздел «Производство»</p>
+<div class="fr">
+  <div style="display:flex;align-items:center;gap:12px;padding:8px 12px;border-bottom:0.5px solid var(--border);background:var(--surface-1)">
+    <i class="ti ti-menu-2"></i><span style="font-weight:500">Vaa25_1</span>
+    <div style="flex:1;border:0.5px solid var(--border-strong);border-radius:var(--radius);padding:3px 8px;color:var(--text-muted)"><i class="ti ti-search"></i> Поиск по приложению</div>
+    <i class="ti ti-star"></i><span>Администратор</span>
+  </div>
+  <div style="display:flex;min-height:300px">
+    <div class="side" style="width:165px;flex-shrink:0;background:var(--surface-1);border-right:0.5px solid var(--border);padding:10px 12px;display:flex;flex-direction:column">
+      <a><i class="ti ti-home"></i> Главное</a>
+      <a><i class="ti ti-books"></i> НСИ</a>
+      <a style="background:var(--surface-2);margin:0 -12px;padding:3px 12px;border-left:3px solid var(--border-accent);font-weight:500"><i class="ti ti-building-factory"></i> Производство<span class="n">1</span></a>
+      <a><i class="ti ti-box"></i> Учёт объектов</a>
+      <div style="flex:1"></div>
+      <div style="border-top:0.5px solid var(--border);margin:8px 0 4px"></div>
+      <a class="mut"><i class="ti ti-settings"></i> Администрирование</a>
+      <a class="mut"><i class="ti ti-tool"></i> Сервис<span class="n">2</span></a>
+    </div>
+    <div style="flex:1;min-width:0;padding:10px 16px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="flex:1;max-width:240px;border:0.5px solid var(--border-strong);border-radius:var(--radius);padding:3px 8px;color:var(--text-muted)"><i class="ti ti-search"></i> Поиск в разделе</div><span class="n" style="margin-left:0">3</span>
+        <div style="flex:1"></div><i class="ti ti-adjustments mut"></i>
+      </div>
+      <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 24px">
+        <div>
+          <div style="height:12px"></div><span class="n" style="margin-left:0;float:right">4</span>
+          <a class="lk imp">Приёмка<span class="n">5</span></a>
+          <a class="lk">Журналы</a>
+          <a class="lk">Цеха</a>
+          <a class="lk">Номенклатура<span class="n">6</span></a>
+          <a class="lk">Номенклатура — материалы<span class="n">7</span></a>
+          <a class="lk">Создать номенклатуру</a>
+        </div>
+        <div>
+          <div class="grp">Нормативы</div>
+          <a class="lk imp">Спецификации</a>
+          <a class="lk">Операции</a>
+          <div class="grp mut">См. также<span class="n">8</span></div>
+          <a class="lk">Единицы измерения</a>
+          <a class="lk">Филиалы</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<ol>
+  <li>Левая панель — только разделы верхнего уровня. Подразделы видны лишь на странице раздела. Раздел открывается в одной переиспользуемой вкладке, её заголовок — название раздела.</li>
+  <li>Служебный блок прижат вниз, со своими правилами доступа; в профили не входит. Пункт «Справочники (legacy)» убран.</li>
+  <li>Поиск фильтрует ссылки на странице раздела.</li>
+  <li>Группы только предметные: первая — собственные пункты раздела, без заголовка; дальше — подразделы («Нормативы»). Группировки по виду объекта нет.</li>
+  <li>«Важное» — жирным и первым в группе.</li>
+  <li>Номенклатура входит в два раздела сразу (основной НСИ и <code>alsoIn</code> Производство).</li>
+  <li>Команды — действия над объектом из машины действий E1: «Номенклатура — материалы» открывает вариант списка, «Создать номенклатуру» запускает <code>crud.create</code>, как кнопка «Создать» в списке. Выглядят как обычные ссылки; недоступные по правам не показываются.</li>
+  <li>«См. также» — третий уровень важности: отдельная последняя группа. Приглушён только заголовок, ссылки обычного цвета, чтобы не выглядеть отключёнными.</li>
+</ol>
+
+<p class="cap" style="margin-top:28px">Экран 2 — Администрирование › Интерфейс</p>
+<div class="fr">
+  <div style="display:flex;min-height:400px">
+    <div style="width:170px;flex-shrink:0;background:var(--surface-1);border-right:0.5px solid var(--border);padding:10px 0">
+      <div style="display:flex;align-items:center;padding:0 12px 2px"><span style="flex:1;font-weight:500">Профили</span><i class="ti ti-plus"></i></div>
+      <div class="mut" style="font-size:11px;padding:0 12px 6px">Выше — важнее, если у пользователя несколько ролей</div>
+      <div style="padding:5px 12px;display:flex;gap:6px"><i class="ti ti-grip-vertical mut"></i><div>Кладовщик<div class="mut" style="font-size:11px">1 роль</div></div></div>
+      <div style="padding:5px 12px 5px 9px;display:flex;gap:6px;background:var(--surface-2);border-left:3px solid var(--border-accent);font-weight:500"><i class="ti ti-grip-vertical mut"></i><div>Технолог<span class="n">1</span><div class="mut" style="font-size:11px;font-weight:400">1 роль · 1 пользователь</div></div></div>
+      <div style="padding:5px 12px;display:flex;gap:6px"><i class="ti ti-grip-vertical mut"></i><div>Мастер цеха<div class="mut" style="font-size:11px">2 роли</div></div></div>
+      <div style="padding:5px 12px 5px 34px;border-top:0.5px solid var(--border);margin-top:4px" class="mut">По умолчанию<div style="font-size:11px">все без назначения · всегда последний</div></div>
+    </div>
+    <div style="flex:1;min-width:0">
+      <div style="padding:10px 12px 0">
+        <div style="font-weight:500;font-size:15px">Технолог</div>
+        <div class="mut" style="font-size:12px">Назначен: роль «Технолог», пользователь Петров А. · приоритет 2</div>
+        <div style="display:flex;gap:16px;margin-top:8px">
+          <span style="border-bottom:2px solid var(--border-accent);padding-bottom:4px;color:var(--text-accent)">Состав</span>
+          <span class="mut">Кому назначен<span class="n">2</span></span>
+          <span class="mut">Как увидит пользователь<span class="n">3</span></span>
+        </div>
+      </div>
+      <div style="margin-top:6px">
+        <div class="row" style="font-weight:500"><i class="ti ti-grip-vertical mut"></i><input type="checkbox" checked><i class="ti ti-building-factory"></i>Производство<span class="n">4</span></div>
+        <div class="row" style="padding-left:34px"><i class="ti ti-grip-vertical mut"></i><input type="checkbox" checked><span style="flex:1">Приёмка</span><span class="seg"><span class="on">Важное</span><span>Обычное</span><span>См. также</span></span><span class="n">5</span></div>
+        <div class="row" style="padding-left:34px"><i class="ti ti-grip-vertical mut"></i><input type="checkbox"><span style="flex:1" class="mut">Журналы</span><span class="tag">изменено</span><a class="mut" style="font-size:12px">сбросить</a><span class="n">6</span></div>
+        <div class="row" style="padding-left:34px"><i class="ti ti-grip-vertical mut"></i><input type="checkbox" checked><span style="flex:1">Цеха</span><span class="seg"><span>Важное</span><span class="on">Обычное</span><span>См. также</span></span></div>
+        <div class="row" style="padding-left:34px"><i class="ti ti-grip-vertical mut"></i><input type="checkbox" checked><span style="flex:1"><i class="ti ti-bolt mut"></i> Номенклатура — материалы <span class="mut" style="font-size:11px">Номенклатура · вариант materials</span></span><span class="seg"><span>Важное</span><span class="on">Обычное</span><span>См. также</span></span><span class="n">8</span></div>
+        <div class="row" style="padding-left:34px"><i class="ti ti-grip-vertical mut"></i><input type="checkbox" checked><span style="flex:1"><i class="ti ti-bolt mut"></i> Создать номенклатуру <span class="mut" style="font-size:11px">Номенклатура · Создать</span></span><span class="seg"><span>Важное</span><span class="on">Обычное</span><span>См. также</span></span></div>
+        <div class="row" style="padding-left:34px"><i class="ti ti-grip-vertical mut"></i><input type="checkbox" checked><span style="flex:1">Единицы измерения</span><span class="tag">изменено</span><span class="seg"><span>Важное</span><span>Обычное</span><span class="on">См. также</span></span></div>
+        <div class="row" style="padding-left:34px;color:var(--text-secondary)"><i class="ti ti-grip-vertical mut"></i><input type="checkbox" checked>Нормативы</div>
+        <div class="row" style="padding-left:58px"><i class="ti ti-grip-vertical mut"></i><input type="checkbox" checked><span style="flex:1">Спецификации изделий <span class="mut" style="font-size:11px">было: Спецификации</span></span><span class="seg"><span class="on">Важное</span><span>Обычное</span><span>См. также</span></span><span class="n">7</span></div>
+        <div class="row" style="font-weight:500"><i class="ti ti-grip-vertical mut"></i><input type="checkbox" checked><i class="ti ti-books"></i>НСИ<i class="ti ti-chevron-right mut"></i></div>
+        <div class="row" style="font-weight:500"><i class="ti ti-grip-vertical mut"></i><input type="checkbox"><i class="ti ti-box mut"></i><span style="flex:1" class="mut">Учёт объектов</span><span class="tag">изменено</span></div>
+        <div class="row" style="padding-left:34px"><i class="ti ti-grip-vertical mut"></i><input type="checkbox" checked><span style="flex:1" class="mut">Объекты учёта <span style="font-size:12px">· скрыто родителем «Учёт объектов»</span></span></div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;padding:10px 12px;border-top:0.5px solid var(--border)">
+        <button>Сохранить</button><button>Сбросить всё</button><button><i class="ti ti-plus"></i> Добавить команду</button><span class="n" style="margin-left:0">8</span><span class="mut" style="font-size:12px;margin-left:auto">3 изменения</span>
+      </div>
+    </div>
+  </div>
+</div>
+<ol>
+  <li>Список профилей в порядке приоритета: порядок меняется перетаскиванием за ручку, выше — важнее при нескольких ролях. У каждого — прямые назначения (роли и пользователи). Профиль «По умолчанию» действует для всех без назначения и всегда последний.</li>
+  <li>«Кому назначен» — роли и отдельные пользователи.</li>
+  <li>«Как увидит пользователь» — экран 1 для выбранного человека: какой профиль действует и почему, показан черновик или сохранённый профиль; видимость — по его праву чтения. Команды-действия («Создать номенклатуру») подписаны «Доступность не проверена».</li>
+  <li>Флажок вместо выпадающего списка из трёх значений; ручка слева — порядок перетаскиванием. Группы по виду объекта исчезли: пункты лежат прямо в разделе или в подразделе.</li>
+  <li>Важность в три уровня — «Важное / Обычное / См. также» — для конкретного размещения. Хранится в профиле, без аннотации.</li>
+  <li>Отличия от настроек разработчика помечены «изменено» и сбрасываются построчно. Причина скрытия видна в строке («скрыто родителем»); собственные настройки потомков сохраняются и снова действуют при включении раздела.</li>
+  <li>Переименование пункта в профиле; исходное название показано рядом.</li>
+  <li>Команды отмечены значком и описанием «сущность · действие или вариант». «Добавить команду» — выбор раздела, сущности и действия из допустимых (решение Р7); действия, которым нужна строка или обязательный контекст (журнал), в выбор не попадают.</li>
+</ol>
+
+<p class="cap" style="margin-top:28px">Экран 3 — «Главное»: личная стартовая страница пользователя</p>
+<div class="fr">
+  <div style="display:flex;align-items:center;gap:12px;padding:8px 12px;border-bottom:0.5px solid var(--border);background:var(--surface-1)">
+    <i class="ti ti-menu-2"></i><span style="font-weight:500">Vaa25_1</span>
+    <div style="flex:1;border:0.5px solid var(--border-strong);border-radius:var(--radius);padding:3px 8px;color:var(--text-muted)"><i class="ti ti-search"></i> Поиск по приложению</div>
+    <i class="ti ti-star"></i><span class="n" style="margin-left:-6px">1</span><span>Петров А.</span>
+  </div>
+  <div style="display:flex;min-height:360px">
+    <div class="side" style="width:165px;flex-shrink:0;background:var(--surface-1);border-right:0.5px solid var(--border);padding:10px 12px;display:flex;flex-direction:column">
+      <a style="background:var(--surface-2);margin:0 -12px;padding:3px 12px;border-left:3px solid var(--border-accent);font-weight:500"><i class="ti ti-home"></i> Главное<span class="n">2</span></a>
+      <a><i class="ti ti-books"></i> НСИ</a>
+      <a><i class="ti ti-building-factory"></i> Производство</a>
+      <a><i class="ti ti-box"></i> Учёт объектов</a>
+    </div>
+    <div style="flex:1;min-width:0;padding:10px 16px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="flex:1"></div>
+        <button><i class="ti ti-plus"></i> Группа</button>
+        <button><i class="ti ti-layout-list"></i> Список на Главное</button><span class="n" style="margin-left:0">5</span>
+      </div>
+      <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 24px">
+        <div>
+          <div class="grp">Каждый день<span class="n">3</span></div>
+          <a class="lk"><i class="ti ti-grip-vertical mut"></i> Спецификации</a>
+          <a class="lk"><i class="ti ti-grip-vertical mut"></i> Приёмка №123 от 10.11</a>
+          <a class="lk"><i class="ti ti-grip-vertical mut"></i> Номенклатура — материалы</a>
+        </div>
+        <div>
+          <div class="grp">Мой цех</div>
+          <a class="lk"><i class="ti ti-grip-vertical mut"></i> Журналы</a>
+          <a class="lk"><i class="ti ti-grip-vertical mut"></i> Цеха</a>
+        </div>
+      </div>
+      <div style="margin-top:14px;border:0.5px solid var(--border);border-radius:var(--radius)">
+        <div style="display:flex;align-items:center;padding:6px 10px;border-bottom:0.5px solid var(--border)"><span style="flex:1;font-weight:500">Номенклатура — материалы</span><a class="mut" style="font-size:12px">Открыть полностью</a><span class="n">5</span></div>
+        <div class="row mut" style="border-top:0;font-size:12px"><span style="width:80px">Код</span><span style="flex:1">Наименование</span><span style="width:60px">Ед.</span></div>
+        <div class="row"><span style="width:80px">М-0012</span><span style="flex:1">Лист стальной 2 мм</span><span style="width:60px">кг</span></div>
+        <div class="row"><span style="width:80px">М-0015</span><span style="flex:1">Пруток 12 мм</span><span style="width:60px">м</span></div>
+        <div class="row"><span style="width:80px">М-0031</span><span style="flex:1">Краска грунтовочная</span><span style="width:60px">л</span></div>
+      </div>
+      <div class="grp mut">Недавнее<span class="n">4</span></div>
+      <a class="lk">Приёмка №124 <span class="mut" style="font-size:12px">· 5 минут назад</span></a>
+      <a class="lk">Номенклатура <span class="mut" style="font-size:12px">· 20 минут назад</span></a>
+      <a class="lk">Спецификация СП-17 <span class="mut" style="font-size:12px">· вчера</span></a>
+    </div>
+  </div>
+</div>
+<ol>
+  <li>Звёздочка в шапке закрепляет активную вкладку; в списке и карточке есть действие «В Главное», на странице раздела — звёздочка у пункта.</li>
+  <li>«Главное» всегда первым в левой панели и открывается при входе. В профили не входит: это личная страница пользователя.</li>
+  <li>Свои группы пользователя с порядком перетаскиванием. Закрепить можно пункт или команду меню, список или вариант, конкретную запись («Приёмка №123»). Доступ к записи проверяется до показа подписи (запись без доступа не видна) и ещё раз при открытии; подпись берётся из актуальной записи.</li>
+  <li>«Недавнее» — последние успешно открытые списки и записи (во вкладке и в диалоге), заполняется само; проверяется так же, как закреплённое.</li>
+  <li>Встроенный список (КИ-14): компактная форма списка без тулбара — открытие записи, обновление, «Открыть полностью»; 10 строк. Грузится при показе «Главного». Не больше четырёх блоков; списки с обязательным контекстом (журнал) встроить нельзя.</li>
+</ol>
+</div>
+</body>
+</html>

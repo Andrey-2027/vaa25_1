@@ -3,6 +3,7 @@ package org.ip.views;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -30,8 +31,6 @@ import org.ipro.form.link.FormRouteOpener;
 import org.ipro.form.link.OpenResult;
 import org.ipro.form.link.PublishedFormRoute;
 import org.ipro.vaadin.search.GlobalSearchHeader;
-import org.ipro.metadata.SubsystemNode;
-import org.ipro.metadata.SubsystemRegistry;
 import org.ip.navigation.NavigationUiSnapshot;
 import org.ipro.navigation.NavigationTree;
 import org.ip.views.admin.AdminView;
@@ -41,12 +40,10 @@ import org.ip.views.admin.EntityExplorerNavigation;
 import org.ip.views.admin.EntityExplorerWorkspace;
 import org.ipro.vaadin.explorer.ui.EntityExplorerCardPlace;
 import org.ip.views.admin.SubsystemStructureView;
-import org.ip.views.directory.WorkshopListView;
 import org.ip.views.preferences.DensityToggle;
 import org.ip.views.query.QueryWorkbenchAccess;
 import org.ip.views.query.QueryWorkbenchView;
 import org.ip.views.preferences.UserPreferencesStore;
-import org.ip.views.forms.WorkshopForm;
 import org.ip.views.workspace.SubsystemHomeView;
 import org.ip.views.workspace.Workspace;
 import org.slf4j.Logger;
@@ -108,6 +105,7 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver, Before
 
     /** Заголовок вкладки Explorer: один и тот же на обоих входах. */
     private static final String EXPLORER_TAB_TITLE = "Структура сущностей";
+    private static final String SUBSYSTEM_TAB_ID = "subsystem-home";
 
     /**
      * Переносимый параметр входа ({@code ?continue}): адресом вкладки он не делится, потому что
@@ -118,7 +116,6 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver, Before
     private static final String LOGIN_PARAMETER = "continue";
 
     private final Workspace workspace;
-    private final SubsystemRegistry subsystemRegistry;
     private final NavigationUiSnapshot navigationSnapshot;
     private final UserPreferencesStore preferencesStore;
     private final GlobalSearchHeader globalSearchHeader;
@@ -132,7 +129,6 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver, Before
 
     @Autowired
     public MainLayout(Workspace workspace,
-                      SubsystemRegistry subsystemRegistry,
                       UserPreferencesStore preferencesStore,
                       GlobalSearchHeader globalSearchHeader,
                       FormRouteOpener routeOpener,
@@ -144,7 +140,6 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver, Before
                       NavigationUiSnapshot navigationSnapshot,
                       QueryWorkbenchAccess queryWorkbenchAccess) {
         this.queryWorkbenchAccess = queryWorkbenchAccess;
-        this.subsystemRegistry = subsystemRegistry;
         this.navigationSnapshot = navigationSnapshot;
         this.preferencesStore = preferencesStore;
         this.globalSearchHeader = globalSearchHeader;
@@ -472,21 +467,29 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver, Before
         addToNavbar(header);
     }
 
+    /**
+     * Ящик (КИ-7): колонка из двух меню. Верхнее — «Главная» и разделы верхнего уровня без вложенных
+     * пунктов (внутри раздела — его страница). Нижнее, отделённое чертой, — служебные пункты со своими
+     * правилами доступа.
+     */
     private void createDrawer() {
-        SideNav nav = new SideNav();
-
+        SideNav sections = new SideNav();
+        sections.addClassName("drawer-sections");
         SideNavItem homeItem = new SideNavItem("Главная");
         homeItem.setPrefixComponent(new Icon(VaadinIcon.HOME));
-        homeItem.getElement().addEventListener("click", e -> workspace.open(MainView.class, "home", "Главная", v -> {}));
-        nav.addItem(homeItem);
+        homeItem.getElement().addEventListener("click", e -> openHome());
+        sections.addItem(homeItem);
+        navigationSnapshot.appendMenu(sections, this::openSubsystem);
 
+        SideNav service = new SideNav();
+        service.addClassName("drawer-service");
         // D4: пункт меню и маршрут спрашивают одно правило входа.
         if (queryWorkbenchAccess.allows()) {
             SideNavItem queryItem = new SideNavItem("Конструктор запросов");
             queryItem.setPrefixComponent(new Icon(VaadinIcon.SEARCH));
             queryItem.getElement().addEventListener("click", e ->
                     workspace.open(QueryWorkbenchView.class, "query-workbench", "Конструктор запросов", v -> {}));
-            nav.addItem(queryItem);
+            service.addItem(queryItem);
         }
 
         if (isAdmin()) {
@@ -495,14 +498,14 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver, Before
             diagnosticsItem.getElement().addEventListener("click", e ->
                     workspace.open(DiagnosticsView.class, "diagnostics",
                             "Диагностика", v -> {}));
-            nav.addItem(diagnosticsItem);
+            service.addItem(diagnosticsItem);
 
             SideNavItem adminItem = new SideNavItem("Администрирование");
             adminItem.setPrefixComponent(new Icon(VaadinIcon.SHIELD));
             adminItem.getElement().addEventListener("click", e ->
                     workspace.open(AdminView.class, "admin",
                             "Администрирование", v -> {}));
-            nav.addItem(adminItem);
+            service.addItem(adminItem);
         }
 
         // E3.0: доступ к диагностической структуре спрашивается у единственного места правила —
@@ -511,7 +514,7 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver, Before
             SideNavItem explorerItem = new SideNavItem(EXPLORER_TAB_TITLE);
             explorerItem.setPrefixComponent(new Icon(VaadinIcon.SITEMAP));
             explorerItem.getElement().addEventListener("click", e -> explorerWorkspace.openRegistry());
-            nav.addItem(explorerItem);
+            service.addItem(explorerItem);
         }
 
         if (isAdmin()) {
@@ -520,62 +523,19 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver, Before
             subsystemItem.getElement().addEventListener("click", e ->
                     workspace.open(SubsystemStructureView.class, "subsystem-structure",
                             "Структура подсистем", v -> v.init()));
-            nav.addItem(subsystemItem);
+            service.addItem(subsystemItem);
         }
 
-        if (navigationSnapshot.enabled()) {
-            navigationSnapshot.appendMenu(nav, this::openSubsystem);
-        } else {
-            for (SubsystemNode root : subsystemRegistry.getRoots()) {
-                nav.addItem(buildNavItem(root));
-            }
+        Div drawer = new Div(sections);
+        drawer.addClassName("drawer-column");
+        if (!service.getItems().isEmpty()) {
+            drawer.add(service);
         }
-
-        SideNavItem legacyItem = new SideNavItem("Справочники (legacy)");
-        legacyItem.setPrefixComponent(new Icon(VaadinIcon.BOOK));
-        SideNavItem workshopsItem = new SideNavItem("Цеха");
-        workshopsItem.getElement().addEventListener("click", e ->
-                workspace.open(WorkshopListView.class, "workshops", "Цеха", v -> {
-                    v.setOnEdit(id -> {
-                        String entryId = id != null ? "workshop-" + id : "workshop-new";
-                        workspace.open(WorkshopForm.class, entryId,
-                                id != null ? "Цех #" + id : "Новый цех", f -> {
-                                    f.editEntity(id);
-                                    f.setOnClose(() -> workspace.close(entryId));
-                                    f.setAfterSave(v::refreshGrid);
-                                });
-                    });
-                }));
-        legacyItem.addItem(workshopsItem);
-        nav.addItem(legacyItem);
-
-        addToDrawer(nav);
-    }
-
-    private SideNavItem buildNavItem(SubsystemNode node) {
-        SideNavItem item = new SideNavItem(node.getTitle());
-        if (!node.getIcon().isEmpty()) {
-            try {
-                item.setPrefixComponent(new Icon(VaadinIcon.valueOf(node.getIcon())));
-            } catch (IllegalArgumentException ignored) {
-            }
-        }
-        item.getElement().addEventListener("click", e -> openSubsystem(node));
-
-        for (SubsystemNode child : node.getChildren()) {
-            item.addItem(buildNavItem(child));
-        }
-        return item;
-    }
-
-    private void openSubsystem(SubsystemNode node) {
-        String tabId = "subsystem-" + node.getMarkerClass().getSimpleName();
-        workspace.open(SubsystemHomeView.class, tabId, node.getTitle(),
-            (SubsystemHomeView v) -> v.init(node));
+        addToDrawer(drawer);
     }
 
     private void openSubsystem(NavigationTree.Node node) {
-        workspace.open(SubsystemHomeView.class, "subsystem-" + node.id(), node.title(), v -> v.init(node));
+        workspace.openOrUpdate(SubsystemHomeView.class, SUBSYSTEM_TAB_ID, node.title(), v -> v.init(node));
     }
 
     private static boolean isAdmin() {

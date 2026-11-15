@@ -1,6 +1,5 @@
-# KI-1/KI-2: декларации ID и прикладные адаптеры доступа/идентичности пользователей.
-API org.ipro.navigation.NavigationDefaults
-SPI org.ipro.navigation.NavigationDefaultsContributor
+# KI-1/KI-2/KI-7: ключи сущностей меню и прикладные адаптеры доступа/идентичности пользователей.
+SPI org.ipro.navigation.NavigationEntityKeys
 SPI org.ipro.navigation.NavigationAdministrationAccess
 SPI org.ipro.navigation.NavigationUserDirectory
 # R3.1 (2026-10-23): UDR-редактор удалён, поэтому его записи сняты из реестра.
@@ -128,6 +127,9 @@ API org.ipro.form.action.ActionId
 API org.ipro.form.action.ActionInvocation
 API org.ipro.form.action.ActionRequirement
 API org.ipro.form.action.ActionSurface
+API org.ipro.form.action.ActionDecision
+API org.ipro.form.action.ActionResolvers
+API org.ipro.form.action.NavigationCommandAvailability
 API org.ipro.form.action.CrudAction
 API org.ipro.form.builder.ContextFilterField
 API org.ipro.form.builder.ItemFormVariants
@@ -196,6 +198,7 @@ API org.ipro.metadata.annotation.RequiredMode
 API org.ipro.metadata.annotation.SectionPersistenceMode
 API org.ipro.metadata.annotation.SectionRlsPolicy
 API org.ipro.metadata.annotation.Subsystem
+API org.ipro.metadata.annotation.SubsystemCommand
 API org.ipro.metadata.annotation.TableSectionMetadata
 API org.ipro.metadata.annotation.TableSections
 API org.ipro.metadata.facet.FactSource
@@ -347,12 +350,15 @@ API org.ipro.register.RecordedRegisterReader
 API org.ipro.register.SliceSpec
 # KI-3: per-UI navigation projection and profile read contract.
 API org.ipro.navigation.NavigationCatalog
+API org.ipro.navigation.NavigationCatalogProvider
 API org.ipro.navigation.NavigationResolver
 API org.ipro.navigation.NavigationTree
 API org.ipro.navigation.NavigationProfileReader
 API org.ipro.navigation.NavigationProfile
 # KI-4: full catalogue, visibility editor and protected administration operations.
 API org.ipro.navigation.NavigationNode
+API org.ipro.navigation.NavigationItem
+API org.ipro.navigation.NavigationCommand
 API org.ipro.navigation.NavigationVisibility
 API org.ipro.navigation.NavigationAdministrationService
 API org.ipro.navigation.NavigationConflictException

@@ -2,7 +2,7 @@ package org.ipro.navigation.internal;
 
 import org.ipro.navigation.NavigationAdministrationService;
 import org.ipro.navigation.NavigationAdministrationAccess;
-import org.ipro.navigation.NavigationCatalog;
+import org.ipro.navigation.NavigationCatalogProvider;
 import org.ipro.navigation.NavigationConflictException;
 import org.ipro.navigation.NavigationProfile;
 import org.ipro.navigation.NavigationUserDirectory;
@@ -34,14 +34,14 @@ import java.util.function.Supplier;
 public final class DefaultNavigationAdministrationService implements NavigationAdministrationService {
     private final NavigationAdministrationAccess access;
     private final NavigationUserDirectory users;
-    private final NavigationCatalog catalog;
+    private final NavigationCatalogProvider catalog;
     private final NavigationProfileRepository profiles;
     private final NavigationOverrideRepository overrides;
     private final NavigationAssignmentRepository assignments;
     private final PlatformTransactionManager transactions;
 
     public DefaultNavigationAdministrationService(NavigationAdministrationAccess access, NavigationUserDirectory users,
-            NavigationCatalog catalog, NavigationProfileRepository profiles, NavigationOverrideRepository overrides,
+            NavigationCatalogProvider catalog, NavigationProfileRepository profiles, NavigationOverrideRepository overrides,
             NavigationAssignmentRepository assignments, PlatformTransactionManager transactions) {
         this.access = Objects.requireNonNull(access);
         this.users = Objects.requireNonNull(users);
@@ -90,7 +90,7 @@ public final class DefaultNavigationAdministrationService implements NavigationA
             Map<String, NavigationVisibility> replacement = new TreeMap<>();
             before.staleKeys().forEach(key -> replacement.put(key, before.overrides().get(key)));
             input.forEach((key, visibility) -> {
-                if (!catalog.keys().contains(key)) {
+                if (!catalog.get().keys().contains(key)) {
                     if (!before.staleKeys().contains(key) || before.overrides().get(key) != visibility) {
                         throw new IllegalArgumentException("Unknown navigation target: " + key);
                     }

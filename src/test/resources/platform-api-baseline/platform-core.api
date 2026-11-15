@@ -255,6 +255,7 @@ class public final org.ipro.metadata.EntityMetadataInfo
   method public java.lang.String getPropertySymbol(java.lang.String)
   method public java.lang.String getSelectionFormTitle()
   method public java.lang.String toString()
+  method public java.util.List<java.lang.Class<?>> getAdditionalSubsystems()
   method public java.util.List<java.lang.String> getDisplaySortFields()
   method public java.util.List<org.ipro.metadata.ColumnPath> getListColumnPaths()
   method public java.util.List<org.ipro.metadata.ColumnPath> getSelectColumnPaths()
@@ -391,9 +392,11 @@ class public final org.ipro.metadata.SubsystemNode
   method public java.lang.String getIcon()
   method public java.lang.String getTitle()
   method public java.lang.String toString()
+  method public java.util.List<org.ipro.metadata.EntityMetadataInfo> getAdditionalEntities()
   method public java.util.List<org.ipro.metadata.EntityMetadataInfo> getOwnEntities()
   method public java.util.List<org.ipro.metadata.SubsystemNode$EntityGroup> getEntityGroupsRecursive()
   method public java.util.List<org.ipro.metadata.SubsystemNode> getChildren()
+  method public java.util.List<org.ipro.metadata.annotation.SubsystemCommand> getCommands()
   method public org.ipro.metadata.SubsystemNode getParent()
 
 class public final org.ipro.metadata.TableSectionGridMetadata

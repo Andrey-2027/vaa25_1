@@ -28,7 +28,6 @@ public class EntityExplorerWorkspace {
     private final EntityExplorerCatalog catalog;
     private final EntityExplorerAccess access;
     private final EntityExplorerUiSession session;
-    private final EntityExplorerPilotPolicy pilot;
     private final EntityExplorerNavigation navigation;
     private final EntityModifyWorkspace modifications;
     private final EntityDraftWorkspace drafts;
@@ -40,7 +39,7 @@ public class EntityExplorerWorkspace {
 
     public EntityExplorerWorkspace(Workspace workspace, FormRouteUrlBridge urls, FormRouteCatalog routes,
                                    EntityExplorerCatalog catalog, EntityExplorerAccess access,
-                                   EntityExplorerUiSession session, EntityExplorerPilotPolicy pilot,
+                                   EntityExplorerUiSession session,
                                    EntityExplorerNavigation navigation, EntityModifyWorkspace modifications, EntityDraftWorkspace drafts,
                                    ExplorerSourceReader sources, FormNavigator formNavigator) {
         this.workspace = workspace;
@@ -49,7 +48,6 @@ public class EntityExplorerWorkspace {
         this.catalog = catalog;
         this.access = access;
         this.session = session;
-        this.pilot = pilot;
         this.navigation = navigation;
         this.modifications = modifications;
         this.drafts = drafts;
@@ -219,8 +217,7 @@ public class EntityExplorerWorkspace {
                     if (availability(summary, form).allowed()) new ExplorerFormPreviewDialog(summary.entityClass(), form).open();
                 }
             });
-        view.show(snapshot, pilot.opensPilot(view.type(), view.anchor())
-            && snapshot.summaryOf(view.type()).map(summary -> summary.structure().available()).orElse(false), actions, explicit);
+        view.show(snapshot, view.anchor() == null, actions, explicit);
     }
 
     private boolean canOpenList(Class<?> type) {

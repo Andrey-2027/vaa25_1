@@ -38,6 +38,7 @@ import org.ipro.metadata.HasDisplayName;
     order = 300,
     icon = "COGS",
     subsystem = org.ip.subsystem.Subsystems.Directories.class,
+    alsoIn = org.ip.subsystem.Subsystems.Production.class,
     displaySortFields = {"code"}  // = getDisplayName()
 )
 public class Workshop extends BaseEntity implements HasDisplayName {

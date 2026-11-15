@@ -240,9 +240,7 @@ public class FormAutoConfiguration {
                                            GridViewStore gridViewStore,
                                            RlsUiGate rlsUiGate,
                                            ItemFormAccessBinder itemFormAccessBinder,
-                                           ActionRegistry actionRegistry,
-                                           ActionContextProvider actionContextProvider,
-                                           org.ipro.form.action.ActionHandlerRegistry actionHandlerRegistry,
+                                           org.ipro.form.action.ActionResolvers actions,
                                            FormLinkService formLinkService,
                                            EntityCopyService entityCopyService,
                                            TableSectionFactory tableSectionFactory,
@@ -250,7 +248,7 @@ public class FormAutoConfiguration {
                                            ObjectProvider<FormRouteUrlBridge> routeUrlBridges) {
         return new FormCoordinator(metadataResolver, fieldFactory, applicationContext, formResolver,
             serviceLocator, formSettingsStore, gridViewStore, rlsUiGate, itemFormAccessBinder,
-            actionRegistry, actionContextProvider, actionHandlerRegistry, formLinkService,
+            actions, formLinkService,
             entityCopyService, tableSectionFactory,
             workspaceGateways, routeUrlBridges);
     }
@@ -460,6 +458,20 @@ public class FormAutoConfiguration {
      * значило бы получить второй способ собирать контекст — с адресами и без, — и действие,
      * требующее ссылку, падало бы на одном из них.</p>
      */
+    @Bean
+    public org.ipro.form.action.ActionResolvers actionResolvers(ActionRegistry registry,
+            ActionContextProvider contexts, org.ipro.form.action.ActionHandlerRegistry handlers) {
+        return new org.ipro.form.action.ActionResolvers(registry, contexts, handlers);
+    }
+
+    @Bean
+    public org.ipro.form.action.NavigationCommandAvailability navigationCommandAvailability(
+            org.ipro.form.action.ActionResolvers actions, FormRegistry forms,
+            ObjectProvider<org.ipro.rls.RlsReadGate> readGates, ObjectProvider<RlsCurrentUser> users) {
+        return new org.ipro.form.action.NavigationCommandAvailability(actions, forms,
+            type -> readGates.getObject().canRead(type, users.getObject().requireAuthenticatedUsername()));
+    }
+
     @Bean
     public ActionContextProvider actionContextProvider(EntityDescriptorCatalog descriptorCatalog,
                                                        RlsUiGate rlsUiGate,

@@ -57,6 +57,7 @@ class ContractsModuleCompositionTest {
         "org.ipro.metadata.annotation.SectionPersistenceMode",
         "org.ipro.metadata.annotation.SectionRlsPolicy",
         "org.ipro.metadata.annotation.Subsystem",
+        "org.ipro.metadata.annotation.SubsystemCommand",
         "org.ipro.metadata.annotation.TableSectionMetadata",
         "org.ipro.metadata.annotation.TableSections",
         "org.ipro.events.AggregateSavingEvent",
@@ -119,7 +120,7 @@ class ContractsModuleCompositionTest {
                 + " расширяет публичную поверхность платформы, а пропавший — незаметно"
                 + " возвращает контракт в дерево приложения")
             .isEqualTo(new TreeSet<>(REVIEWED_TYPES));
-        assertThat(actual).hasSize(41);
+        assertThat(actual).hasSize(42);
     }
 
     @Test

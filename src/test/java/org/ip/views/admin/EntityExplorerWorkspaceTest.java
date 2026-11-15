@@ -8,6 +8,9 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.menubar.MenuBar;
+import org.ip.model.GroupNom;
+import org.ip.model.Nomenclature;
+import org.ip.model.Workshop;
 import org.ip.views.workspace.Workspace;
 import org.ip.views.workspace.WorkspaceManager;
 import org.ipro.design.RecipeCatalog;
@@ -16,7 +19,16 @@ import org.ipro.form.host.FormRouteUrlBridge;
 import org.ipro.form.link.EntityExplorerAddress;
 import org.ipro.form.link.FormRouteCatalog;
 import org.ipro.form.link.PublishedFormRoute;
-import org.ipro.vaadin.explorer.RegistryFixture;
+import org.ipro.form.registry.FormRegistry;
+import org.ipro.metadata.ManagedEntityTypes;
+import org.ipro.metadata.MetadataConsistencyStartupCheck;
+import org.ipro.metadata.MetadataDiagnostic;
+import org.ipro.metadata.MetadataResolver;
+import org.ipro.metadata.ReferenceIndex;
+import org.ipro.metadata.SubsystemRegistry;
+import org.ipro.metadata.facet.FacetResolver;
+import org.ipro.numbering.NumberingMetadataRegistry;
+import org.ipro.vaadin.explorer.EntitySummaryAssembler;
 import org.ipro.vaadin.explorer.ui.EntityExplorerCardState;
 import org.ipro.vaadin.explorer.ui.EntityExplorerRegistryState;
 import org.junit.jupiter.api.Test;
@@ -24,6 +36,7 @@ import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -32,9 +45,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 class EntityExplorerWorkspaceTest {
-    private static final Class<?> PUBLISHED = RegistryFixture.Nomenclature.class;
-    private static final Class<?> FIRST = RegistryFixture.Workshop.class;
-    private static final Class<?> SECOND = RegistryFixture.GroupNom.class;
+    private static final Class<?> PUBLISHED = Nomenclature.class;
+    private static final Class<?> FIRST = Workshop.class;
+    private static final Class<?> SECOND = GroupNom.class;
     private static final String PUBLISHED_ID = EntityExplorerWorkspace.CARD + PUBLISHED.getName();
     private final AutowireCapableBeanFactory beans = mock(AutowireCapableBeanFactory.class);
     private final WorkspaceManager manager = new WorkspaceManager(beans);
@@ -71,6 +84,22 @@ class EntityExplorerWorkspaceTest {
         assertThat(state.selectedType()).isEqualTo(PUBLISHED.getName());
         assertThat(state.overview()).isTrue();
         verifyNoInteractions(urls);
+    }
+
+    @Test
+    void registryOpensCompactCardAndAnExplicitAnchorOpensTechnicalDetails() {
+        var host = host();
+        session.registry().select(FIRST.getName());
+        host.openRegistry();
+        var registry = (Component) ReflectionTestUtils.getField(host, "registry");
+        button(registry, "Открыть карточку").click();
+
+        var card = cards(host).get(EntityExplorerWorkspace.CARD + FIRST.getName());
+        assertThat(button(card, "Техническая сводка").isVisible()).isTrue();
+        assertThat(host.openProgrammatically(FIRST, "fields", "")).isTrue();
+        assertThat(card.anchor()).isEqualTo("fields");
+        assertThat(descendants(card).filter(Button.class::isInstance).map(Button.class::cast)
+            .noneMatch(candidate -> candidate.getText().equals("Техническая сводка"))).isTrue();
     }
 
     @Test
@@ -259,11 +288,21 @@ class EntityExplorerWorkspaceTest {
         var published = mock(PublishedFormRoute.class);
         when(published.entityKey()).thenReturn("nomenclature");
         when(routes.find(PUBLISHED)).thenReturn(Optional.of(published));
-        var snapshot = RegistryFixture.snapshot();
+        var types = new ManagedEntityTypes(List.of(PUBLISHED, FIRST, SECOND));
+        var metadata = new MetadataResolver();
+        var startup = mock(MetadataConsistencyStartupCheck.class);
+        when(startup.diagnostics()).thenReturn(List.of(new MetadataDiagnostic(
+            MetadataDiagnostic.Severity.WARNING, "FIXTURE_COMMON", "fixture.UnlistedEntity",
+            "", "fixture", "Пример общего сообщения каталога")));
+        var assembler = new EntitySummaryAssembler(types, metadata, new FormRegistry(),
+            new ReferenceIndex(types), new NumberingMetadataRegistry(types),
+            new SubsystemRegistry("unused", types, metadata), FacetResolver.none(), null,
+            routes, null, null, startup, null, null, null, null, null);
+        var snapshot = assembler.explorerSnapshot();
         catalog = new EntityExplorerCatalog(() -> new EntityExplorerCatalog.Facts(
             ExplorerTreeModel.CatalogView.of(snapshot), snapshot.unassignedDiagnostics(), snapshot), access);
         return new EntityExplorerWorkspace(workspace, urls, routes, catalog, access, session,
-            mock(EntityExplorerPilotPolicy.class), mock(EntityExplorerNavigation.class),
+            mock(EntityExplorerNavigation.class),
             modifications, draftWorkspace, mock(ExplorerSourceReader.class), mock(org.ipro.form.coordinator.FormNavigator.class));
     }
 

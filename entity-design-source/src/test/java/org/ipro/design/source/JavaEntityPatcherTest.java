@@ -68,6 +68,16 @@ class JavaEntityPatcherTest {
 
     private static List<String> editTexts(JavaEntityPatcher.Patch patch) { return patch.edits().stream().map(SourceEdits.Edit::text).toList(); }
 
+    @Test void addingAFieldPreservesSubsystemPlacements(@TempDir Path dir) throws Exception {
+        String declaration = "@EntityMetadata(subsystem = Sections.Primary.class, "
+            + "alsoIn = {Sections.Secondary.class, Sections.Other.class})";
+        var subject = probe(dir, declaration, "");
+        var patch = subject.patch(add(field("note", "STRING")));
+        assertOnlyEdits(subject.text(), patch);
+        assertTrue(patch.text().contains(declaration));
+        assertTrue(patch.text().contains("private String note;"));
+    }
+
     // ------------------------------------------------------------------ real files
 
     @Test void customCatalogGetsTheFieldAfterTheLastFieldAndItsAccessorsAfterTheLastAccessor() {

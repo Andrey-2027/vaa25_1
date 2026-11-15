@@ -201,6 +201,7 @@ class PermissionCatalogServiceTest {
         var annotation = info.getAnnotation();
         doReturn(SecondModule.class).when(annotation).subsystem();
         doReturn(SecondModule.class).when(info).getSubsystem();
+        when(info.getAdditionalSubsystems()).thenReturn(List.of(FirstModule.class));
         var catalog = service().catalog();
         assertThat(catalog.groups()).hasSize(2).extracting(PermissionCatalog.Group::id).doesNotHaveDuplicates();
         assertThat(catalog.row(PermissionObjectRow.entityId(Warehouse.class)).orElseThrow().groupId())

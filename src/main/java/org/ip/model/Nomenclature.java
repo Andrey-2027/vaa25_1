@@ -27,6 +27,7 @@ import org.ipro.search.GlobalSearchable;
     order = 100,
     icon = "PACKAGE",
     subsystem = org.ip.subsystem.Subsystems.Directories.class,
+    alsoIn = org.ip.subsystem.Subsystems.Production.class,
     displaySortFields = {"code", "name"}  // = getDisplayName(): code + " " + name
 )
 @InstanceName

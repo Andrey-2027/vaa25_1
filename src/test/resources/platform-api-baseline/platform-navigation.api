@@ -4,22 +4,23 @@ class public final org.ipro.navigation.NavigationCatalog
   method public java.util.Optional<org.ipro.navigation.NavigationItem> findItem(java.lang.String)
   method public java.util.Optional<org.ipro.navigation.NavigationNode> findSubsystem(java.lang.String)
   method public java.util.Set<java.lang.String> keys()
-  method public static org.ipro.navigation.NavigationCatalog build(org.ipro.metadata.SubsystemRegistry, java.util.List<org.ipro.navigation.NavigationDefaultsContributor>)
+  method public static org.ipro.navigation.NavigationCatalog build(org.ipro.metadata.SubsystemRegistry, org.ipro.navigation.NavigationEntityKeys)
+
+class public final org.ipro.navigation.NavigationCatalogProvider
+  method public org.ipro.navigation.NavigationCatalog get()
+  method public static org.ipro.navigation.NavigationCatalogProvider deferred(java.util.function.Supplier<org.ipro.metadata.SubsystemRegistry>, org.ipro.navigation.NavigationEntityKeys)
+  method public static org.ipro.navigation.NavigationCatalogProvider of(org.ipro.navigation.NavigationCatalog)
+  method public void validate()
 
 class public final org.ipro.navigation.NavigationConflictException
   extends java.lang.RuntimeException
   ctor public(java.lang.String)
   ctor public(java.lang.String, java.lang.Throwable)
 
-class public final org.ipro.navigation.NavigationDefaults
-  method public org.ipro.navigation.NavigationDefaults list(java.lang.Class<?>, java.lang.Class<?>, java.lang.String)
-  method public org.ipro.navigation.NavigationDefaults list(java.lang.Class<?>, java.lang.Class<?>, java.lang.String, boolean)
-  method public org.ipro.navigation.NavigationDefaults subsystem(java.lang.Class<?>, java.lang.String)
-  method public org.ipro.navigation.NavigationDefaults subsystem(java.lang.Class<?>, java.lang.String, boolean)
-
 class public final org.ipro.navigation.NavigationResolver
   ctor public()
   method public org.ipro.navigation.NavigationTree resolve(org.ipro.navigation.NavigationCatalog, java.util.Map<java.lang.String, org.ipro.navigation.NavigationVisibility>, java.util.function.Predicate<java.lang.Class<?>>)
+  method public org.ipro.navigation.NavigationTree resolve(org.ipro.navigation.NavigationCatalog, java.util.Map<java.lang.String, org.ipro.navigation.NavigationVisibility>, java.util.function.Predicate<java.lang.Class<?>>, java.util.function.Predicate<org.ipro.navigation.NavigationCommand>)
 
 enum public final org.ipro.navigation.NavigationVisibility
   extends java.lang.Enum<org.ipro.navigation.NavigationVisibility>
@@ -46,9 +47,10 @@ interface public abstract interface org.ipro.navigation.NavigationAdministration
   method public abstract void assignUser(java.lang.String, long)
   method public abstract void unassignUser(java.lang.String)
 
-interface public abstract interface org.ipro.navigation.NavigationDefaultsContributor
+interface public abstract interface org.ipro.navigation.NavigationEntityKeys
   annotation java.lang.FunctionalInterface
-  method public abstract void contribute(org.ipro.navigation.NavigationDefaults)
+  method public abstract java.lang.String keyOf(java.lang.Class<?>)
+  method public static java.lang.String derive(java.lang.Class<?>)
 
 interface public abstract interface org.ipro.navigation.NavigationProfileReader
   method public abstract java.util.Optional<org.ipro.navigation.NavigationProfile> currentProfile()
@@ -58,9 +60,26 @@ interface public abstract interface org.ipro.navigation.NavigationUserDirectory
   method public abstract java.lang.String currentUserKey()
   method public abstract java.util.List<org.ipro.navigation.NavigationUserDirectory$UserOption> lookup(java.lang.String, int)
 
+record public final org.ipro.navigation.NavigationCommand
+  extends java.lang.Record
+  ctor public(java.lang.String, java.lang.Class<?>, java.lang.String, java.lang.String, java.lang.String, java.lang.String, int)
+  method public boolean defaultVisible()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public int order()
+  method public java.lang.Class<?> entityClass()
+  method public java.lang.String action()
+  method public java.lang.String icon()
+  method public java.lang.String key()
+  method public java.lang.String title()
+  method public java.lang.String variant()
+
 record public final org.ipro.navigation.NavigationItem
   extends java.lang.Record
   ctor public(java.lang.String, java.lang.Class<?>, java.lang.String, java.lang.String, int, boolean)
+  ctor public(java.lang.String, java.lang.Class<?>, java.lang.String, java.lang.String, int, boolean, boolean)
+  method public boolean additional()
   method public boolean defaultVisible()
   method public final boolean equals(java.lang.Object)
   method public final int hashCode()
@@ -75,6 +94,7 @@ record public final org.ipro.navigation.NavigationItem
 record public final org.ipro.navigation.NavigationNode
   extends java.lang.Record
   ctor public(java.lang.String, java.lang.Class<?>, java.lang.String, java.lang.String, int, boolean, java.util.List<org.ipro.navigation.NavigationItem>, java.util.List<org.ipro.navigation.NavigationNode>)
+  ctor public(java.lang.String, java.lang.Class<?>, java.lang.String, java.lang.String, int, boolean, java.util.List<org.ipro.navigation.NavigationItem>, java.util.List<org.ipro.navigation.NavigationNode>, java.util.List<org.ipro.navigation.NavigationCommand>)
   method public boolean defaultVisible()
   method public final boolean equals(java.lang.Object)
   method public final int hashCode()
@@ -85,6 +105,7 @@ record public final org.ipro.navigation.NavigationNode
   method public java.lang.String id()
   method public java.lang.String key()
   method public java.lang.String title()
+  method public java.util.List<org.ipro.navigation.NavigationCommand> commands()
   method public java.util.List<org.ipro.navigation.NavigationItem> items()
   method public java.util.List<org.ipro.navigation.NavigationNode> children()
 
@@ -113,16 +134,19 @@ record public final org.ipro.navigation.NavigationTree
 record public static final org.ipro.navigation.NavigationTree$Group
   extends java.lang.Record
   ctor public(java.lang.String, java.lang.String, java.util.List<org.ipro.navigation.NavigationItem>)
+  ctor public(java.lang.String, java.lang.String, java.util.List<org.ipro.navigation.NavigationItem>, java.util.List<org.ipro.navigation.NavigationCommand>)
   method public final boolean equals(java.lang.Object)
   method public final int hashCode()
   method public final java.lang.String toString()
   method public java.lang.String subsystemId()
   method public java.lang.String title()
+  method public java.util.List<org.ipro.navigation.NavigationCommand> commands()
   method public java.util.List<org.ipro.navigation.NavigationItem> items()
 
 record public static final org.ipro.navigation.NavigationTree$Node
   extends java.lang.Record
   ctor public(java.lang.String, java.lang.Class<?>, java.lang.String, java.lang.String, int, java.util.List<org.ipro.navigation.NavigationItem>, java.util.List<org.ipro.navigation.NavigationTree$Node>)
+  ctor public(java.lang.String, java.lang.Class<?>, java.lang.String, java.lang.String, int, java.util.List<org.ipro.navigation.NavigationItem>, java.util.List<org.ipro.navigation.NavigationTree$Node>, java.util.List<org.ipro.navigation.NavigationCommand>)
   method public final boolean equals(java.lang.Object)
   method public final int hashCode()
   method public final java.lang.String toString()
@@ -131,6 +155,7 @@ record public static final org.ipro.navigation.NavigationTree$Node
   method public java.lang.String icon()
   method public java.lang.String id()
   method public java.lang.String title()
+  method public java.util.List<org.ipro.navigation.NavigationCommand> commands()
   method public java.util.List<org.ipro.navigation.NavigationItem> items()
   method public java.util.List<org.ipro.navigation.NavigationTree$Group> groupsRecursive()
   method public java.util.List<org.ipro.navigation.NavigationTree$Node> children()

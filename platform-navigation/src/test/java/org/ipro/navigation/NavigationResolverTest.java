@@ -7,7 +7,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -36,22 +35,15 @@ class NavigationResolverTest {
 
     @ParameterizedTest
     @EnumSource(NavigationVisibility.class)
-    void overridesInheritOrReplaceDeveloperDefaults(NavigationVisibility visibility) {
-        for (boolean defaultVisible : List.of(false, true)) {
-            var catalog = NavigationCatalog.build(NavigationCatalogTest.original(),
-                List.of(NavigationCatalogTest.declarations(true, defaultVisible)));
-            var tree = resolver.resolve(catalog, Map.of("item:root-item", visibility), type -> true);
-            boolean expected = visibility == NavigationVisibility.SHOW
-                || (visibility == NavigationVisibility.DEFAULT && defaultVisible);
-            assertThat(tree.findSubsystem("root").orElseThrow().items().isEmpty()).isEqualTo(!expected);
-        }
+    void profileOverrideHidesAnItemAndShowEqualsDefault(NavigationVisibility visibility) {
+        var tree = resolver.resolve(NavigationCatalogTest.catalog(), Map.of("item:root-item", visibility), type -> true);
+        boolean expected = visibility != NavigationVisibility.HIDE;
+        assertThat(tree.findSubsystem("root").orElseThrow().items().isEmpty()).isEqualTo(!expected);
     }
 
     @Test
-    void showingSubsystemCanReplaceDeveloperHideButStillChecksReads() {
-        var catalog = NavigationCatalog.build(NavigationCatalogTest.original(),
-            List.of(NavigationCatalogTest.declarations(false, true)));
-        assertThat(resolver.resolve(catalog, Map.of(), type -> true).roots()).isEmpty();
+    void showStillChecksReads() {
+        var catalog = NavigationCatalogTest.catalog();
         assertThat(resolver.resolve(catalog, Map.of("subsystem:root", NavigationVisibility.SHOW),
             type -> true).roots()).hasSize(1);
         assertThat(resolver.resolve(catalog, Map.of("subsystem:root", NavigationVisibility.SHOW),
@@ -113,21 +105,27 @@ class NavigationResolverTest {
     }
 
     @Test
-    void explicitIdentitiesPreserveHidingAcrossClassPackageTitleAndPlacementChanges() {
+    void itemKeySurvivesClassRenamePackageTitleAndPlacementChangesWhenTheKeySourceKeepsIt() {
         var renamedRegistry = NavigationCatalogTest.registry("org.ipro.navigation.fixture.renamed");
-        var renamed = NavigationCatalog.build(renamedRegistry, List.of(d -> d
-            .subsystem(Renamed.RenamedRoot.class, "root")
-            .subsystem(Renamed.Destination.class, "child")
-            .list(Renamed.Destination.class, Renamed.RenamedItem.class, "root-item")));
+        // The application keeps the old route key as canonical through an alias declaration.
+        var renamed = NavigationCatalog.build(renamedRegistry, type ->
+            type == Renamed.RenamedItem.class ? "root-item" : NavigationEntityKeys.derive(type));
         var profile = Map.of("item:root-item", NavigationVisibility.HIDE);
         assertThat(resolver.resolve(NavigationCatalogTest.catalog(), profile, t -> true)
             .findSubsystem("root").orElseThrow().items()).isEmpty();
         var result = resolver.resolve(renamed, profile, t -> true);
         assertThat(result.roots()).isEmpty();
         assertThat(result.staleKeys()).isEmpty();
-        assertThat(resolver.resolve(renamed, Map.of("subsystem:root", NavigationVisibility.HIDE), t -> true).roots())
-            .isEmpty();
-        assertThat(resolver.resolve(renamed, Map.of(), t -> true).findSubsystem("child").orElseThrow().items())
+        assertThat(resolver.resolve(renamed, Map.of(), t -> true).findSubsystem("destination").orElseThrow().items())
             .extracting(NavigationItem::id).containsExactly("root-item");
+    }
+
+    @Test
+    void itemKeyChangesWithoutAliasAndOldSettingBecomesStale() {
+        var renamed = NavigationCatalog.build(NavigationCatalogTest.registry("org.ipro.navigation.fixture.renamed"),
+            NavigationCatalogTest.DERIVED);
+        var result = resolver.resolve(renamed, Map.of("item:root-item", NavigationVisibility.HIDE), t -> true);
+        assertThat(result.staleKeys()).containsExactly("item:root-item");
+        assertThat(result.findSubsystem("destination").orElseThrow().items()).hasSize(1);
     }
 }

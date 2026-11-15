@@ -37,7 +37,6 @@ import org.ip.service.AccessGrantAdminService.GrantFlags;
 import org.ip.service.AccessGrantAdminService.UngrantedDefinition;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -60,7 +59,6 @@ public class AdminView extends VerticalLayout implements Dirtyable, Savable {
     private final SettingsAdminTab settingsTab;
     private final NumberingAdminTab numberingTab;
     private final ObjectProvider<NavigationProfilesAdminTab> navigationTabs;
-    private final boolean navigationEnabled;
     private NavigationProfilesAdminTab navigationTab;
     private boolean uiBuilt;
     private final Map<String, String> entityLabels = new HashMap<>();
@@ -98,11 +96,9 @@ public class AdminView extends VerticalLayout implements Dirtyable, Savable {
                      @Autowired MetadataResolver metadataResolver,
                      @Autowired java.util.List<NamedOperationOwner> namedOperationOwners,
                      @Autowired java.util.List<NamedOperationSource> namedOperationSources,
-                     @Autowired ObjectProvider<NavigationProfilesAdminTab> navigationTabs,
-                     @Value("${platform.navigation.enabled:false}") boolean navigationEnabled) {
+                     @Autowired ObjectProvider<NavigationProfilesAdminTab> navigationTabs) {
         this.accessGrantAdminService = accessGrantAdminService;
         this.navigationTabs = navigationTabs;
-        this.navigationEnabled = navigationEnabled;
         // Одиночные владельцы и источники, объявляющие несколько операций (регистровые подписи
         // приходят из платформы), для экрана неразличимы: он показывает название по id.
         for (NamedOperationOwner owner : NamedOperationSource.merge(namedOperationOwners, namedOperationSources)) {
@@ -155,17 +151,15 @@ public class AdminView extends VerticalLayout implements Dirtyable, Savable {
         Tab settingsItem = new Tab(new Span("Настройки"), new Icon(VaadinIcon.COGS));
         Tab numberingItem = new Tab(new Span("Нумерация"), new Icon(VaadinIcon.HASH));
         Tabs tabs = new Tabs(accessItem, workspaceItem, settingsItem, numberingItem);
-        Tab navigationItem = navigationEnabled ? new Tab(new Span("Интерфейс"), new Icon(VaadinIcon.MENU)) : null;
-        if (navigationEnabled) {
-            navigationTab = navigationTabs.getObject();
-            tabs.add(navigationItem);
-        }
+        Tab navigationItem = new Tab(new Span("Интерфейс"), new Icon(VaadinIcon.MENU));
+        navigationTab = navigationTabs.getObject();
+        tabs.add(navigationItem);
         add(tabs);
 
         buildAccessTab();
 
         add(accessTab, settingsTab, numberingTab);
-        if (navigationTab != null) add(navigationTab);
+        add(navigationTab);
         show(accessTab);
 
         tabs.addSelectedChangeListener(e -> {
@@ -184,7 +178,7 @@ public class AdminView extends VerticalLayout implements Dirtyable, Savable {
                 }
                 show(permissionWorkspace);
                 permissionWorkspace.reloadActive();
-            } else if (navigationItem != null && e.getSelectedTab() == navigationItem) {
+            } else if (e.getSelectedTab() == navigationItem) {
                 show(navigationTab);
                 navigationTab.refresh();
             } else if (e.getSelectedTab() == settingsItem) {
@@ -203,7 +197,7 @@ public class AdminView extends VerticalLayout implements Dirtyable, Savable {
         accessTab.setVisible(false);
         settingsTab.setVisible(false);
         numberingTab.setVisible(false);
-        if (navigationTab != null) navigationTab.setVisible(false);
+        navigationTab.setVisible(false);
         if (permissionWorkspace != null) permissionWorkspace.setVisible(false);
         active.setVisible(true);
     }

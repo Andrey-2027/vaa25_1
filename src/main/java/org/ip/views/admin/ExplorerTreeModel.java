@@ -91,6 +91,7 @@ final class ExplorerTreeModel {
      * Фильтр каталога (§4.3): пересечение выбранных условий. {@code null} в поле означает «не
      * выбрано». {@code showServiceTypes} — отдельный переключатель служебных типов; при
      * {@code false} типы экспозиций {@code INTERNAL_STORE}/{@code UNCLASSIFIED} скрыты.
+     * Фильтр по подсистеме использует основную подсистему сущности.
      */
     record Filter(EntityKind kind, String subsystemId, String exposure, boolean onlyErrors,
                   boolean showServiceTypes) {

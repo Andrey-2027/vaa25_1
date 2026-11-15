@@ -2,8 +2,10 @@ package org.ipro.navigation;
 
 import org.ipro.metadata.SubsystemNode;
 import org.ipro.metadata.SubsystemRegistry;
+import org.ipro.metadata.EntityMetadataInfo;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -15,8 +17,13 @@ import java.util.TreeSet;
 
 /**
  * Immutable projection of an already initialized SubsystemRegistry. Does not scan classes,
- * change metadata, publish routes or grant data capabilities. Build during startup;
- * missing/duplicate identities and declarations for unknown membership are configuration errors.
+ * change metadata, publish routes or grant data capabilities. Keys are derived, never declared:
+ * a subsystem is {@code subsystem:<kebab-case of the marker simple name>}, the primary placement
+ * of an entity is {@code item:<entity key>}, which stays stable when the entity moves.
+ * An additional placement is {@code item:<subsystem ID>/<entity key>}.
+ *
+ * <p>Build it through {@link NavigationCatalogProvider}: the entity keys are known only after
+ * the form registry is closed.</p>
  */
 public final class NavigationCatalog {
     private final List<NavigationNode> roots;
@@ -34,65 +41,102 @@ public final class NavigationCatalog {
         Set<String> allKeys = new TreeSet<>();
         nodes.values().forEach(node -> allKeys.add(node.key()));
         items.values().forEach(item -> allKeys.add(item.key()));
+        nodes.values().forEach(node -> node.commands().forEach(command -> allKeys.add(command.key())));
         this.keys = Set.copyOf(allKeys);
     }
 
-    public static NavigationCatalog build(SubsystemRegistry registry,
-                                         List<NavigationDefaultsContributor> contributors) {
+    /**
+     * Projects the registry. A repeated key, a key outside the grammar (ASCII lower-kebab-case) and
+     * a key longer than the storage length (190) are configuration errors, reported together.
+     */
+    public static NavigationCatalog build(SubsystemRegistry registry, NavigationEntityKeys entityKeys) {
         Objects.requireNonNull(registry, "subsystem registry");
-        NavigationDefaults defaults = new NavigationDefaults();
-        try {
-            for (NavigationDefaultsContributor contributor : List.copyOf(contributors)) {
-                contributor.contribute(defaults);
-            }
-        } finally {
-            defaults.freeze();
-        }
-        Map<Class<?>, NavigationDefaults.Declaration> nodes = new HashMap<>(defaults.subsystems());
-        Map<NavigationDefaults.Source, NavigationDefaults.Declaration> items = new HashMap<>(defaults.items());
+        Objects.requireNonNull(entityKeys, "entity keys");
+        List<String> problems = new ArrayList<>();
         Set<Class<?>> visited = new HashSet<>();
+        Map<String, String> claimed = new HashMap<>();
         List<NavigationNode> roots = new ArrayList<>();
         for (SubsystemNode root : registry.getRoots()) {
-            roots.add(project(root, nodes, items, visited));
+            roots.add(project(root, entityKeys, visited, claimed, problems));
         }
-        if (!nodes.isEmpty() || !items.isEmpty()) {
-            List<String> unknown = new ArrayList<>();
-            nodes.keySet().forEach(type -> unknown.add("subsystem " + type.getName()));
-            items.keySet().forEach(source -> unknown.add("list " + source));
-            unknown.sort(String::compareTo);
-            throw new IllegalArgumentException("Unknown navigation declarations: " + unknown);
+        if (!problems.isEmpty()) {
+            throw new IllegalArgumentException("Navigation catalog is inconsistent: " + String.join("; ", problems));
         }
         return new NavigationCatalog(roots);
     }
 
-    private static NavigationNode project(SubsystemNode source,
-            Map<Class<?>, NavigationDefaults.Declaration> nodeDeclarations,
-            Map<NavigationDefaults.Source, NavigationDefaults.Declaration> itemDeclarations,
-            Set<Class<?>> visited) {
+    private static NavigationNode project(SubsystemNode source, NavigationEntityKeys entityKeys,
+                                          Set<Class<?>> visited, Map<String, String> claimed,
+                                          List<String> problems) {
         Class<?> marker = source.getMarkerClass();
         if (!visited.add(marker)) {
             throw new IllegalArgumentException("Repeated subsystem in source tree: " + marker.getName());
         }
-        NavigationDefaults.Declaration declaration = nodeDeclarations.remove(marker);
-        if (declaration == null) {
-            throw new IllegalArgumentException("Missing navigation ID for subsystem: " + marker.getName());
+        String id = NavigationIds.kebabCase(marker.getSimpleName());
+        boolean validId = NavigationIds.isId(id);
+        if (!validId) {
+            problems.add("subsystem ID '" + id + "' of " + marker.getName() + " is not ASCII lower-kebab-case");
         }
+        claim(claimed, "subsystem:" + id, marker.getName(), problems);
         List<NavigationItem> items = new ArrayList<>();
-        for (var entity : source.getOwnEntities()) {
-            var key = new NavigationDefaults.Source(marker, entity.getEntityClass());
-            var item = itemDeclarations.remove(key);
-            if (item == null) {
-                throw new IllegalArgumentException("Missing navigation ID for list: " + key);
-            }
-            items.add(new NavigationItem(item.id(), entity.getEntityClass(), entity.getListFormTitle(),
-                entity.getIcon(), entity.getOrder(), item.visible()));
+        collectItems(source.getOwnEntities(), "", false, entityKeys, items, claimed, problems);
+        if (validId) {
+            collectItems(source.getAdditionalEntities(), id + "/", true, entityKeys, items, claimed, problems);
         }
+        items.sort(Comparator.comparingInt(NavigationItem::order)
+            .thenComparing(item -> item.entityClass().getName()));
         List<NavigationNode> children = new ArrayList<>();
         for (SubsystemNode child : source.getChildren()) {
-            children.add(project(child, nodeDeclarations, itemDeclarations, visited));
+            children.add(project(child, entityKeys, visited, claimed, problems));
         }
-        return new NavigationNode(declaration.id(), marker, source.getTitle(), source.getIcon(),
-            source.getOrder(), declaration.visible(), items, children);
+        return new NavigationNode(validId ? id : "invalid", marker, source.getTitle(), source.getIcon(),
+            source.getOrder(), true, items, children, collectCommands(source, id, entityKeys, claimed, problems));
+    }
+
+    private static List<NavigationCommand> collectCommands(SubsystemNode source, String id,
+            NavigationEntityKeys entityKeys, Map<String, String> claimed, List<String> problems) {
+        List<NavigationCommand> commands = new ArrayList<>();
+        for (var declaration : source.getCommands()) {
+            String entityKey = entityKeys.keyOf(declaration.entity());
+            String action = declaration.action().strip();
+            String variant = declaration.variant().strip();
+            String key = "command:" + id + "/" + entityKey + "/" +
+                (action.isEmpty() ? "list/" + variant : action);
+            claim(claimed, key, source.getMarkerClass().getName(), problems);
+            if (!NavigationIds.isId(entityKey) || !action.matches("[a-z][a-z0-9.-]*|")
+                    || !variant.matches("[a-z][a-z0-9_-]*|")) {
+                problems.add("invalid navigation command key: " + key);
+            }
+            commands.add(new NavigationCommand(key, declaration.entity(), action, variant,
+                declaration.title(), declaration.icon(), declaration.order()));
+        }
+        return commands;
+    }
+
+    private static void collectItems(List<EntityMetadataInfo> entities, String prefix, boolean additional,
+                                     NavigationEntityKeys entityKeys, List<NavigationItem> items,
+                                     Map<String, String> claimed, List<String> problems) {
+        for (var entity : entities) {
+            Class<?> type = entity.getEntityClass();
+            String key = Objects.requireNonNull(entityKeys.keyOf(type), "entity key of " + type.getName());
+            claim(claimed, "item:" + prefix + key, type.getName(), problems);
+            if (!NavigationIds.isId(key)) {
+                problems.add("entity key '" + key + "' of " + type.getName() + " is not ASCII lower-kebab-case");
+                continue;
+            }
+            items.add(new NavigationItem(prefix + key, type, entity.getListFormTitle(), entity.getIcon(),
+                entity.getOrder(), true, additional));
+        }
+    }
+
+    private static void claim(Map<String, String> claimed, String key, String owner, List<String> problems) {
+        if (key.length() > NavigationIds.MAX_KEY_LENGTH) {
+            problems.add("key '" + key + "' of " + owner + " is longer than " + NavigationIds.MAX_KEY_LENGTH);
+        }
+        String previous = claimed.putIfAbsent(key, owner);
+        if (previous != null) {
+            problems.add("key '" + key + "' is used by " + previous + " and " + owner);
+        }
     }
 
     private static void index(NavigationNode node, Map<String, NavigationNode> nodes,

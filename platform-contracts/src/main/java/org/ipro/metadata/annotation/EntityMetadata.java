@@ -78,4 +78,7 @@ public @interface EntityMetadata {
     String icon() default "FILE";
 
     Class<?> subsystem() default Subsystem.NoSubsystem.class;
+
+    /** Additional menu placements. The primary subsystem still owns the entity. */
+    Class<?>[] alsoIn() default {};
 }

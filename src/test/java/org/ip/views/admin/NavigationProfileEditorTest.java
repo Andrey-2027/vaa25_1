@@ -17,6 +17,8 @@ import com.vaadin.flow.data.renderer.ComponentRenderer;
 import org.ipro.metadata.SubsystemRegistry;
 import org.ipro.navigation.NavigationAdministrationService;
 import org.ipro.navigation.NavigationCatalog;
+import org.ipro.navigation.NavigationCatalogProvider;
+import org.ipro.navigation.NavigationEntityKeys;
 import org.ipro.navigation.NavigationConflictException;
 import org.ipro.navigation.NavigationProfile;
 import org.ipro.navigation.NavigationResolver;
@@ -49,10 +51,7 @@ class NavigationProfileEditorTest {
     static NavigationCatalog catalog() {
         var registry = new SubsystemRegistry("org.navigationfixture", new org.ipro.metadata.MetadataResolver());
         registry.afterPropertiesSet();
-        return NavigationCatalog.build(registry, List.of(defaults -> defaults
-            .subsystem(Fixtures.Root.class, "root").subsystem(Fixtures.Child.class, "child")
-            .list(Fixtures.Root.class, Fixtures.RootItem.class, "root-item")
-            .list(Fixtures.Child.class, Fixtures.ChildItem.class, "child-item", false)));
+        return NavigationCatalog.build(registry, NavigationEntityKeys::derive);
     }
 
     @BeforeEach void prepare() {
@@ -67,19 +66,20 @@ class NavigationProfileEditorTest {
         when(service.profile(1)).thenReturn(first);
         when(service.profile(2)).thenReturn(second);
         when(service.assignmentForUser(anyString())).thenReturn(Optional.empty());
-        view = new NavigationProfilesAdminTab(service, admin::get, catalog(), new NavigationResolver());
+        view = new NavigationProfilesAdminTab(service, admin::get, NavigationCatalogProvider.of(catalog()), new NavigationResolver(), null);
         ui.add(view);
         view.refresh();
     }
     @AfterEach void cleanup() { UI.setCurrent(null); com.vaadin.flow.server.VaadinSession.setCurrent(null); ui = null; }
 
-    @Test void completeTreeIncludesDeveloperHiddenAndEmptyNodesWhilePreviewUsesTheResolver() {
+    @Test void completeTreeShowsEverythingByDefaultWhilePreviewUsesTheResolver() {
         var root = draft().roots().getFirst();
         var child = root.children().getLast();
+        assertThat(draft().outcome(child)).isEqualTo("Отображается");
+        assertThat(draft().preview().findSubsystem("child")).isPresent();
+        visibility("item:child-item").setValue(NavigationVisibility.HIDE);
         assertThat(draft().outcome(child)).isEqualTo("Скрыто: нет видимых пунктов");
         assertThat(draft().preview().findSubsystem("child")).isEmpty();
-        visibility("item:child-item").setValue(NavigationVisibility.SHOW);
-        assertThat(draft().preview().findSubsystem("child")).isPresent();
         visibility("subsystem:root").setValue(NavigationVisibility.HIDE);
         assertThat(draft().preview().roots()).isEmpty();
         assertThat(draft().outcome(child.children().getFirst())).contains("Скрыто родителем", "Root");
@@ -156,7 +156,7 @@ class NavigationProfileEditorTest {
 
     @Test void confirmedResetRemovesUnknownKeysAndKeepsAssignments() {
         when(service.resetProfile(1, 3)).thenReturn(profile(1, 4, "First", Map.of(), Set.of()));
-        visibility("item:child-item").setValue(NavigationVisibility.SHOW);
+        visibility("item:child-item").setValue(NavigationVisibility.HIDE);
         button("Сбросить к настройкам разработчика").click();
         verify(service, never()).resetProfile(anyLong(), anyLong());
         confirm(dialog(ConfirmDialog.class));
@@ -179,7 +179,7 @@ class NavigationProfileEditorTest {
         users().setValue(alice);
         button("Назначить профиль").click();
         create("Fourth");
-        visibility("item:child-item").setValue(NavigationVisibility.SHOW);
+        visibility("item:child-item").setValue(NavigationVisibility.HIDE);
         when(service.saveProfile(4, 0, draft().values())).thenReturn(profile(4, 1, "Fourth", draft().values(), Set.of()));
         button("Сохранить").click();
         users().setValue(new NavigationUserDirectory.UserOption("102", "bob"));
@@ -225,7 +225,7 @@ class NavigationProfileEditorTest {
         assertThat(status()).contains("права чтения пользователей");
         button("Обновить назначение").click();
         assertThat(button("Назначить профиль").isEnabled()).isTrue();
-        visibility("item:child-item").setValue(NavigationVisibility.SHOW);
+        visibility("item:child-item").setValue(NavigationVisibility.HIDE);
         assertThat(button("Сохранить").isEnabled()).isTrue();
         assertThat(button("Назначить профиль").isEnabled()).isFalse();
     }

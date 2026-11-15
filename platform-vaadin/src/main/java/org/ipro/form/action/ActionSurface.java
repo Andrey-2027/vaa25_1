@@ -17,5 +17,8 @@ public enum ActionSurface {
     ITEM_FOOTER,
 
     /** Меню элемента. */
-    ITEM_MENU
+    ITEM_MENU,
+
+    /** Команды страницы раздела без выбранной строки. */
+    NAVIGATION
 }

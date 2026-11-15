@@ -123,6 +123,8 @@ final class CompactEntityPanel extends Div {
         properties.property("base", "Базовый класс", summary.entityClass().getSuperclass().getSimpleName());
         properties.property("package", "Пакет", summary.entityClass().getPackageName());
         properties.property("subsystem", "Подсистема", overview("Подсистема"));
+        summary.overview().stream().filter(row -> "alsoIn".equals(row.key().variant())).findFirst()
+            .ifPresent(row -> properties.property("also-in", row.caption(), row.value().value()));
         ExplorerCardPropertyList sources = new ExplorerCardPropertyList();
         sources.property("caption-source", "Название", source(summary.displayName()));
         sources.property("class-source", "Класс", summary.entityClass().getName());

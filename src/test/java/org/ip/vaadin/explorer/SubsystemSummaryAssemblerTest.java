@@ -138,6 +138,11 @@ class SubsystemSummaryAssemblerTest {
         assertThat(facet.displayName().source()).isEqualTo(FactSource.CODE);
         assertThat(facet.numbering()).isEqualTo("number (JOURNAL, YEAR)");
         assertThat(facet.rlsGate()).isTrue();
+        assertThat(facet.additional()).isFalse();
+        assertThat(groups.stream().flatMap(g -> g.entities().stream())
+            .filter(SubsystemSummaryAssembler.EntityFacet::additional)
+            .map(SubsystemSummaryAssembler.EntityFacet::simpleName))
+            .containsExactlyInAnyOrder("Nomenclature", "Workshop");
         // Пустой реестр форм: кастомных регистраций и фильтров нет.
         assertThat(facet.customForms()).isFalse();
         assertThat(facet.contextFilters()).isFalse();

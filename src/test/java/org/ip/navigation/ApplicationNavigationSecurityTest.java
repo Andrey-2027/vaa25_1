@@ -31,13 +31,6 @@ class ApplicationNavigationSecurityTest {
     }
 
     @Test
-    void disabledApplicationDoesNotRegisterNavigationSecurityAdapters() {
-        new ApplicationContextRunner().withUserConfiguration(ApplicationNavigationSecurityConfiguration.class)
-            .run(context -> assertThat(context).hasNotFailed().doesNotHaveBean(NavigationAdministrationAccess.class)
-                .doesNotHaveBean(NavigationUserDirectory.class));
-    }
-
-    @Test
     void onlyAuthenticatedAdminGetsAdministrationAccessAndIdentityUsesImmutableUserId() {
         var user = new User("old-login", "unused");
         user.setId(7L);
@@ -45,7 +38,6 @@ class ApplicationNavigationSecurityTest {
         var repository = proxy(UserRepository.class, (p, m, a) ->
             user.getUsername().equals(a[0]) ? Optional.of(user) : Optional.empty());
         new ApplicationContextRunner().withUserConfiguration(ApplicationNavigationSecurityConfiguration.class)
-            .withPropertyValues("platform.navigation.enabled=true")
             .withBean(EntityDataAccess.class, () -> data).withBean(UserRepository.class, () -> repository)
             .run(context -> {
                 assertThat(context).hasNotFailed();

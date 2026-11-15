@@ -6,6 +6,7 @@ import org.ipro.vaadin.explorer.ExplorerSnapshot;
 import java.util.*;
 
 /** Pure, snapshot-only root projection. It deliberately does not use the detailed field search index. */
+/** The subsystem filter uses the primary subsystem recorded in the snapshot. */
 public final class EntityExplorerRegistryModel {
     private EntityExplorerRegistryModel() { }
     public record Group(String id, String label, List<ExplorerSnapshot.Entry> entries) {

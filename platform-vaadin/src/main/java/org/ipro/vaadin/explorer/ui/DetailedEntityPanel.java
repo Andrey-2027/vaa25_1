@@ -1081,6 +1081,7 @@ final class DetailedEntityPanel extends VerticalLayout {
         return switch (row.surface()) {
             case LIST_TOOLBAR -> "тулбар списка";
             case ITEM_FOOTER -> "подвал карточки";
+            case NAVIGATION -> "страница раздела";
             case ITEM_MENU -> "меню карточки";
         };
     }

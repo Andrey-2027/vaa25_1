@@ -15,6 +15,12 @@ import java.util.function.Predicate;
 public final class NavigationResolver {
     public NavigationTree resolve(NavigationCatalog catalog, Map<String, NavigationVisibility> overrides,
                                   Predicate<Class<?>> canRead) {
+        return resolve(catalog, overrides, canRead, command -> false);
+    }
+
+    public NavigationTree resolve(NavigationCatalog catalog, Map<String, NavigationVisibility> overrides,
+                                  Predicate<Class<?>> canRead, Predicate<NavigationCommand> available) {
+        Objects.requireNonNull(available, "command availability");
         Objects.requireNonNull(catalog, "navigation catalog");
         Objects.requireNonNull(canRead, "read predicate");
         Map<String, NavigationVisibility> snapshot = Map.copyOf(overrides);
@@ -22,14 +28,14 @@ public final class NavigationResolver {
         staleKeys.removeAll(catalog.keys());
         List<NavigationTree.Node> roots = new ArrayList<>();
         for (NavigationNode node : catalog.roots()) {
-            NavigationTree.Node resolved = resolve(node, snapshot, canRead);
+            NavigationTree.Node resolved = resolve(node, snapshot, canRead, available);
             if (resolved != null) roots.add(resolved);
         }
         return new NavigationTree(roots, staleKeys);
     }
 
     private NavigationTree.Node resolve(NavigationNode node, Map<String, NavigationVisibility> overrides,
-                                        Predicate<Class<?>> canRead) {
+                                        Predicate<Class<?>> canRead, Predicate<NavigationCommand> available) {
         if (!overrides.getOrDefault(node.key(), NavigationVisibility.DEFAULT).resolve(node.defaultVisible())) {
             return null;
         }
@@ -40,11 +46,16 @@ public final class NavigationResolver {
             .toList();
         List<NavigationTree.Node> children = new ArrayList<>();
         for (NavigationNode child : node.children()) {
-            NavigationTree.Node resolved = resolve(child, overrides, canRead);
+            NavigationTree.Node resolved = resolve(child, overrides, canRead, available);
             if (resolved != null) children.add(resolved);
         }
-        if (items.isEmpty() && children.isEmpty()) return null;
+        var commands = node.commands().stream()
+            .filter(command -> overrides.getOrDefault(command.key(), NavigationVisibility.DEFAULT)
+                .resolve(command.defaultVisible()))
+            .filter(available)
+            .toList();
+        if (items.isEmpty() && children.isEmpty() && commands.isEmpty()) return null;
         return new NavigationTree.Node(node.id(), node.markerClass(), node.title(), node.icon(),
-            node.order(), items, children);
+            node.order(), items, children, commands);
     }
 }

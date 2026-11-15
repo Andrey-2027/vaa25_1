@@ -147,7 +147,7 @@ class PlatformVaadinSurfaceTest {
                 + " итого 138; UX pilot P1 добавила INTERNAL-проекцию структуры EntityStructureFactsAssembler;"
                 + " E3.B добавила INTERNAL owner/form bridge CatalogOwnerForms — итого 140;"
                 + " Б1 добавила INTERNAL поиск автокомплита с отбором выбора FilterableSearchFunction — итого 141")
-            .hasSize(191); // R2: +22 Explorer UI types (10 APP_API, 2 APP_SPI, 10 INTERNAL), explicitly classified in the registry.
+            .hasSize(193); // KI-9 adds the shared action resolvers and menu availability.
         assertThat(withoutRole)
             .as("тип будущего platform-vaadin без роли: классификация — решение, которое нужно"
                 + " принять до переноса, а не после него")

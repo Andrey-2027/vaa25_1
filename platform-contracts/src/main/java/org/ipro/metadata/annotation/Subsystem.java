@@ -17,5 +17,7 @@ public @interface Subsystem {
 
     int order() default 999;
 
+    SubsystemCommand[] commands() default {};
+
     interface NoSubsystem {}
 }

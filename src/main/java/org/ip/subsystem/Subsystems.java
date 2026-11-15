@@ -1,6 +1,8 @@
 package org.ip.subsystem;
 
 import org.ipro.metadata.annotation.Subsystem;
+import org.ipro.metadata.annotation.SubsystemCommand;
+import org.ip.model.Nomenclature;
 import org.ipro.rls.RlsDimension;
 import org.ipro.rls.RlsDimensionKind;
 
@@ -9,7 +11,9 @@ public final class Subsystems {
     private Subsystems() {
     }
 
-    @Subsystem(title = "Справочники", icon = "BOOK", order = 100)
+    @Subsystem(title = "Справочники", icon = "BOOK", order = 100, commands =
+        @SubsystemCommand(entity = Nomenclature.class, action = "crud.create",
+            title = "Создать номенклатуру", order = 10))
     @RlsDimension(value = "SETTINGS:Directories", kind = RlsDimensionKind.CHECK_ONLY)
     public interface Directories {}
 
@@ -21,7 +25,9 @@ public final class Subsystems {
     @RlsDimension(value = "SETTINGS:ProductionDocuments", kind = RlsDimensionKind.CHECK_ONLY)
     public interface ProductionDocuments {}
 
-    @Subsystem(title = "Производство", icon = "FACTORY", order = 150)
+    @Subsystem(title = "Производство", icon = "FACTORY", order = 150, commands =
+        @SubsystemCommand(entity = Nomenclature.class, action = "crud.create",
+            title = "Создать номенклатуру", order = 10))
     @RlsDimension(value = "SETTINGS:Production", kind = RlsDimensionKind.CHECK_ONLY)
     public interface Production {}
 }

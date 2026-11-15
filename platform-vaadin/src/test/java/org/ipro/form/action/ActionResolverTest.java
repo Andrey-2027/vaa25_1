@@ -18,6 +18,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -31,6 +32,16 @@ import static org.mockito.Mockito.when;
  * скрыто с названной причиной, а вариант формы меняет решение через тот же ключ.</p>
  */
 class ActionResolverTest {
+
+    @Test
+    void navigationHandlerCannotRequireASelectedRow() {
+        var definition = ActionDefinition.forEntity(ActionId.of("test.selected"), ActionSurface.NAVIGATION,
+            Nomenclature.class, "Selected", null, 0, ActionRequirement.selectionOnly());
+        var handler = mock(ActionHandler.class);
+        when(handler.definition()).thenReturn(definition);
+        assertThatThrownBy(() -> new ActionHandlerRegistry(List.of(handler)))
+            .isInstanceOf(IllegalStateException.class).hasMessageContaining("test.selected");
+    }
 
     /** Полный generic CRUD. */
     @Entity

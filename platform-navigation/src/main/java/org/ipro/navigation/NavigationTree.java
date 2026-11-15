@@ -28,14 +28,20 @@ public record NavigationTree(List<Node> roots, Set<String> staleKeys) {
     }
 
     public record Node(String id, Class<?> markerClass, String title, String icon, int order,
-                       List<NavigationItem> items, List<Node> children) {
+                       List<NavigationItem> items, List<Node> children, List<NavigationCommand> commands) {
+        public Node(String id, Class<?> markerClass, String title, String icon, int order,
+                    List<NavigationItem> items, List<Node> children) {
+            this(id, markerClass, title, icon, order, items, children, List.of());
+        }
+
         public Node {
-            NavigationDefaults.requireId(id);
+            NavigationIds.requireId(id);
             Objects.requireNonNull(markerClass, "subsystem marker");
             Objects.requireNonNull(title, "title");
             Objects.requireNonNull(icon, "icon");
             items = List.copyOf(items);
             children = List.copyOf(children);
+            commands = List.copyOf(commands);
         }
 
         /** Own items first, then visible descendants; shared by parent pages and child pages. */
@@ -46,18 +52,24 @@ public record NavigationTree(List<Node> roots, Set<String> staleKeys) {
         }
 
         private static void collect(Node node, List<Group> groups) {
-            if (!node.items().isEmpty()) {
-                groups.add(new Group(node.id(), node.title(), node.items()));
+            if (!node.items().isEmpty() || !node.commands().isEmpty()) {
+                groups.add(new Group(node.id(), node.title(), node.items(), node.commands()));
             }
             node.children().forEach(child -> collect(child, groups));
         }
     }
 
-    public record Group(String subsystemId, String title, List<NavigationItem> items) {
+    public record Group(String subsystemId, String title, List<NavigationItem> items,
+                        List<NavigationCommand> commands) {
+        public Group(String subsystemId, String title, List<NavigationItem> items) {
+            this(subsystemId, title, items, List.of());
+        }
+
         public Group {
-            NavigationDefaults.requireId(subsystemId);
+            NavigationIds.requireId(subsystemId);
             Objects.requireNonNull(title, "title");
             items = List.copyOf(items);
+            commands = List.copyOf(commands);
         }
     }
 }

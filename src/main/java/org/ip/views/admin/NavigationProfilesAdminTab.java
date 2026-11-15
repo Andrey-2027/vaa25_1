@@ -15,7 +15,7 @@ import com.vaadin.flow.data.provider.hierarchy.TreeDataProvider;
 import com.vaadin.flow.spring.annotation.SpringComponent;
 import org.ipro.navigation.NavigationAdministrationAccess;
 import org.ipro.navigation.NavigationAdministrationService;
-import org.ipro.navigation.NavigationCatalog;
+import org.ipro.navigation.NavigationCatalogProvider;
 import org.ipro.navigation.NavigationConflictException;
 import org.ipro.navigation.NavigationProfile;
 import org.ipro.navigation.NavigationResolver;
@@ -24,7 +24,6 @@ import org.ipro.navigation.NavigationUserDirectory;
 import org.ipro.navigation.NavigationVisibility;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.AccessDeniedException;
 
@@ -35,7 +34,6 @@ import java.util.Objects;
 /** Application-owned editor. All persistent operations use the protected navigation API. */
 @SpringComponent
 @Scope("prototype")
-@ConditionalOnProperty(name = "platform.navigation.enabled", havingValue = "true")
 public class NavigationProfilesAdminTab extends VerticalLayout {
     private static final Logger log = LoggerFactory.getLogger(NavigationProfilesAdminTab.class);
     private final NavigationAdministrationService administration;
@@ -61,10 +59,11 @@ public class NavigationProfilesAdminTab extends VerticalLayout {
 
     public NavigationProfilesAdminTab(NavigationAdministrationService administration,
                                       NavigationAdministrationAccess access,
-                                      NavigationCatalog catalog, NavigationResolver resolver) {
+                                      NavigationCatalogProvider catalogs, NavigationResolver resolver,
+                                      org.ip.navigation.ApplicationNavigationCommands commands) {
         this.administration = administration;
         this.access = access;
-        this.draft = new NavigationProfileDraft(catalog, resolver);
+        this.draft = new NavigationProfileDraft(catalogs.get(), resolver, commands);
         setSizeFull();
         setMinHeight("0");
         getStyle().set("overflow", "auto");
@@ -94,7 +93,7 @@ public class NavigationProfilesAdminTab extends VerticalLayout {
         tree.addHierarchyColumn(NavigationProfileDraft.Row::title).setHeader("Подсистема / пункт").setFlexGrow(2);
         tree.addColumn(row -> row.defaultVisible() ? "Показывать" : "Скрывать").setHeader("Настройка разработчика");
         tree.addComponentColumn(this::visibilityEditor).setKey("visibility").setHeader("Профиль").setWidth("13rem").setFlexGrow(0);
-        tree.addColumn(draft::outcome).setHeader("Итог до применения прав").setFlexGrow(2);
+        tree.addColumn(draft::outcome).setHeader("Итог").setFlexGrow(2);
         tree.setHeight("28rem");
         tree.setWidthFull();
         stale.setPadding(false);
@@ -104,6 +103,7 @@ public class NavigationProfilesAdminTab extends VerticalLayout {
             new Span("Предпросмотр не учитывает права конкретного пользователя. "
                 + "Права чтения проверяются при построении его меню и открытии данных."));
         preview.addHierarchyColumn(PreviewEntry::title).setHeader("Видимые разделы и пункты");
+        add(new Span("Права на команды проверяются для вашей учётной записи."));
         preview.setHeight("18rem");
         preview.setWidthFull();
         add(preview, new H3("Назначение пользователю"));
@@ -246,6 +246,7 @@ public class NavigationProfilesAdminTab extends VerticalLayout {
     private PreviewEntry previewEntry(NavigationTree.Node node) {
         var children = new ArrayList<PreviewEntry>();
         node.items().forEach(item -> children.add(new PreviewEntry(item.key(), item.title(), List.of())));
+        node.commands().forEach(command -> children.add(new PreviewEntry(command.key(), command.title(), List.of())));
         node.children().forEach(child -> children.add(previewEntry(child)));
         return new PreviewEntry("subsystem:" + node.id(), node.title(), List.copyOf(children));
     }

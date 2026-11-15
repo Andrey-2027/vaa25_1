@@ -32,6 +32,7 @@ annotation public abstract interface org.ipro.metadata.annotation.EntityMetadata
   target [TYPE]
   method public abstract int order() default 999
   method public abstract java.lang.Class<?> subsystem() default interface org.ipro.metadata.annotation.Subsystem$NoSubsystem
+  method public abstract java.lang.Class<?>[] alsoIn() default []
   method public abstract java.lang.String icon() default FILE
   method public abstract java.lang.String itemFormTitle() default 
   method public abstract java.lang.String listFormTitle() default 
@@ -136,6 +137,20 @@ annotation public abstract interface org.ipro.metadata.annotation.Subsystem
   method public abstract java.lang.Class<?> parent() default interface org.ipro.metadata.annotation.Subsystem$NoSubsystem
   method public abstract java.lang.String icon() default 
   method public abstract java.lang.String title()
+  method public abstract org.ipro.metadata.annotation.SubsystemCommand[] commands() default []
+
+annotation public abstract interface org.ipro.metadata.annotation.SubsystemCommand
+  implements java.lang.annotation.Annotation
+  annotation java.lang.annotation.Retention
+  annotation java.lang.annotation.Target
+  retention RUNTIME
+  target []
+  method public abstract int order() default 999
+  method public abstract java.lang.Class<?> entity()
+  method public abstract java.lang.String action() default 
+  method public abstract java.lang.String icon() default 
+  method public abstract java.lang.String title()
+  method public abstract java.lang.String variant() default 
 
 annotation public abstract interface org.ipro.metadata.annotation.TableSectionMetadata
   implements java.lang.annotation.Annotation

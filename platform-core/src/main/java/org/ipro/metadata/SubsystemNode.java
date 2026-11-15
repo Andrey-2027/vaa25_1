@@ -13,6 +13,7 @@ public final class SubsystemNode {
     private SubsystemNode parent;
     private final List<SubsystemNode> children = new ArrayList<>();
     private final List<EntityMetadataInfo> entities = new ArrayList<>();
+    private final List<EntityMetadataInfo> additionalEntities = new ArrayList<>();
 
     public SubsystemNode(Class<?> markerClass, Subsystem annotation) {
         this.markerClass = markerClass;
@@ -29,6 +30,10 @@ public final class SubsystemNode {
 
     public String getIcon() {
         return annotation.icon();
+    }
+
+    public List<org.ipro.metadata.annotation.SubsystemCommand> getCommands() {
+        return List.of(annotation.commands());
     }
 
     public int getOrder() {
@@ -69,9 +74,19 @@ public final class SubsystemNode {
         entities.add(entity);
     }
 
-    void sortOwnEntities() {
-        entities.sort(java.util.Comparator.comparingInt(EntityMetadataInfo::getOrder)
-            .thenComparing(entity -> entity.getEntityClass().getName()));
+    public List<EntityMetadataInfo> getAdditionalEntities() {
+        return Collections.unmodifiableList(additionalEntities);
+    }
+
+    void addAdditionalEntity(EntityMetadataInfo entity) {
+        additionalEntities.add(entity);
+    }
+
+    void sortEntities() {
+        var order = java.util.Comparator.comparingInt(EntityMetadataInfo::getOrder)
+            .thenComparing(entity -> entity.getEntityClass().getName());
+        entities.sort(order);
+        additionalEntities.sort(order);
     }
 
     public List<EntityGroup> getEntityGroupsRecursive() {
