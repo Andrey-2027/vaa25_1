@@ -36,13 +36,26 @@ public final class EntityPresentationService {
         return (descriptors == null ? EntityDescriptorCatalog.classifySemantics(type, metadata, List.of()).kind()
             : descriptors.classificationOf(type).kind()) == EntityKind.DOCUMENT ? "Документ недоступен" : "Объект недоступен";
     }
-    @SuppressWarnings({"rawtypes", "unchecked"})
+    /** Подписи всех записей; недоступная получает единое «… недоступен». */
     public Map<Reference, String> resolve(Collection<Reference> references) {
+        var result = new LinkedHashMap<Reference, String>();
+        for (var ref : references) {
+            result.put(ref, unavailable(ref.type()));
+        }
+        result.putAll(resolveReadable(references));
+        return Collections.unmodifiableMap(result);
+    }
+
+    /**
+     * Подписи только доступных записей: недоступной (нет права, нет записи, скрыта RLS) в результате нет.
+     * Тот же пакетный путь, что у {@link #resolve}: один запрос на тип сущности и пачку до {@value #CHUNK_SIZE}.
+     */
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public Map<Reference, String> resolveReadable(Collection<Reference> references) {
         var grouped = new LinkedHashMap<Class<?>, LinkedHashSet<Long>>();
         var result = new LinkedHashMap<Reference, String>();
         for (var ref : references) {
             grouped.computeIfAbsent(ref.type(), ignored -> new LinkedHashSet<>()).add(ref.id());
-            result.put(ref, unavailable(ref.type()));
         }
         for (var group : grouped.entrySet()) {
             Class type = group.getKey(); var ids = new ArrayList<>(group.getValue());

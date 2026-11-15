@@ -6,8 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
-import java.util.TreeSet;
 
 /**
  * Immutable projection of menu sections and entries. Profile keys identify placements
@@ -17,19 +15,14 @@ public final class NavigationCatalog {
     private final List<NavigationNode> roots;
     private final Map<String, NavigationNode> nodes;
     private final Map<String, NavigationItem> items;
-    private final Set<String> keys;
 
-    private NavigationCatalog(List<NavigationNode> roots, Set<String> storedKeys) {
+    private NavigationCatalog(List<NavigationNode> roots) {
         this.roots = List.copyOf(roots);
         Map<String, NavigationNode> nodeIndex = new HashMap<>();
         Map<String, NavigationItem> itemIndex = new HashMap<>();
         roots.forEach(node -> index(node, nodeIndex, itemIndex));
         this.nodes = Map.copyOf(nodeIndex);
         this.items = Map.copyOf(itemIndex);
-        Set<String> allKeys = new TreeSet<>(storedKeys);
-        nodes.values().forEach(node -> allKeys.add(node.key()));
-        items.values().forEach(item -> allKeys.add(item.key()));
-        this.keys = Set.copyOf(allKeys);
     }
 
     public static NavigationCatalog build(NavigationStructure structure, NavigationFunctions functions) {
@@ -43,10 +36,7 @@ public final class NavigationCatalog {
             .sorted(java.util.Comparator.comparingInt(NavigationStructure.Section::position)
                 .thenComparing(NavigationStructure.Section::id))
             .map(section -> project(section, children, entries, functions)).toList();
-        var keys = new TreeSet<String>();
-        structure.sections().forEach(section -> keys.add("section:" + section.id()));
-        structure.entries().forEach(entry -> keys.add("entry:" + entry.id()));
-        return new NavigationCatalog(roots, keys);
+        return new NavigationCatalog(roots);
     }
 
     private static NavigationNode project(NavigationStructure.Section section,
@@ -57,14 +47,14 @@ public final class NavigationCatalog {
                 .thenComparing(NavigationStructure.Entry::id))
             .flatMap(entry -> functions.find(entry.functionKey()).stream().map(function ->
                 new NavigationItem(entry.id(), function,
-                    entry.title() == null ? function.title() : entry.title(), function.icon(), entry.position(), !function.command())))
+                    entry.title() == null ? function.title() : entry.title(), function.icon(), entry.position(), entry.importance())))
             .toList();
         var nested = children.getOrDefault(section.id(), List.of()).stream()
             .sorted(java.util.Comparator.comparingInt(NavigationStructure.Section::position)
                 .thenComparing(NavigationStructure.Section::id))
             .map(child -> project(child, children, entries, functions)).toList();
         return new NavigationNode(section.id(), section.areaKey(), section.title(), section.icon(),
-            section.position(), true, items, nested);
+            section.position(), items, nested);
     }
 
     private static void index(NavigationNode node, Map<String, NavigationNode> nodes,
@@ -75,7 +65,6 @@ public final class NavigationCatalog {
     }
 
     public List<NavigationNode> roots() { return roots; }
-    public Set<String> keys() { return keys; }
     public Optional<NavigationNode> findSubsystem(String id) { return Optional.ofNullable(nodes.get(id)); }
     public Optional<NavigationItem> findItem(String id) { return Optional.ofNullable(items.get(id)); }
 }

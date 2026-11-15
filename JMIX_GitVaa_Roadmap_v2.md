@@ -1505,23 +1505,25 @@ paging и sort; REST не выводится автоматически из HQL
 
 Одна проверка (`ReportQueryGuard` и C5 `ReportReadAuthorizer`, только скалярные колонки) и
 одна RLS-обвязка исполнения (как у `ReportQueryExecutor`, допуск на каждое чтение по
-`AccessGrantVersion`) на три уровня доверия: запрос разработчика в коде (`DECLARED`),
-опубликованный список администратора и табличный отчёт пользователя **UTR**
-(UserTableReport). UTR — собственный JSON-документ по образцу UniDR (видимость «только я /
-все», модули `platform-utr` и `platform-utr-vaadin`, флаг `app.utr.enabled`); от UniDR не
-зависит, таблицы в БД нет. Опирается на закрытый E1 и опциональные query-модули; старт
-принят владельцем 2026-11-13 (этап D считается фактически завершённым). Порядок: основа →
-F-QRY-3 → F-QRY-1 → F-QRY-2; пункт меню ждёт СМ-1б и СМ-3 и меняет контракт навигации:
+`AccessGrantVersion`) на три задачи. Список по запросу — определение по ключу из кода
+(`DECLARED`) или от администратора в таблице БД (`REGISTERED`), форма `ProjectionListForm`
+с «Видами» и типовыми командами. Табличный отчёт пользователя **UTR** (UserTableReport) —
+только просмотр: собственный JSON-документ по образцу UniDR (видимость «только я / все»,
+модули `platform-utr` и `platform-utr-vaadin`, флаг `app.utr.enabled`), без видов и команд
+над строками. Списки от UTR не зависят. Общие у них исполнение и ядро просмотра. Опирается на
+закрытый E1 и опциональные query-модули; старт принят владельцем 2026-11-13 (этап D
+считается фактически завершённым). Порядок (редакция 4 детального плана, 2026-11-14): основа
+→ F-QRY-1 → F-QRY-2 → F-QRY-3; пункт меню ждёт СМ-1б и СМ-3 и меняет контракт навигации:
 
-1. **F-QRY-3 — табличный отчёт UTR:** сетка как редактор колонок, отборов, группировки и
-   итогов, серверные отбор и группировка с сохранением смысла запроса, обязательные лимиты,
-   личные отчёты, выгрузка XLSX и CSV.
-2. **F-QRY-1 — опубликованный список администратора:** раздел публикации в документе UTR
-   с серверной проверкой роли, открытие по ссылке, функция меню, перепроверка при дрейфе
-   схемы.
-3. **F-QRY-2 — типовые команды:** проверенная колонка объекта команды (не ключ строки),
+1. **F-QRY-1 — список по запросу администратора:** определение в таблице БД с серверной
+   проверкой права, экран администратора «Списки по запросу», открытие по ссылке, функция
+   меню, перепроверка при дрейфе схемы.
+2. **F-QRY-2 — типовые команды:** проверенная колонка объекта команды (не ключ строки),
    Создать/Открыть/Изменить/Удалить через формы элемента и gate E1, перепроверка доступа
    при выполнении, «Открыть <тип>» по типизированным ссылкам.
+3. **F-QRY-3 — табличный отчёт UTR:** сетка как редактор макета (колонки, отбор,
+   группировка, итоги), серверные отбор и группировка с сохранением смысла запроса,
+   «Открыть <тип>» по ссылке, обязательные лимиты, личные отчёты, выгрузка XLSX и CSV.
 
 Встраивание в формы: `l.queryList(ключ)` в карточке и подчинённая панель формы списка по
 текущей строке; в v1 — только запросы, объявленные в коде; строка-объект остаётся
@@ -1696,9 +1698,9 @@ E-ADX  Separate central registrations debt slice (ADX-10/ADX-11)
 
 F-INT-1  External read-model pilot on ProjectionFilterGrid
 F-INT-2  Storage-neutral projection API when a second backend appears
-F-QRY-3  UserTableReport (UTR): own JSON document, RLS executor, grid editor, visibility, XLSX/CSV
-F-QRY-1  Admin list published from a UTR document (role check, link, menu function)
-F-QRY-2  Standard entity commands from main entity + key column (E1 gate)
+F-QRY-1  Admin query list: keyed definition in DB, admin editor, link, menu function
+F-QRY-2  Standard entity commands from main entity + command object column (E1 gate)
+F-QRY-3  UserTableReport (UTR): view-only report, own JSON document, grid layout editor, XLSX/CSV
 F-ERP-1  Owner capability and dependent reference constraints
 F-ERP-2  Immutable interned compositions
 F-ERP-3  Typed business facts without generic CRUD

@@ -1,6 +1,5 @@
 # KI-1/KI-2/KI-3/KI-4 reviewed roles; persistence/configuration internals are not application contracts.
 APP_API org.ipro.navigation.NavigationEntityKeys
-APP_API org.ipro.navigation.NavigationCatalogProvider
 APP_API org.ipro.navigation.NavigationCatalog
 APP_API org.ipro.navigation.NavigationItem
 APP_API org.ipro.navigation.NavigationNode
@@ -8,28 +7,15 @@ APP_API org.ipro.navigation.NavigationResolver
 APP_API org.ipro.navigation.NavigationTree
 APP_API org.ipro.navigation.NavigationTree$Node
 APP_API org.ipro.navigation.NavigationTree$Group
-APP_API org.ipro.navigation.NavigationVisibility
 APP_SPI org.ipro.navigation.NavigationAdministrationAccess
 APP_SPI org.ipro.navigation.NavigationUserDirectory
 APP_API org.ipro.navigation.NavigationUserDirectory$UserOption
-APP_API org.ipro.navigation.NavigationAdministrationService
-APP_API org.ipro.navigation.NavigationProfileReader
-APP_API org.ipro.navigation.NavigationProfile
 APP_API org.ipro.navigation.NavigationConflictException
 INTERNAL org.ipro.navigation.NavigationIds
 INTERNAL org.ipro.navigation.config.NavigationAutoConfiguration
-INTERNAL org.ipro.navigation.internal.DefaultNavigationAdministrationService
-INTERNAL org.ipro.navigation.internal.DefaultNavigationProfileReader
-INTERNAL org.ipro.navigation.store.NavigationProfileEntity
-INTERNAL org.ipro.navigation.store.NavigationOverrideEntity
 INTERNAL org.ipro.navigation.store.NavigationAssignmentEntity
-INTERNAL org.ipro.navigation.store.NavigationProfileRepository
-INTERNAL org.ipro.navigation.store.NavigationOverrideRepository
 INTERNAL org.ipro.navigation.store.NavigationAssignmentRepository
-INTERNAL org.ipro.navigation.store.NavigationSnapshots
 
-INTERNAL org.ipro.navigation.store.NavigationStructureEntity
-INTERNAL org.ipro.navigation.store.NavigationStructureRepository
 INTERNAL org.ipro.navigation.store.NavigationSectionEntity
 INTERNAL org.ipro.navigation.store.NavigationSectionRepository
 INTERNAL org.ipro.navigation.store.NavigationEntryEntity
@@ -44,9 +30,16 @@ INTERNAL org.ipro.navigation.NavigationFunctionsProvider$Index
 APP_API org.ipro.navigation.NavigationStructure
 APP_API org.ipro.navigation.NavigationStructure$Section
 APP_API org.ipro.navigation.NavigationStructure$Entry
-APP_API org.ipro.navigation.NavigationStructureReader
 INTERNAL org.ipro.navigation.internal.NavigationStructureBootstrap
-APP_API org.ipro.navigation.NavigationStructureService
-APP_API org.ipro.navigation.NavigationStructureService$Unplaced
-INTERNAL org.ipro.navigation.internal.DefaultNavigationStructureService
-APP_API org.ipro.navigation.NavigationStructureService$RebuildPreview
+
+APP_API org.ipro.navigation.NavigationMenu
+APP_API org.ipro.navigation.NavigationMenuReader
+APP_API org.ipro.navigation.NavigationMenuService
+APP_API org.ipro.navigation.NavigationMenuService$DiscoveredFunction
+APP_API org.ipro.navigation.NavigationImportance
+INTERNAL org.ipro.navigation.internal.NavigationStructureReader
+INTERNAL org.ipro.navigation.internal.DefaultNavigationMenuReader
+INTERNAL org.ipro.navigation.internal.DefaultNavigationMenuService
+INTERNAL org.ipro.navigation.store.NavigationMenuEntity
+INTERNAL org.ipro.navigation.store.NavigationMenuRepository
+INTERNAL org.ipro.navigation.store.NavigationEntryRepository$Placement

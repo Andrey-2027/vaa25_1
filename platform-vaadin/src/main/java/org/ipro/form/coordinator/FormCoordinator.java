@@ -111,11 +111,38 @@ public class FormCoordinator implements FormNavigator {
     private final org.ipro.crud.EntityCopyService entityCopyService;
     private final org.ipro.form.TableSectionFactory tableSectionFactory;
     private EntityStructureNavigation structureNavigation;
+    private List<FormOpenObserver> openObservers = List.of();
 
     /** Optional SPI: отсутствие адаптера приложения не добавляет пунктов разработки. */
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     public void setEntityStructureNavigation(EntityStructureNavigation structureNavigation) {
         this.structureNavigation = structureNavigation;
+    }
+
+    /** Optional SPI: наблюдатели успешных открытий (например, «Недавнее»). */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setFormOpenObservers(List<FormOpenObserver> observers) {
+        this.openObservers = observers == null ? List.of() : List.copyOf(observers);
+    }
+
+    /**
+     * Сообщает наблюдателям об успешном открытии. Ошибка наблюдателя журналируется и не мешает
+     * открытию: форма к этому моменту уже открыта.
+     */
+    private void notifyOpened(FormOpenEvent.Kind kind, Class<?> type, String variant, Object id,
+                              Map<String, Object> parameters) {
+        if (openObservers.isEmpty()) {
+            return;
+        }
+        FormOpenEvent event = new FormOpenEvent(kind, type, variant, id,
+            parameters == null || parameters.isEmpty());
+        for (FormOpenObserver observer : openObservers) {
+            try {
+                observer.opened(event);
+            } catch (RuntimeException failure) {
+                log.warn("Наблюдатель открытия формы {} завершился ошибкой", type.getSimpleName(), failure);
+            }
+        }
     }
 
     // Рабочая область (1С-стиль) — UI-scoped бин приложения. Берётся лениво, в момент
@@ -305,6 +332,7 @@ public class FormCoordinator implements FormNavigator {
         try (OperationScope scope = TelemetryBridge.beginOperation("openListForm:" + entityClass.getSimpleName())) {
             try {
                 openListInWorkspace(entityClass, variant, parameters, entryId, title, workspace);
+                notifyOpened(FormOpenEvent.Kind.LIST, entityClass, variant, null, parameters);
             } catch (RuntimeException failure) {
                 if (AccessDenialPresentation.find(failure) == null) {
                     throw failure;
@@ -811,6 +839,9 @@ public class FormCoordinator implements FormNavigator {
         FormStructureAffordance.attach(form.getFooter(), entityClass, structureNavigation, true);
 
         dialog.open();
+        if (id != null) {
+            notifyOpened(FormOpenEvent.Kind.ITEM, entityClass, variant, id, parameters);
+        }
     }
 
     /**
@@ -874,6 +905,9 @@ public class FormCoordinator implements FormNavigator {
             workspace.open(ItemFormWrapperView.class, entryId, title, view ->
                 view.init(entityClass, variant, id, loaded, tabOnSaved, () -> workspace.close(entryId),
                     parameters));
+            if (id != null) {
+                notifyOpened(FormOpenEvent.Kind.ITEM, entityClass, variant, id, parameters);
+            }
         } catch (ItemFormWrapperView.RecordUnavailableException race) {
             showError(race.getMessage());
         }
@@ -977,6 +1011,7 @@ public class FormCoordinator implements FormNavigator {
             }
             throw failure;
         }
+        notifyOpened(FormOpenEvent.Kind.ITEM, entityClass, route.variant(), id, null);
         return OpenResult.opened(route);
     }
 
@@ -1060,6 +1095,7 @@ public class FormCoordinator implements FormNavigator {
             return OpenResult.unavailable(route,
                 "Список открыть не удалось: чтение завершилось ошибкой");
         }
+        notifyOpened(FormOpenEvent.Kind.LIST, entityClass, route.variant(), null, parameters);
         return OpenResult.opened(route);
     }
 

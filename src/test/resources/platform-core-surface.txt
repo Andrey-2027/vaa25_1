@@ -91,7 +91,7 @@
 #
 # ET4: Standard* bases are explicit external APP_API exports. TableSectionService and
 # EntityDescriptorCatalog are host application API; their previous MODULE_API role was stale.
-# ---- APP_API (46)
+# ---- APP_API (47)
 APP_API org.ipro.data.CatalogOwnerContext
 APP_API org.ipro.data.CatalogOwnerViolationException
 APP_API org.ipro.crud.InternedContract
@@ -109,6 +109,10 @@ APP_API org.ipro.crud.AggregateCommandPayload
 # `EntityReadAccess` и `EntityPresentationService` в этом разделе были ровно до D-R S4 — их
 # прикладной потребитель (показ регистратора) уехал в platform-register-vaadin, см. MODULE_API ниже.
 APP_API org.ipro.fetch.instance.InstanceNameResolver
+# КИ-13 (2026-11-15): `EntityPresentationService` вернулся в APP_API осознанно — «Главное» читает подписи
+# закреплённых записей пакетно и только доступных (`resolveReadable`): один запрос на тип, без показа
+# недоступных. Других потребителей это не меняет.
+APP_API org.ipro.data.presentation.EntityPresentationService
 # Часть записей ниже — не решение о конкретном типе, а выполнение правила 2 (API closure): эти
 # типы стоят в публичных сигнатурах APP_API-типов, поэтому обязаны иметь тот же уровень. Иначе
 # internal был бы виден приложению через API, и обещание «internal можно менять свободно» ломается.
@@ -169,7 +173,7 @@ APP_SPI org.ipro.search.GlobalSearchProvider
 # EntityReadAccess/RestGraphException — контракт с REST; Api*Read — запросы к
 # MODULE_API CanonicalReadExecutor; CanonicalEntityReadAccess создаёт autoconfigure.
 # Рост 95 -> 100, MODULE_API 43 -> 48; прикладной APP_API не расширяется.
-# ---- MODULE_API (60)
+# ---- MODULE_API (59)
 MODULE_API org.ipro.data.PresentationResolver
 MODULE_API org.ipro.metadata.CatalogOwnerDescriptor
 MODULE_API org.ipro.metadata.CatalogOwnerResolution
@@ -184,7 +188,6 @@ MODULE_API org.ipro.data.EntityClassificationContributor
 # нового модуля, то есть граница объявлена, а не потеряна. `InstanceNameResolver` оставлен в
 # APP_API: он входит в замыкание по правилу 2.
 MODULE_API org.ipro.data.EntityReadAccess
-MODULE_API org.ipro.data.presentation.EntityPresentationService
 MODULE_API org.ipro.crud.AggregateSaveLifecycleScope
 MODULE_API org.ipro.data.CanonicalSaveLifecycleScope
 # C5.6: AggregateOperationAuthorizer — узкий preflight операции для aggregate save; его называет

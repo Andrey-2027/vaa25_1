@@ -355,8 +355,8 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "0bab74fb32add84152e43c30d04ee15d511da2f5c1e7663c61b6f5226f2e8ba0",
-        "fileCount": 184,
+        "sha256": "74817627eb2c2609455bc6c78365f1ceb922a48b4e7239c38a173555ad62f912",
+        "fileCount": 185,
         "inputs": [
           "pom.xml",
           "filtergrid-core/pom.xml",
@@ -552,8 +552,8 @@
       },
       "fingerprint": {
         "algorithm": "gitvaa-source-tree-sha256-v2",
-        "sha256": "0b18428657daf6117956f99a905367ef91a99ff3ae36c88a1eb9ffa553a67a0b",
-        "fileCount": 52,
+        "sha256": "e9070b8c153745658f6feac6169783161f3ddf62b96bb554b5c12cf752d9bd5c",
+        "fileCount": 44,
         "inputs": ["pom.xml", "src"]
       },
       "artifacts": ["org.ipro:platform-navigation:1.0-SNAPSHOT"],

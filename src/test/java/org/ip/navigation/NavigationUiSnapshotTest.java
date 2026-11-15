@@ -13,12 +13,10 @@ import org.ip.model.Workshop;
 import org.ip.views.workspace.SubsystemHomeView;
 import org.ipro.form.coordinator.FormNavigator;
 import org.ipro.navigation.NavigationCatalog;
-import org.ipro.navigation.NavigationCatalogProvider;
-import org.ipro.navigation.NavigationProfile;
-import org.ipro.navigation.NavigationProfileReader;
+import org.ipro.navigation.NavigationFunctionsProvider;
+import org.ipro.navigation.NavigationMenuReader;
 import org.ipro.navigation.NavigationResolver;
 import org.ipro.navigation.NavigationTree;
-import org.ipro.navigation.NavigationVisibility;
 import org.ipro.rls.RlsReadGate;
 import org.junit.jupiter.api.Test;
 import org.navigationfixture.Fixtures;
@@ -41,22 +39,17 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 class NavigationUiSnapshotTest {
-    private static NavigationCatalog catalog() {
-        return NavigationCatalogFixtures.catalog("directories", "Directories", null, List.of(
-            NavigationCatalogFixtures.list("unit-of-measurement", UnitOfMeasurement.class, "Units", "directories"),
-            NavigationCatalogFixtures.list("workshop", Workshop.class, "Workshops", "directories"),
-            NavigationCatalogFixtures.list("root-item", Fixtures.RootItem.class, "Root list", "directories")));
-    }
-
     private static NavigationCatalog nestedCatalog() {
         return NavigationCatalogFixtures.nested();
     }
 
-    @Test void realUiScopeKeepsUserProfilesIndependentAndFreezesEachMenuUntilRefresh() {
+    @Test void realUiScopeLoadsEachUsersMenuOnce() {
         var user = new AtomicReference<>("alice");
         var reads = new AtomicInteger();
-        var profileReads = new AtomicInteger();
-        var overrides = new AtomicReference<>(Map.of("entry:unit-of-measurement", NavigationVisibility.HIDE));
+        var menuReads = new AtomicInteger();
+        var rootList = NavigationCatalogFixtures.list("root-item", Fixtures.RootItem.class, "Root list", "directories");
+        var units = NavigationCatalogFixtures.list("unit-of-measurement", UnitOfMeasurement.class, "Units", "directories");
+        var workshops = NavigationCatalogFixtures.list("workshop", Workshop.class, "Workshops", "directories");
         var session = mock(VaadinSession.class);
         when(session.getState()).thenReturn(VaadinSessionState.OPEN);
         when(session.hasLock()).thenReturn(true);
@@ -74,16 +67,14 @@ class NavigationUiSnapshotTest {
         VaadinSession.setCurrent(session);
         try (var context = new AnnotationConfigApplicationContext()) {
             context.addBeanFactoryPostProcessor(new VaadinUIScope());
-            var catalogs = spy(NavigationCatalogProvider.of(catalog()));
-            context.registerBean(NavigationCatalogProvider.class, () -> catalogs);
             context.registerBean(NavigationResolver.class, NavigationResolver::new);
-            var profiles = mock(NavigationProfileReader.class);
-            when(profiles.currentProfile(any(NavigationCatalog.class))).thenAnswer(call -> {
-                assertThat(call.getArgument(0, NavigationCatalog.class).keys()).contains("entry:workshop");
-                profileReads.incrementAndGet();
-                return Optional.of(new NavigationProfile(1, 0, user.get(), overrides.get(), java.util.Set.of()));
+            context.registerBean(NavigationFunctionsProvider.class, () -> new NavigationFunctionsProvider(
+                NavigationCatalogFixtures.functions(List.of(rootList, units, workshops))));
+            context.registerBean(NavigationMenuReader.class, () -> () -> {
+                menuReads.incrementAndGet();
+                var lists = user.get().equals("alice") ? List.of(rootList, workshops) : List.of(rootList, units, workshops);
+                return NavigationCatalogFixtures.structure("directories", "Directories", null, lists);
             });
-            context.registerBean(NavigationProfileReader.class, () -> profiles);
             var gate = mock(RlsReadGate.class);
             when(gate.canRead(any(), anyString())).thenAnswer(call -> {
                 reads.incrementAndGet();
@@ -107,7 +98,6 @@ class NavigationUiSnapshotTest {
             assertThat(directoriesA.items()).noneMatch(item -> item.entityClass() == UnitOfMeasurement.class
                 || item.entityClass() == Workshop.class);
             user.set("bob");
-            overrides.set(Map.of("entry:workshop", NavigationVisibility.SHOW));
             UI.setCurrent(uiB);
             var second = context.getBean(NavigationUiSnapshot.class);
             assertThat(second).isNotSameAs(first);
@@ -120,9 +110,7 @@ class NavigationUiSnapshotTest {
             int capturedReads = reads.get();
             UI.setCurrent(uiA);
             first.appendMenu(new SideNav(), node -> {});
-            assertThat(profileReads.get()).isEqualTo(2);
-            verify(catalogs, times(2)).get();
-            verify(profiles, never()).currentProfile();
+            assertThat(menuReads).hasValue(2);
             assertThat(reads.get()).isEqualTo(capturedReads);
             var tiles = new SubsystemHomeView(mock(FormNavigator.class), null);
             tiles.init(directoriesA);
@@ -137,7 +125,7 @@ class NavigationUiSnapshotTest {
     }
 
     @Test void menuHoldsOnlyTopLevelSectionsAndTheirPagesStillOpenThroughFormNavigator() {
-        var tree = new NavigationResolver().resolve(nestedCatalog(), Map.of(), type -> true);
+        var tree = new NavigationResolver().resolve(nestedCatalog(), item -> true);
         var snapshot = new NavigationUiSnapshot(() -> tree);
         var menu = new SideNav();
         var opened = new ArrayList<NavigationTree.Node>();
@@ -177,9 +165,8 @@ class NavigationUiSnapshotTest {
         assertThat(attempts.get()).isEqualTo(1);
     }
 
-    @Test void hiddenNestedSubsystemCannotLeakIntoParentTilesEvenWithExplicitShowBelowIt() {
-        var tree = new NavigationResolver().resolve(nestedCatalog(), Map.of(
-            "section:child", NavigationVisibility.HIDE, "entry:child-item", NavigationVisibility.SHOW), type -> true);
+    @Test void unavailableItemsDoNotAppearInParentTiles() {
+        var tree = new NavigationResolver().resolve(nestedCatalog(), item -> !item.id().equals("child-item"));
         assertThat(tree.findSubsystem("child")).isEmpty();
         assertThat(tree.roots().stream().flatMap(root -> root.groupsRecursive().stream()))
             .noneMatch(group -> group.subsystemId().equals("child"));

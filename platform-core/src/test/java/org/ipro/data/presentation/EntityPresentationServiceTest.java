@@ -24,6 +24,23 @@ class EntityPresentationServiceTest {
         assertThat(service.resolve(List.of(one,one,missing))).containsEntry(one,"Первый").containsEntry(missing,"Объект недоступен");
         verify(reads,times(1)).list(eq(Item.class),any(),any(),any()); verify(names,times(1)).resolve(item);
     }
+    @Test void resolveReadableOmitsRecordsThatAreNotAvailable() {
+        var reads = mock(EntityReadAccess.class); var policies = mock(EntityDataAccessResolver.class); var names = mock(InstanceNameResolver.class);
+        var service = new EntityPresentationService(reads, policies, names, new MetadataResolver());
+        var item = new Item(); item.setId(1L);
+        when(names.instanceNamePaths(Item.class)).thenReturn(List.of("id")); when(names.resolve(item)).thenReturn("Первый");
+        when(reads.list(eq(Item.class), any(), any(), any())).thenReturn(new PageImpl<>(List.of(item)));
+        var one = new EntityPresentationService.Reference(Item.class, 1L); var missing = new EntityPresentationService.Reference(Item.class, 2L);
+        assertThat(service.resolveReadable(List.of(one, missing))).containsOnlyKeys(one).containsEntry(one, "Первый");
+        verify(reads, times(1)).list(eq(Item.class), any(), any(), any());
+    }
+    @Test void resolveReadableOmitsEverythingWhenReadIsDenied() {
+        var reads = mock(EntityReadAccess.class); var policies = mock(EntityDataAccessResolver.class); var names = mock(InstanceNameResolver.class);
+        var service = new EntityPresentationService(reads, policies, names, new MetadataResolver());
+        when(names.instanceNamePaths(Document.class)).thenReturn(List.of());
+        when(reads.list(eq(Document.class), any(), any(), any())).thenThrow(new AccessDeniedException("denied"));
+        assertThat(service.resolveReadable(List.of(new EntityPresentationService.Reference(Document.class, 1L)))).isEmpty();
+    }
     @Test void deniedDocumentAndLargeGroupsUseBoundedQueries() {
         var reads = mock(EntityReadAccess.class); var policies = mock(EntityDataAccessResolver.class); var names = mock(InstanceNameResolver.class);
         var service = new EntityPresentationService(reads, policies, names, new MetadataResolver());

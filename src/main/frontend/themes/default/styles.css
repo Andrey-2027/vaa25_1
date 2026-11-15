@@ -228,3 +228,669 @@ vaadin-button.subsystem-home-link {
   padding-top: var(--lumo-space-s);
   border-top: 1px solid var(--lumo-contrast-10pct);
 }
+
+/* СМ-3: редактор меню — две половины, компактные строки. */
+.menu-editor {
+  box-sizing: border-box;
+  min-height: 0;
+  border: 1px solid var(--lumo-contrast-20pct);
+  border-radius: var(--lumo-border-radius-l);
+  background: var(--lumo-base-color);
+  overflow: hidden;
+  font-size: var(--lumo-font-size-s);
+}
+
+.menu-editor-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--lumo-space-s);
+  padding: var(--lumo-space-s) var(--lumo-space-m);
+  border-bottom: 1px solid var(--lumo-contrast-10pct);
+}
+
+.menu-editor-bar > .me-spacer {
+  flex: 1 1 auto;
+}
+
+.menu-editor-chooser {
+  max-width: 22em;
+  font-weight: 500;
+}
+
+.menu-editor-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--lumo-space-s);
+  padding: var(--lumo-space-xs) var(--lumo-space-m);
+  background: var(--lumo-warning-color-10pct);
+  color: var(--lumo-warning-text-color);
+  border-bottom: 1px solid var(--lumo-contrast-10pct);
+}
+
+.menu-editor-banner vaadin-icon {
+  width: var(--lumo-icon-size-s);
+  height: var(--lumo-icon-size-s);
+  flex-shrink: 0;
+}
+
+.menu-editor-strip {
+  display: flex;
+  align-items: center;
+  gap: var(--lumo-space-xs);
+  padding: var(--lumo-space-xs) var(--lumo-space-m);
+  background: var(--lumo-contrast-5pct);
+  border-bottom: 1px solid var(--lumo-contrast-10pct);
+  font-size: var(--lumo-font-size-xs);
+}
+
+.menu-editor-strip vaadin-icon {
+  width: var(--lumo-icon-size-s);
+  height: var(--lumo-icon-size-s);
+  color: var(--lumo-secondary-text-color);
+}
+
+.menu-editor-strip .me-push {
+  margin-inline-start: auto;
+}
+
+.menu-editor-body {
+  flex: 1 1 auto;
+  min-height: 26rem;
+  height: 100%;
+}
+
+.menu-editor-body > vaadin-split-layout {
+  height: 100%;
+}
+
+.menu-editor-pane {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  height: 100%;
+  min-width: 0;
+}
+
+.menu-editor-pane-head {
+  display: flex;
+  align-items: center;
+  gap: var(--lumo-space-s);
+  padding: var(--lumo-space-xs) var(--lumo-space-s);
+  background: var(--lumo-contrast-5pct);
+  border-bottom: 1px solid var(--lumo-contrast-10pct);
+  min-height: var(--lumo-size-m);
+}
+
+.menu-editor-pane-head .me-title {
+  flex: 1 1 auto;
+  font-weight: 500;
+}
+
+.menu-editor-pane-head .me-muted {
+  font-size: var(--lumo-font-size-xs);
+}
+
+.menu-editor-search {
+  padding: var(--lumo-space-xs) var(--lumo-space-s);
+}
+
+.menu-editor-pane-foot {
+  padding: var(--lumo-space-xs) var(--lumo-space-s);
+  border-top: 1px solid var(--lumo-contrast-10pct);
+}
+
+.menu-editor-tree {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* One row of a grid or of a menu: icons, a title that shrinks, marks, an action at the end. */
+.me-row {
+  display: flex;
+  align-items: center;
+  gap: var(--lumo-space-xs);
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.me-row > vaadin-icon {
+  width: var(--lumo-icon-size-s);
+  height: var(--lumo-icon-size-s);
+  flex-shrink: 0;
+}
+
+.me-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.me-strong {
+  font-weight: 500;
+}
+
+.me-muted {
+  color: var(--lumo-secondary-text-color);
+}
+
+.me-small {
+  font-size: var(--lumo-font-size-xs);
+}
+
+.me-hint {
+  color: var(--lumo-secondary-text-color);
+  font-size: var(--lumo-font-size-xs);
+}
+
+.me-info {
+  color: var(--lumo-secondary-text-color);
+  font-size: var(--lumo-font-size-xs);
+}
+
+.me-mark {
+  display: inline-flex;
+  width: var(--lumo-icon-size-s);
+  flex-shrink: 0;
+}
+
+.me-mark vaadin-icon {
+  width: var(--lumo-icon-size-s);
+  height: var(--lumo-icon-size-s);
+}
+
+.me-tag {
+  flex-shrink: 0;
+  padding: 0 var(--lumo-space-s);
+  border-radius: var(--lumo-border-radius-m);
+  font-size: var(--lumo-font-size-xxs);
+  line-height: 1.6;
+  white-space: nowrap;
+}
+
+.me-tag-warn {
+  background: var(--lumo-warning-color-10pct);
+  color: var(--lumo-warning-text-color);
+}
+
+.me-tag-accent {
+  display: inline-flex;
+  align-items: center;
+  background: var(--lumo-primary-color-10pct);
+  color: var(--lumo-primary-text-color);
+}
+
+.me-tag-accent vaadin-icon {
+  width: var(--lumo-icon-size-xs);
+  height: var(--lumo-icon-size-xs);
+}
+
+.me-section-icon {
+  color: var(--lumo-secondary-text-color);
+}
+
+.me-bolt {
+  color: var(--lumo-primary-text-color);
+}
+
+.me-row > vaadin-icon.me-grip {
+  width: var(--lumo-icon-size-xs);
+  height: var(--lumo-icon-size-xs);
+  cursor: grab;
+}
+
+.me-row vaadin-button.me-add,
+.me-row vaadin-button.me-dots {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 0;
+  height: var(--lumo-size-xs);
+  min-width: var(--lumo-size-xs);
+}
+
+.me-row vaadin-button.me-add {
+  color: var(--lumo-primary-text-color);
+}
+
+.me-row vaadin-button.me-add-placed {
+  opacity: 0.35;
+}
+
+.me-row vaadin-button.me-dots {
+  opacity: 0.45;
+}
+
+.me-row:hover vaadin-button.me-add-placed,
+.me-row:hover vaadin-button.me-dots,
+.me-row:focus-within vaadin-button.me-dots {
+  opacity: 1;
+}
+
+.me-row.me-editing {
+  padding-inline: 0;
+}
+
+/* Меню выбора и «Ещё»: строки в элементах контекстного меню. */
+vaadin-context-menu-item .me-row,
+vaadin-menu-bar-item .me-row {
+  gap: var(--lumo-space-s);
+}
+
+vaadin-context-menu-item .me-row .me-muted {
+  font-size: var(--lumo-font-size-xs);
+}
+
+/* «Кому назначено». */
+.menu-assign-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lumo-space-s);
+}
+
+.menu-assign-list {
+  max-height: 20rem;
+  overflow: auto;
+  border: 1px solid var(--lumo-contrast-10pct);
+  border-radius: var(--lumo-border-radius-m);
+}
+
+.menu-assign-list .me-row {
+  padding: var(--lumo-space-xs) var(--lumo-space-s);
+  border-top: 1px solid var(--lumo-contrast-10pct);
+}
+
+.menu-assign-list .me-row:first-child {
+  border-top: 0;
+}
+
+/* «Как увидит пользователь». */
+.menu-preview-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lumo-space-s);
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.menu-preview-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--lumo-space-m);
+}
+
+.menu-preview-warning {
+  align-self: flex-start;
+}
+
+.menu-preview-body {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  border: 1px solid var(--lumo-contrast-10pct);
+  border-radius: var(--lumo-border-radius-m);
+  overflow: hidden;
+}
+
+.menu-preview-nav {
+  flex: 0 0 12rem;
+  padding: var(--lumo-space-xs);
+  background: var(--lumo-contrast-5pct);
+  border-inline-end: 1px solid var(--lumo-contrast-10pct);
+  overflow: auto;
+}
+
+.menu-preview-nav-item {
+  display: flex;
+  align-items: center;
+  gap: var(--lumo-space-s);
+  padding: var(--lumo-space-xs) var(--lumo-space-s);
+  border-radius: var(--lumo-border-radius-m);
+  cursor: pointer;
+}
+
+.menu-preview-nav-item vaadin-icon {
+  width: var(--lumo-icon-size-s);
+  height: var(--lumo-icon-size-s);
+  color: var(--lumo-secondary-text-color);
+}
+
+.menu-preview-nav-item:hover {
+  background: var(--lumo-contrast-10pct);
+}
+
+.menu-preview-nav-current {
+  background: var(--lumo-primary-color-10pct);
+  color: var(--lumo-primary-text-color);
+  font-weight: 500;
+}
+
+.menu-preview-nav-home {
+  color: var(--lumo-secondary-text-color);
+  cursor: default;
+}
+
+.menu-preview-page {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: var(--lumo-space-s) var(--lumo-space-m);
+  overflow: auto;
+}
+
+.menu-preview-group-title {
+  display: block;
+  margin: var(--lumo-space-s) 0 var(--lumo-space-xs);
+  color: var(--lumo-primary-text-color);
+  font-weight: 500;
+}
+
+.menu-preview-link {
+  display: flex;
+  align-items: center;
+  gap: var(--lumo-space-xs);
+  padding: 2px 0;
+}
+
+.menu-preview-link vaadin-icon {
+  width: var(--lumo-icon-size-xs);
+  height: var(--lumo-icon-size-xs);
+  color: var(--lumo-primary-text-color);
+}
+
+.menu-preview-link-important {
+  font-weight: 600;
+}
+
+.menu-preview-link-secondary {
+  color: var(--lumo-secondary-text-color);
+}
+
+/* Страница раздела: важность пунктов. */
+vaadin-button.subsystem-home-link-important::part(label) {
+  font-weight: 600;
+}
+
+vaadin-button.subsystem-home-link-secondary {
+  color: var(--lumo-secondary-text-color);
+}
+
+/* КИ-13: «Главное» — группы колонками, панель «Недавнее» справа. */
+.home-view {
+  display: flex;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  font-size: var(--lumo-font-size-s);
+}
+
+.home-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: auto;
+  padding: var(--lumo-space-m);
+  container-type: inline-size;
+}
+
+.home-groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
+  gap: var(--lumo-space-m);
+  align-items: start;
+}
+
+.home-group {
+  border: 1px solid var(--lumo-contrast-10pct);
+  border-radius: var(--lumo-border-radius-l);
+  padding: var(--lumo-space-xs) var(--lumo-space-s) var(--lumo-space-s);
+  min-width: 0;
+}
+
+.home-group[dragover-valid] {
+  outline: 2px solid var(--lumo-primary-color-50pct);
+  outline-offset: -2px;
+}
+
+.home-group-head {
+  display: flex;
+  align-items: center;
+  gap: var(--lumo-space-xs);
+  min-height: var(--lumo-size-s);
+  color: var(--lumo-primary-text-color);
+}
+
+.home-group-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--lumo-font-size-m);
+  cursor: default;
+}
+
+.home-items {
+  display: flex;
+  flex-direction: column;
+}
+
+.home-item {
+  display: flex;
+  align-items: center;
+  gap: var(--lumo-space-xs);
+  min-width: 0;
+  min-height: var(--lumo-size-s);
+  padding-inline: var(--lumo-space-xs);
+  margin-inline: calc(var(--lumo-space-xs) * -1);
+  border-radius: var(--lumo-border-radius-m);
+}
+
+.home-item:hover,
+.home-item:focus-within {
+  background: var(--lumo-contrast-5pct);
+}
+
+.home-item[dragover-valid] {
+  box-shadow: inset 0 2px 0 var(--lumo-primary-color);
+}
+
+.home-item > vaadin-icon {
+  flex-shrink: 0;
+  width: var(--lumo-icon-size-s);
+  height: var(--lumo-icon-size-s);
+}
+
+.home-type {
+  color: var(--lumo-secondary-text-color);
+}
+
+.home-grip {
+  width: var(--lumo-icon-size-xs);
+  height: var(--lumo-icon-size-xs);
+  margin-inline-end: calc(var(--lumo-space-xs) * -1);
+  cursor: grab;
+  opacity: 0;
+  color: var(--lumo-secondary-text-color);
+}
+
+.home-item:hover .home-grip,
+.home-item:focus-within .home-grip {
+  opacity: 1;
+}
+
+.home-link {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.home-link:hover {
+  color: var(--lumo-primary-text-color);
+  text-decoration: underline;
+}
+
+.home-view vaadin-button.home-dots {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 0;
+  height: var(--lumo-size-xs);
+  min-width: var(--lumo-size-xs);
+  opacity: 0;
+}
+
+.home-group-head:hover vaadin-button.home-dots,
+.home-item:hover vaadin-button.home-dots,
+.home-item:focus-within vaadin-button.home-dots,
+.home-group-head:focus-within vaadin-button.home-dots {
+  opacity: 1;
+}
+
+.home-editor {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.home-hint {
+  color: var(--lumo-secondary-text-color);
+  font-size: var(--lumo-font-size-xs);
+}
+
+.home-hidden {
+  display: flex;
+  align-items: center;
+  gap: var(--lumo-space-xs);
+  margin-top: var(--lumo-space-m);
+}
+
+.home-hidden vaadin-icon {
+  width: var(--lumo-icon-size-s);
+  height: var(--lumo-icon-size-s);
+}
+
+/* Пустая страница. */
+.home-empty {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lumo-space-xs);
+  max-width: 34rem;
+  padding: var(--lumo-space-m);
+  border: 1px solid var(--lumo-contrast-10pct);
+  border-radius: var(--lumo-border-radius-l);
+}
+
+.home-empty-title {
+  font-size: var(--lumo-font-size-l);
+  font-weight: 500;
+}
+
+.home-suggest-title {
+  margin-top: var(--lumo-space-m);
+  color: var(--lumo-secondary-text-color);
+  font-weight: 500;
+}
+
+/* Панель «Недавнее»: полоса справа или раскрытая таблица. */
+.home-recent {
+  position: relative;
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 2.25rem;
+  padding-top: var(--lumo-space-s);
+  gap: var(--lumo-space-s);
+  border-inline-start: 1px solid var(--lumo-contrast-10pct);
+  background: var(--lumo-contrast-5pct);
+}
+
+.home-recent-label {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  color: var(--lumo-secondary-text-color);
+  font-size: var(--lumo-font-size-xs);
+  cursor: pointer;
+}
+
+.home-recent.home-recent-open {
+  align-items: stretch;
+  gap: 0;
+  width: 25rem;
+  max-width: 58%;
+  padding-top: 0;
+  background: transparent;
+}
+
+.home-recent-head {
+  display: flex;
+  align-items: center;
+  gap: var(--lumo-space-xs);
+  padding: var(--lumo-space-xs) var(--lumo-space-s);
+  background: var(--lumo-contrast-5pct);
+  border-bottom: 1px solid var(--lumo-contrast-10pct);
+}
+
+.home-recent-head vaadin-icon {
+  width: var(--lumo-icon-size-s);
+  height: var(--lumo-icon-size-s);
+}
+
+.home-recent-title {
+  flex: 1 1 auto;
+  font-weight: 500;
+}
+
+.home-recent-grid {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.home-recent .home-hint {
+  padding: var(--lumo-space-xs) var(--lumo-space-s);
+}
+
+.home-recent vaadin-button.home-star-on {
+  color: var(--lumo-primary-text-color);
+}
+
+.home-recent vaadin-button.home-star {
+  color: var(--lumo-secondary-text-color);
+}
+
+/* Страница раздела: звёздочка у ссылки. */
+.subsystem-home-row {
+  display: flex;
+  align-items: center;
+  gap: var(--lumo-space-xs);
+  min-width: 0;
+  break-inside: avoid;
+}
+
+.subsystem-home-row:hover,
+.subsystem-home-row:focus-within {
+  background: var(--lumo-contrast-5pct);
+  border-radius: var(--lumo-border-radius-m);
+}
+
+vaadin-icon.subsystem-home-star {
+  flex-shrink: 0;
+  width: var(--lumo-icon-size-s);
+  height: var(--lumo-icon-size-s);
+  color: var(--lumo-secondary-text-color);
+  cursor: pointer;
+  opacity: 0;
+}
+
+.subsystem-home-row:hover vaadin-icon.subsystem-home-star,
+vaadin-icon.subsystem-home-star:focus-visible,
+vaadin-icon.subsystem-home-star-on {
+  opacity: 1;
+}
+
+vaadin-icon.subsystem-home-star-on {
+  color: var(--lumo-primary-text-color);
+}

@@ -11,7 +11,9 @@ import org.ipro.form.action.ActionContextProvider;
 import org.ipro.form.action.ActionHandlerRegistry;
 import org.ipro.form.action.ActionRegistry;
 import org.ipro.form.coordinator.FormCoordinator;
+import org.ipro.form.coordinator.FormOpenEvent;
 import org.ipro.form.coordinator.FormOpenMode;
+import org.ipro.form.coordinator.FormOpenObserver;
 import org.ipro.form.coordinator.ItemFormAccessBinder;
 import org.ipro.form.coordinator.ItemFormWrapperView;
 import org.ipro.form.coordinator.ListFormWrapper;
@@ -267,6 +269,87 @@ class FormRouteOpenOutcomeTest {
     }
 
     // === фикстуры ===
+
+    // ------------------------------------------------------------------ КИ-13: наблюдатели открытия
+
+    private FormCoordinator observed(WorkspaceGateway workspaceGateway, java.util.List<FormOpenEvent> events,
+                                     FormOpenObserver... extra) {
+        FormCoordinator coordinator = coordinator(workspaceGateway);
+        var observers = new java.util.ArrayList<FormOpenObserver>();
+        observers.add(events::add);
+        observers.addAll(java.util.List.of(extra));
+        coordinator.setFormOpenObservers(observers);
+        return coordinator;
+    }
+
+    @Test
+    void routedRecordAndRoutedListGiveOpenEventsAfterSuccess() {
+        serviceReturning(Workshop.class, EXISTING_ID, Optional.of(mock(Workshop.class)));
+        var events = new java.util.ArrayList<FormOpenEvent>();
+        var coordinator = observed(gateway, events);
+
+        assertThat(coordinator.openRoutedRecord(Workshop.class, FormRoute.record("workshop", EXISTING_ID)))
+            .isInstanceOf(OpenResult.Opened.class);
+        assertThat(coordinator.openRoutedList(Workshop.class, FormRoute.list("workshop")))
+            .isInstanceOf(OpenResult.Opened.class);
+
+        assertThat(events).containsExactly(
+            new FormOpenEvent(FormOpenEvent.Kind.ITEM, Workshop.class, null, EXISTING_ID, true),
+            new FormOpenEvent(FormOpenEvent.Kind.LIST, Workshop.class, null, null, true));
+    }
+
+    @Test
+    void notFoundAndMissingWorkspaceGiveNoOpenEvent() {
+        var events = new java.util.ArrayList<FormOpenEvent>();
+        serviceReturning(Workshop.class, EXISTING_ID, Optional.empty());
+        assertThat(observed(gateway, events).openRoutedRecord(Workshop.class, FormRoute.record("workshop", EXISTING_ID)))
+            .isInstanceOf(OpenResult.NotFound.class);
+
+        serviceReturning(Workshop.class, EXISTING_ID, Optional.of(mock(Workshop.class)));
+        assertThat(observed(null, events).openRoutedRecord(Workshop.class, FormRoute.record("workshop", EXISTING_ID)))
+            .isInstanceOf(OpenResult.Unavailable.class);
+        assertThat(events).isEmpty();
+    }
+
+    @Test
+    void anExistingRecordOpenedInATabGivesAnEventButCreatingDoesNot() {
+        var events = new java.util.ArrayList<FormOpenEvent>();
+        serviceReturning(Workshop.class, EXISTING_ID, Optional.of(mock(Workshop.class)));
+        var coordinator = observed(gateway, events);
+        coordinator.setItemFormOpenMode(FormOpenMode.WORKSPACE_TAB);
+
+        coordinator.openItemForm(Workshop.class, null, EXISTING_ID, null, null);
+        assertThat(events).containsExactly(new FormOpenEvent(FormOpenEvent.Kind.ITEM, Workshop.class, null, EXISTING_ID, true));
+
+        events.clear();
+        coordinator.openItemForm(Workshop.class, null, null, null, null);
+        assertThat(events).as("создание новой записи — не открытие записи").isEmpty();
+
+    }
+
+    @Test
+    void aListOpenedThroughTheNavigatorGivesAnEventAndFlagsBusinessParameters() {
+        var events = new java.util.ArrayList<FormOpenEvent>();
+        var coordinator = observed(gateway, events);
+        coordinator.openListForm(Workshop.class, "closed", null);
+        coordinator.openListForm(Workshop.class, null, java.util.Map.of("contextFilters", java.util.Map.of("branch", 1)));
+
+        assertThat(events).containsExactly(
+            new FormOpenEvent(FormOpenEvent.Kind.LIST, Workshop.class, "closed", null, true),
+            new FormOpenEvent(FormOpenEvent.Kind.LIST, Workshop.class, null, null, false));
+    }
+
+    @Test
+    void aFailingObserverDoesNotBreakTheOpeningAndTheOthersStillRun() {
+        serviceReturning(Workshop.class, EXISTING_ID, Optional.of(mock(Workshop.class)));
+        var events = new java.util.ArrayList<FormOpenEvent>();
+        var coordinator = observed(gateway, events, event -> {
+            throw new IllegalStateException("observer failed");
+        });
+        assertThat(coordinator.openRoutedRecord(Workshop.class, FormRoute.record("workshop", EXISTING_ID)))
+            .isInstanceOf(OpenResult.Opened.class);
+        assertThat(events).hasSize(1);
+    }
 
     private FormCoordinator coordinator(WorkspaceGateway workspaceGateway) {
         @SuppressWarnings("unchecked")

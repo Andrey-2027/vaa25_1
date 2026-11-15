@@ -17,15 +17,16 @@ public class NavigationAssignmentEntity extends BaseEntity {
     @Column(name = "user_key", nullable = false, length = 190)
     private String userKey;
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "profile_id", nullable = false,
-        foreignKey = @ForeignKey(name = "navigation_assignment_profile_fk"))
-    private NavigationProfileEntity profile;
+    @JoinColumn(name = "menu_id", nullable = false,
+        foreignKey = @ForeignKey(name = "navigation_assignment_menu_fk"))
+    private NavigationMenuEntity menu;
 
     protected NavigationAssignmentEntity() {}
-    public NavigationAssignmentEntity(String userKey, NavigationProfileEntity profile) {
+    public NavigationAssignmentEntity(String userKey, NavigationMenuEntity menu) {
         this.userKey = userKey;
-        this.profile = profile;
+        this.menu = menu;
     }
-    public NavigationProfileEntity getProfile() { return profile; }
-    public void assign(NavigationProfileEntity profile) { this.profile = profile; }
+    public String getUserKey() { return userKey; }
+    public NavigationMenuEntity getMenu() { return menu; }
+    public void assign(NavigationMenuEntity menu) { this.menu = menu; }
 }

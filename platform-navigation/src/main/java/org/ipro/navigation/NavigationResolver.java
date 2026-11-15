@@ -1,50 +1,22 @@
 package org.ipro.navigation;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
-import java.util.TreeSet;
 import java.util.function.Predicate;
 
-/**
- * Stateless visibility composition. The application supplies its function availability check;
- * SHOW cannot override a hidden ancestor or an unavailable function. Predicate failures propagate.
- */
+/** Projects the menu using the current user's function availability. */
 public final class NavigationResolver {
-    public NavigationTree resolve(NavigationCatalog catalog, Map<String, NavigationVisibility> overrides,
-                                  Predicate<NavigationItem> available) {
-        Objects.requireNonNull(catalog, "navigation catalog");
+    public NavigationTree resolve(NavigationCatalog catalog, Predicate<NavigationItem> available) {
         Objects.requireNonNull(available, "availability predicate");
-        Map<String, NavigationVisibility> snapshot = Map.copyOf(overrides);
-        Set<String> staleKeys = new TreeSet<>(snapshot.keySet());
-        staleKeys.removeAll(catalog.keys());
-        List<NavigationTree.Node> roots = new ArrayList<>();
-        for (NavigationNode node : catalog.roots()) {
-            NavigationTree.Node resolved = resolve(node, snapshot, available);
-            if (resolved != null) roots.add(resolved);
-        }
-        return new NavigationTree(roots, staleKeys);
+        return new NavigationTree(catalog.roots().stream()
+            .map(node -> resolve(node, available)).flatMap(java.util.Optional::stream).toList());
     }
 
-    private NavigationTree.Node resolve(NavigationNode node, Map<String, NavigationVisibility> overrides,
-                                        Predicate<NavigationItem> available) {
-        if (!overrides.getOrDefault(node.key(), NavigationVisibility.DEFAULT).resolve(node.defaultVisible())) {
-            return null;
-        }
-        List<NavigationItem> items = node.items().stream()
-            .filter(item -> overrides.getOrDefault(item.key(), NavigationVisibility.DEFAULT)
-                .resolve(item.defaultVisible()))
-            .filter(available)
-            .toList();
-        List<NavigationTree.Node> children = new ArrayList<>();
-        for (NavigationNode child : node.children()) {
-            NavigationTree.Node resolved = resolve(child, overrides, available);
-            if (resolved != null) children.add(resolved);
-        }
-        if (items.isEmpty() && children.isEmpty()) return null;
-        return new NavigationTree.Node(node.id(), node.areaKey(), node.title(), node.icon(),
-            node.order(), items, children);
+    private java.util.Optional<NavigationTree.Node> resolve(NavigationNode node, Predicate<NavigationItem> available) {
+        var items = node.items().stream().filter(available).toList();
+        var children = node.children().stream().map(child -> resolve(child, available))
+            .flatMap(java.util.Optional::stream).toList();
+        if (items.isEmpty() && children.isEmpty()) return java.util.Optional.empty();
+        return java.util.Optional.of(new NavigationTree.Node(node.id(), node.areaKey(), node.title(), node.icon(),
+            node.order(), items, children));
     }
 }

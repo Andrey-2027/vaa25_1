@@ -143,6 +143,8 @@ API org.ipro.form.builder.layout.Layout
 API org.ipro.form.builtin.ItemTable
 API org.ipro.form.builtin.ListForm
 API org.ipro.form.coordinator.FormNavigator
+SPI org.ipro.form.coordinator.FormOpenObserver
+API org.ipro.form.coordinator.FormOpenEvent
 API org.ipro.form.host.FormRouteUrlBridge
 API org.ipro.form.host.RouteStatePage
 API org.ipro.form.link.EntityExplorerAddress
@@ -350,18 +352,10 @@ API org.ipro.rls.c5.C5PermissionKeys
 API org.ipro.register.RecordedRegisterReader
 API org.ipro.register.SliceSpec
 # KI-3: per-UI navigation projection and profile read contract.
-API org.ipro.navigation.NavigationCatalog
-API org.ipro.navigation.NavigationCatalogProvider
 API org.ipro.navigation.NavigationResolver
 API org.ipro.navigation.NavigationTree
-API org.ipro.navigation.NavigationProfileReader
-API org.ipro.navigation.NavigationProfile
 # KI-4: full catalogue, visibility editor and protected administration operations.
-API org.ipro.navigation.NavigationNode
 API org.ipro.navigation.NavigationItem
-API org.ipro.navigation.NavigationVisibility
-API org.ipro.navigation.NavigationAdministrationService
-API org.ipro.navigation.NavigationConflictException
 # R11 (ADR-0023): application command that writes register resources by full key and deletes by
 # key, plus the seam that answers the same C5 decision for the UI. The register engine is not a
 # platform module; roles are assigned here so the application-to-platform boundary stays reviewed.
@@ -493,3 +487,18 @@ SPI org.ipro.vaadin.explorer.ui.ExplorerFormPreviewPort
 SPI org.ipro.vaadin.explorer.ui.ExplorerSourcePort
 API org.ipro.navigation.NavigationFunction
 SPI org.ipro.navigation.NavigationFunctions
+
+API org.ipro.navigation.NavigationCatalog
+API org.ipro.navigation.NavigationFunctionsProvider
+API org.ipro.navigation.NavigationMenuReader
+API org.ipro.data.presentation.EntityPresentationService
+# СМ-3: редактор меню в приложении.
+API org.ipro.navigation.NavigationMenuService
+API org.ipro.navigation.NavigationMenuService.DiscoveredFunction
+API org.ipro.navigation.NavigationMenu
+API org.ipro.navigation.NavigationStructure
+API org.ipro.navigation.NavigationStructure.Section
+API org.ipro.navigation.NavigationStructure.Entry
+API org.ipro.navigation.NavigationImportance
+API org.ipro.navigation.NavigationConflictException
+API org.ipro.rls.RlsReadGate

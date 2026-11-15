@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Редактор меню</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+:root{--surface-0:#f5f4ef;--surface-1:#faf9f5;--surface-2:#ffffff;--text-primary:#1f1e1d;--text-secondary:#5e5d59;--text-muted:#8f8d87;--text-accent:#185FA5;--bg-accent:#E6F1FB;--border-accent:#378ADD;--bg-warning:#FAEEDA;--text-warning:#854F0B;--border:rgba(31,30,29,.15);--border-strong:rgba(31,30,29,.3);--radius:8px}
+@media (prefers-color-scheme: dark){:root{--surface-0:#1f1e1d;--surface-1:#262624;--surface-2:#30302e;--text-primary:#f5f4ef;--text-secondary:#c2c0b6;--text-muted:#8f8d87;--text-accent:#85B7EB;--bg-accent:#0C447C;--border-accent:#85B7EB;--bg-warning:#633806;--text-warning:#FAC775;--border:rgba(245,244,239,.15);--border-strong:rgba(245,244,239,.3)}}
+body{margin:0;padding:24px 16px;background:var(--surface-0);color:var(--text-primary);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+.wrap{max-width:820px;margin:0 auto}
+h1{font-size:20px;font-weight:500;margin:0 0 4px}
+.sub{color:var(--text-secondary);font-size:14px;margin:0 0 20px}
+.fr{border:0.5px solid var(--border-strong);border-radius:12px;overflow:hidden;background:var(--surface-2);font-size:12.5px;line-height:1.45}
+.cap{font-size:13px;color:var(--text-secondary);margin:0 0 6px}
+.n{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:var(--bg-accent);color:var(--text-accent);font-size:11px;font-weight:500;margin-left:6px;vertical-align:1px;flex-shrink:0}
+.r{display:flex;align-items:center;gap:5px;padding:3px 8px;border-top:0.5px solid var(--border);min-width:0}
+.t{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mut{color:var(--text-muted)}
+.tag{font-size:11px;padding:0 6px;border-radius:var(--radius);white-space:nowrap;flex-shrink:0}
+.ta{background:var(--bg-accent);color:var(--text-accent)}
+.tw{background:var(--bg-warning);color:var(--text-warning)}
+.inp{border:0.5px solid var(--border-strong);border-radius:var(--radius);padding:2px 8px}
+.add{font-size:13px;color:var(--text-accent)}
+.ph{display:flex;align-items:center;gap:6px;padding:6px 8px;font-weight:500;background:var(--surface-1);border-bottom:0.5px solid var(--border)}
+button{font:inherit;font-size:12px;padding:3px 10px;border-radius:var(--radius);border:0.5px solid var(--border-strong);background:transparent;color:var(--text-primary)}
+ol{font-size:13px;color:var(--text-secondary);padding-left:20px;margin:10px 0 0}
+ol li{margin:2px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Редактор меню — макет</h1>
+<p class="sub">Согласован 2026-11-14. Модель «основное меню + именованные меню» (М1–М7, §0 subsystems-menu-separation-plan.md). Пример: открыто «Меню технолога».</p>
+
+<p class="cap">Администрирование › Меню</p>
+<div class="fr">
+  <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:0.5px solid var(--border);flex-wrap:wrap">
+    <span class="mut">Меню</span>
+    <div class="inp" style="display:flex;gap:6px;align-items:center;font-weight:500">Меню технолога<i class="ti ti-chevron-down mut"></i></div><span class="n" style="margin-left:0">1</span>
+    <button><i class="ti ti-copy"></i> Копия</button>
+    <button aria-label="Ещё"><i class="ti ti-dots"></i></button>
+    <div style="flex:1"></div>
+    <button><i class="ti ti-eye"></i> Как увидит пользователь</button>
+    <button>Сохранить</button>
+  </div>
+  <div style="display:flex;align-items:center;gap:6px;padding:6px 12px;background:var(--surface-1);border-bottom:0.5px solid var(--border);font-size:12px">
+    <i class="ti ti-users mut"></i><span>Назначено: Петров А., Сидорова Е.</span><a style="color:var(--text-accent)">изменить</a><span class="n">2</span>
+    <span class="mut" style="margin-left:auto">остальные — «Основное меню»</span>
+  </div>
+  <div style="display:flex;min-height:430px">
+    <div style="flex:1;min-width:0;border-right:0.5px solid var(--border)">
+      <div class="ph"><span style="flex:1">Предметные области</span><span class="mut" style="font-weight:400;font-size:11px">только чтение</span><span class="n">3</span></div>
+      <div style="padding:6px 8px"><div class="inp mut"><i class="ti ti-search"></i> Найти список или команду</div></div>
+      <div class="r" style="font-weight:500"><i class="ti ti-chevron-down mut"></i><span class="t">Справочники</span><a class="add" title="Добавить всю область"><i class="ti ti-arrow-right"></i></a></div>
+      <div class="r" style="padding-left:24px"><span class="t">Номенклатура</span><i class="ti ti-check mut"></i><span class="mut" style="font-size:11px">×2</span><span class="n">4</span></div>
+      <div class="r" style="padding-left:38px"><i class="ti ti-bolt mut"></i><span class="t">Создать: номенклатура</span><i class="ti ti-check mut"></i></div>
+      <div class="r" style="padding-left:24px"><span class="t">Группы номенклатуры</span><i class="ti ti-check mut"></i></div>
+      <div class="r" style="padding-left:24px;background:var(--bg-accent)"><span class="t" style="color:var(--text-accent);font-weight:500">Единицы измерения</span><i class="ti ti-grip-vertical" style="color:var(--text-accent)"></i><span class="n">5</span></div>
+      <div class="r" style="padding-left:24px"><span class="t">Цены номенклатуры</span><a class="add"><i class="ti ti-arrow-right"></i></a></div>
+      <div class="r" style="padding-left:24px"><span class="t mut">ещё 5</span></div>
+      <div class="r" style="font-weight:500"><i class="ti ti-chevron-down mut"></i><span class="t">Производство</span><a class="add"><i class="ti ti-arrow-right"></i></a></div>
+      <div class="r" style="padding-left:24px"><span class="t">Приёмно-сдаточные накладные</span><i class="ti ti-check mut"></i></div>
+      <div class="r" style="padding-left:24px"><span class="t">Журналы</span><i class="ti ti-check mut"></i></div>
+      <div class="r" style="padding-left:24px"><span class="t">Спецификации</span><i class="ti ti-check mut"></i></div>
+      <div class="r" style="padding-left:24px"><span class="t">Операции</span><i class="ti ti-check mut"></i></div>
+      <div class="r" style="padding-left:38px"><i class="ti ti-bolt mut"></i><span class="t">Создать: операция</span><a class="add"><i class="ti ti-arrow-right"></i></a></div>
+      <div class="r" style="font-weight:500"><i class="ti ti-chevron-right mut"></i><span class="t">Учёт объектов</span><a class="add"><i class="ti ti-arrow-right"></i></a></div>
+      <div class="r" style="font-weight:500"><i class="ti ti-chevron-down mut"></i><span class="t">Без области</span></div>
+      <div class="r" style="padding-left:24px"><span class="t">Роли</span><span class="tag tw">новое</span><a class="add"><i class="ti ti-arrow-right"></i></a><span class="n">6</span></div>
+      <div class="r" style="padding-left:24px"><span class="t">Пользователи</span><a class="add"><i class="ti ti-arrow-right"></i></a></div>
+    </div>
+    <div style="flex:1;min-width:0">
+      <div class="ph"><span style="flex:1">Меню технолога</span><button style="font-weight:400"><i class="ti ti-plus"></i> Раздел</button><span class="n">7</span></div>
+      <div class="r" style="font-weight:500"><i class="ti ti-grip-vertical mut"></i><i class="ti ti-chevron-down mut"></i><i class="ti ti-building-factory"></i><span class="t">Производство</span><span class="tag ta"><i class="ti ti-link"></i></span><span class="n">8</span></div>
+      <div class="r" style="padding-left:40px"><span class="t" style="font-weight:500">Приёмно-сдаточные накладные</span><span class="n">14</span></div>
+      <div class="r" style="padding-left:40px"><span class="t">Журналы</span></div>
+      <div class="r" style="padding-left:40px"><span class="t">Номенклатура</span></div>
+      <div class="r" style="padding-left:40px"><i class="ti ti-bolt"></i><span class="t">Создать номенклатуру</span><span class="n">9</span></div>
+      <div class="r" style="padding-left:28px;font-weight:500"><i class="ti ti-chevron-down mut"></i><i class="ti ti-ruler"></i><span class="t">Нормативы</span></div>
+      <div class="r" style="padding-left:56px"><span class="t" style="font-weight:500">Спецификации</span></div>
+      <div class="r" style="padding-left:56px;background:var(--surface-1)"><div class="inp" style="flex:1;min-width:0;border-color:var(--border-accent)">Операции и переходы</div><span class="n">10</span></div>
+      <div class="r" style="font-weight:500"><i class="ti ti-grip-vertical mut"></i><i class="ti ti-chevron-down mut"></i><i class="ti ti-books"></i><span class="t">НСИ</span><span class="tag ta"><i class="ti ti-link"></i></span><i class="ti ti-dots mut"></i><span class="n">11</span></div>
+      <div class="r" style="padding-left:40px"><span class="t">Номенклатура</span></div>
+      <div class="r" style="padding-left:40px"><span class="t">Группы номенклатуры</span></div>
+      <div class="r" style="padding-left:40px"><span class="t mut">Филиалы</span><span class="mut" style="font-size:11px">см. также</span></div>
+      <div style="height:2px;background:var(--border-accent);margin:0 8px 0 40px;position:relative"><span style="position:absolute;right:0;top:-9px;font-size:11px;color:var(--text-accent);background:var(--surface-2);padding:0 4px">↦ Единицы измерения</span></div>
+      <div style="padding:8px;border-top:0.5px solid var(--border);font-size:11px" class="mut">Пользователь видит пункт, если есть права. Пустые разделы скрываются.</div>
+    </div>
+  </div>
+</div>
+<ol>
+  <li>Выбор меню: «Основное меню» или именованное. «Копия» — копия текущего; «⋯» — переименовать, «Кому назначено», удалить. «Сохранить» активна только при несохранённых правках.</li>
+  <li>Кому назначено именованное меню (конкретные пользователи; роли не участвуют). У «Основного меню» строки нет — оно для всех остальных.</li>
+  <li>Левая половина — предметные области из кода, только чтение: списки, под ними их команды, группа «Без области».</li>
+  <li>Галочка — пункт уже есть в этом меню, «×2» — в двух разделах. Без галочки — в меню нет (отдельная панель «Нет в меню» не нужна).</li>
+  <li>Перетаскивание слева направо добавляет пункт; линия справа показывает место. Кнопка «→» — то же с клавиатуры. «→» у области — раздел со всеми её списками, связанный с областью.</li>
+  <li>«новое» — сущность появилась в коде и ещё не размещена ни в одном меню.</li>
+  <li>Правая половина — выбранное меню. «+ Раздел» — раздел верхнего уровня.</li>
+  <li>Скрепка — раздел связан с областью: её новые сущности автоматически попадают сюда (в каждом меню — своя связь).</li>
+  <li>Команда (молния) видна там, где её положили, если у пользователя есть право.</li>
+  <li>Переименование — двойным щелчком в строке.</li>
+  <li>«⋯» у раздела: значок, отвязать от области, удалить. «⋯» у пункта: важность, вернуть исходный заголовок, убрать.</li>
+  <li value="14">Важность пункта: «Важное» — жирным, «Обычное» — как есть, «См. также» — приглушено (пример — «Филиалы»). На странице раздела: важное первым, «См. также» — отдельной группой в конце.</li>
+</ol>
+
+<p class="cap" style="margin-top:28px">Список меню и меню «⋯»</p>
+<div style="display:flex;gap:12px;flex-wrap:wrap">
+  <div class="fr" style="flex:1;min-width:240px">
+    <div class="r" style="border-top:0;font-weight:500"><i class="ti ti-star" style="color:var(--text-accent)"></i><span class="t">Основное меню</span><span class="mut" style="font-size:11px">все остальные</span><span class="n">12</span></div>
+    <div class="r" style="background:var(--surface-1)"><i class="ti ti-check"></i><span class="t">Меню технолога</span><span class="mut" style="font-size:11px">2 польз.</span></div>
+    <div class="r"><span style="width:14px"></span><span class="t">Меню склада</span><span class="mut" style="font-size:11px">5 польз.</span></div>
+    <div class="r add"><i class="ti ti-copy"></i><span class="t">Копия текущего…</span></div>
+    <div class="r add"><i class="ti ti-plus"></i><span class="t">Пустое меню…</span></div>
+  </div>
+  <div class="fr" style="flex:1;min-width:240px">
+    <div class="r" style="border-top:0"><i class="ti ti-pencil mut"></i><span class="t">Переименовать меню</span></div>
+    <div class="r"><i class="ti ti-users mut"></i><span class="t">Кому назначено…</span></div>
+    <div class="r"><i class="ti ti-trash mut"></i><span class="t">Удалить меню</span><span class="mut" style="font-size:11px">его пользователи вернутся к основному</span></div>
+  </div>
+</div>
+<ol start="12">
+  <li>«Основное меню» отмечено звёздочкой, удалить его нельзя. У именованных — число назначенных пользователей.</li>
+</ol>
+
+<p class="cap" style="margin-top:28px">Диалог «Кому назначено»</p>
+<div style="background:var(--surface-1);border-radius:12px;padding:16px;display:flex;justify-content:center">
+  <div class="fr" style="width:100%;max-width:440px">
+    <div style="padding:10px 14px;font-weight:500;border-bottom:0.5px solid var(--border)">«Меню технолога» — пользователи<span class="n">13</span></div>
+    <div style="padding:8px 14px"><div class="inp mut"><i class="ti ti-search"></i> Найти пользователя</div></div>
+    <div class="r"><input type="checkbox" checked><span class="t">Петров А.</span></div>
+    <div class="r"><input type="checkbox" checked><span class="t">Сидорова Е.</span></div>
+    <div class="r"><input type="checkbox" checked><span class="t">Иванов К.</span><span class="tag tw">сейчас: Меню склада</span></div>
+    <div style="padding:6px 14px;font-size:11px" class="mut">У пользователя одно назначенное меню: отметка здесь заменит прежнее.</div>
+    <div style="display:flex;gap:6px;justify-content:flex-end;padding:8px 14px;border-top:0.5px solid var(--border)"><button>Отмена</button><button>Готово</button></div>
+  </div>
+</div>
+<ol start="13">
+  <li>Назначение — только конкретным пользователям. Если у пользователя уже есть другое меню, это видно сразу; новая отметка его заменит.</li>
+</ol>
+</div>
+</body>
+</html>

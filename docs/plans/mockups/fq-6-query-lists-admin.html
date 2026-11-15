@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Списки по запросу</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+:root{--surface-0:#f5f4ef;--surface-1:#faf9f5;--surface-2:#ffffff;--text-primary:#1f1e1d;--text-secondary:#5e5d59;--text-muted:#8f8d87;--text-accent:#185FA5;--bg-accent:#E6F1FB;--border-accent:#378ADD;--bg-warning:#FAEEDA;--text-warning:#854F0B;--bg-danger:#FCEBEB;--text-danger:#A32D2D;--text-ok:#3B6D11;--border:rgba(31,30,29,.15);--border-strong:rgba(31,30,29,.3);--radius:8px}
+@media (prefers-color-scheme: dark){:root{--surface-0:#1f1e1d;--surface-1:#262624;--surface-2:#30302e;--text-primary:#f5f4ef;--text-secondary:#c2c0b6;--text-muted:#8f8d87;--text-accent:#85B7EB;--bg-accent:#0C447C;--border-accent:#85B7EB;--bg-warning:#633806;--text-warning:#FAC775;--bg-danger:#501313;--text-danger:#F7C1C1;--text-ok:#97C459;--border:rgba(245,244,239,.15);--border-strong:rgba(245,244,239,.3)}}
+body{margin:0;padding:24px 16px;background:var(--surface-0);color:var(--text-primary);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+.wrap{max-width:920px;margin:0 auto}
+h1{font-size:20px;font-weight:500;margin:0 0 4px}
+.sub{color:var(--text-secondary);font-size:14px;margin:0 0 20px}
+a{color:var(--text-accent)}
+.fr{border:0.5px solid var(--border-strong);border-radius:12px;overflow:hidden;background:var(--surface-2);font-size:12.5px;line-height:1.45}
+.cap{font-size:13px;color:var(--text-secondary);margin:0 0 6px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.n{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:var(--bg-accent);color:var(--text-accent);font-size:11px;font-weight:500;margin-left:6px;vertical-align:1px;flex-shrink:0}
+.mut{color:var(--text-muted)}
+.ok{color:var(--text-ok)}
+.wr{color:var(--text-warning)}
+.err{color:var(--text-danger)}
+.inp{border:0.5px solid var(--border-strong);border-radius:var(--radius);padding:2px 8px;display:inline-flex;gap:6px;align-items:center;background:var(--surface-2);min-height:20px}
+.inp.ro{background:var(--surface-1);color:var(--text-secondary)}
+.inp.on{border-color:var(--border-accent);color:var(--text-accent)}
+.admtabs{display:flex;gap:16px;padding:0 12px;border-bottom:0.5px solid var(--border);background:var(--surface-1);flex-wrap:wrap}
+.admtabs span{padding:7px 0;color:var(--text-secondary);display:inline-flex;gap:5px;align-items:center}
+.admtabs .on{color:var(--text-primary);font-weight:500;border-bottom:2px solid var(--text-accent)}
+.head{display:flex;align-items:center;gap:8px;padding:10px 12px 6px;flex-wrap:wrap}
+.head .t{font-weight:500;font-size:15px}
+.crumb{color:var(--text-secondary)}
+.bar{display:flex;align-items:center;gap:6px;padding:6px 12px;border-bottom:0.5px solid var(--border);flex-wrap:wrap}
+.sep{width:0.5px;align-self:stretch;background:var(--border-strong);margin:2px 4px}
+.tabs{display:flex;gap:16px;padding:0 12px;border-bottom:0.5px solid var(--border);flex-wrap:wrap}
+.tabs span{padding:6px 0;color:var(--text-secondary)}
+.tabs .on{color:var(--text-primary);font-weight:500;border-bottom:2px solid var(--text-accent)}
+.tabs .fut{border:0.5px dashed var(--border-strong);border-radius:6px;padding:1px 8px;margin:4px 0;color:var(--text-muted)}
+.panel{display:flex;align-items:center;gap:12px;padding:8px 12px;background:var(--surface-1);border-bottom:0.5px solid var(--border);flex-wrap:wrap}
+button{font:inherit;font-size:12px;padding:3px 10px;border-radius:var(--radius);border:0.5px solid var(--border-strong);background:transparent;color:var(--text-primary);display:inline-flex;gap:4px;align-items:center}
+button.acc{background:var(--text-accent);color:var(--surface-2);border-color:var(--text-accent)}
+button.dis{color:var(--text-muted);border-color:var(--border)}
+button.fut{border-style:dashed;color:var(--text-muted)}
+table{border-collapse:collapse;width:100%}
+th,td{padding:5px 8px;border-bottom:0.5px solid var(--border);text-align:left;white-space:nowrap}
+th{font-weight:500;background:var(--surface-1)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+td.ref{color:var(--text-accent);text-decoration:underline dotted;text-underline-offset:3px}
+tr.sel td{background:var(--bg-accent)}
+tr.off td{color:var(--text-muted)}
+tr.f td{border-bottom:0;font-weight:500;background:var(--surface-1)}
+.hf td{padding:2px 6px;background:var(--surface-1)}
+.hf .inp{width:100%;box-sizing:border-box;font-size:11px;color:var(--text-muted)}
+.status{display:flex;align-items:center;gap:8px;padding:6px 12px;font-size:12px;color:var(--text-secondary);flex-wrap:wrap}
+.tree{width:180px;border-right:0.5px solid var(--border);padding:6px 0;flex-shrink:0;font-size:12px}
+.tree .r{display:flex;gap:4px;align-items:center;padding:2px 8px}
+.tree .r .t{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tsel{background:var(--bg-accent);color:var(--text-accent)}
+.scroll{overflow-x:auto}
+ol{font-size:13px;color:var(--text-secondary);padding-left:20px;margin:10px 0 0}
+ol li{margin:4px 0}
+.tag{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:400;padding:1px 8px;border-radius:999px;border:0.5px solid var(--border-strong);color:var(--text-secondary);white-space:nowrap}
+.tag.done{background:var(--bg-accent);color:var(--text-accent);border-color:transparent}
+.tag.later{border-style:dashed;color:var(--text-muted)}
+.legend{display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--text-secondary);margin:-8px 0 20px}
+.dirty{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--text-warning)}
+.dirty::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--text-warning)}
+.form{display:grid;grid-template-columns:minmax(120px,170px) 1fr;gap:9px 14px;padding:14px;align-items:center}
+.form .l{color:var(--text-secondary)}
+.form .v{display:flex;gap:8px;align-items:center;flex-wrap:wrap;min-width:0}
+.form .hint{font-size:11.5px;color:var(--text-muted)}
+.radio{display:inline-flex;gap:5px;align-items:center}
+.info{background:var(--surface-1);border:0.5px solid var(--border);border-radius:var(--radius);padding:7px 10px;color:var(--text-secondary);display:flex;gap:6px;align-items:flex-start}
+.tip{position:relative;display:inline-block}
+.tipbox{border:0.5px solid var(--border-strong);border-radius:var(--radius);background:var(--surface-2);box-shadow:0 2px 8px rgba(0,0,0,.08);padding:6px 10px;font-size:12px;max-width:340px;white-space:normal;color:var(--text-primary)}
+.drop{border:0.5px solid var(--border-strong);border-radius:var(--radius);background:var(--surface-2);font-size:12px;min-width:220px;padding:4px 0}
+.drop div{padding:4px 10px;display:flex;gap:6px;align-items:center}
+.drop .h{color:var(--text-muted);font-size:11px;padding-top:6px}
+.drop .s{background:var(--bg-accent);color:var(--text-accent)}
+pre{margin:0;padding:10px 12px;font:12px/1.5 ui-monospace,"Cascadia Mono",Consolas,monospace;background:var(--surface-1);overflow-x:auto;color:var(--text-primary)}
+.state{flex:1;min-width:230px}
+.state .body{padding:14px;display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+.warn{background:var(--bg-warning);color:var(--text-warning);padding:6px 12px;display:flex;gap:6px;align-items:center;font-size:12px;flex-wrap:wrap}
+.bad{background:var(--bg-danger);color:var(--text-danger);padding:6px 12px;display:flex;gap:6px;align-items:center;font-size:12px;flex-wrap:wrap}
+.dlg .dh{padding:10px 14px;font-weight:500;border-bottom:0.5px solid var(--border)}
+.dlg .db{padding:12px 14px;color:var(--text-secondary)}
+.dlg .df{display:flex;gap:6px;justify-content:flex-end;padding:8px 14px;border-top:0.5px solid var(--border)}
+.latercard{border:0.5px dashed var(--border-strong);border-radius:12px;padding:10px 14px;background:transparent;color:var(--text-secondary);font-size:12.5px;flex:1;min-width:240px}
+.latercard .t{font-weight:500;color:var(--text-primary);display:flex;gap:6px;align-items:center;margin-bottom:4px}
+.cmp th,.cmp td{white-space:normal;vertical-align:top}
+@media (max-width:600px){.form{grid-template-columns:1fr}.tree{width:120px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Списки по запросу — макет FQ-6</h1>
+<p class="sub">Согласован владельцем 2026-11-15. Экран администратора: создать список по своему запросу, проверить, включить и открыть по ссылке — без выпуска версии. Сотрудник видит готовый список, как в <a href="fq-3-query-list.html">макете FQ-3</a>. Серверная часть (FQ-6 п. 1–7а) уже готова; этот макет — п. 8–9: перечень и редактор. Пример: «Приёмки по складам с суммой».</p>
+<div class="legend">
+  <span class="tag done"><i class="ti ti-check"></i> готово в коде</span> реестр, проверка, ссылка, редактор запроса, ядро сетки
+  <span class="tag"><i class="ti ti-sparkles"></i> новое в FQ-6</span> вкладка, перечень, редактор определения
+  <span class="tag later"><i class="ti ti-clock"></i> позже</span> FQ-7 команды, FQ-8 меню
+</div>
+
+<p class="cap">Перечень — вкладка «Списки по запросу» в «Администрировании»</p>
+<div class="fr">
+  <div class="admtabs">
+    <span><i class="ti ti-key"></i> Доступ (RLS)</span>
+    <span><i class="ti ti-users"></i> Пользователи и права</span>
+    <span><i class="ti ti-settings"></i> Настройки</span>
+    <span><i class="ti ti-hash"></i> Нумерация</span>
+    <span><i class="ti ti-menu-2"></i> Меню</span>
+    <span class="on"><i class="ti ti-list-search"></i> Списки по запросу</span>
+  </div>
+  <div class="bar">
+    <button class="acc"><i class="ti ti-plus"></i> Создать</button>
+    <button><i class="ti ti-pencil"></i> Изменить</button>
+    <button><i class="ti ti-copy"></i> Копировать</button>
+    <button><i class="ti ti-toggle-right"></i> Выключить</button>
+    <button><i class="ti ti-external-link"></i> Открыть</button>
+    <button><i class="ti ti-trash"></i> Удалить</button>
+    <span class="sep"></span>
+    <button><i class="ti ti-checks"></i> Проверить все</button><span class="n">1</span>
+    <div style="flex:1"></div>
+    <span class="inp mut"><i class="ti ti-search"></i> Название или ключ</span>
+  </div>
+  <div class="scroll">
+    <table>
+      <thead><tr><th></th><th>Название</th><th>Ключ</th><th>Источник</th><th>Данные</th><th>Включён</th><th>Изменён</th></tr></thead>
+      <tbody>
+        <tr class="sel"><td><i class="ti ti-circle-check ok"></i></td><td>Приёмки по складам с суммой</td><td class="mut">receiving.by-warehouse</td><td>БД</td><td>Накладная, Склад</td><td><i class="ti ti-square-check"></i></td><td>Петров А. · 14.11 16:20</td></tr>
+        <tr><td><span class="tip"><i class="ti ti-alert-triangle wr"></i></span><span class="n">3</span></td><td>Остатки по ячейкам</td><td class="mut">stock.cells</td><td>БД</td><td>Остаток, Ячейка</td><td><i class="ti ti-square-check"></i></td><td>Иванова Е. · 12.11 09:05</td></tr>
+        <tr><td><i class="ti ti-circle-check ok"></i></td><td>Поступление по номенклатуре</td><td class="mut">receiving.receipts</td><td><i class="ti ti-lock mut"></i> код<span class="n">2</span></td><td>Накладная, Номенклатура, Цех</td><td><i class="ti ti-square-check mut"></i></td><td class="mut">—</td></tr>
+        <tr class="off"><td><i class="ti ti-circle-check"></i></td><td>Брак за неделю</td><td>quality.defects-week</td><td>БД</td><td>Акт брака</td><td><i class="ti ti-square"></i><span class="n">4</span></td><td>Петров А. · 15.11 10:40</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div style="padding:6px 12px 10px 40px">
+    <div class="tipbox"><b class="wr">Список требует исправления.</b> Поле «Ячейка» удалено из «Остатка». Сотрудники список не открывают; подробности — в редакторе после «Проверить».</div>
+  </div>
+  <div class="status" style="border-top:0.5px solid var(--border)">
+    <span>Списков: 4 · из кода: 1 · требуют исправления: 1 · выключено: 1</span>
+    <div style="flex:1"></div><span class="mut">проверено при запуске 08:02</span>
+  </div>
+</div>
+<ol>
+  <li>Команды перечня. «Создать» открывает пустой редактор. «Изменить» — редактор выбранного списка. «Копировать» создаёт новый список с другим ключом, в том числе из списка, объявленного в коде. «Выключить / Включить» работает без открытия редактора. «Открыть» показывает настоящую ссылку <code>query-list/&lt;ключ&gt;</code> в новой вкладке — так, как увидит сотрудник, но с правами администратора. «Удалить» — с подтверждением. «Проверить все» заново проверяет все определения (при запуске приложения это уже сделано).</li>
+  <li>Списки, объявленные в коде, показаны рядом со списками из БД: видно, какие ключи заняты и что можно положить в меню. Они только для чтения, без автора и версии: доступны «Изменить» (только просмотр), «Копировать» и «Открыть».</li>
+  <li>Состояние проверки — значок. Галочка: определение проверено. Треугольник: «Список требует исправления», причина — во всплывающей подсказке. Такой список сотрудники не открывают, администратор по ссылке видит причину.</li>
+  <li>Выключенный список хранится, но по ссылке не открывается; в меню (FQ-8) его пункт станет устаревшим. Удалить можно и включённый — после подтверждения.</li>
+</ol>
+
+<p class="cap" style="margin-top:28px">Редактор — вкладка «Основное»</p>
+<div class="fr">
+  <div class="head">
+    <span class="crumb"><a>Списки по запросу</a> ›</span>
+    <span class="t">Приёмки по складам с суммой</span>
+    <span class="dirty">Не сохранено</span>
+    <div style="flex:1"></div>
+    <span class="ok" style="font-size:12px"><i class="ti ti-circle-check"></i> Проверено 16:20</span>
+  </div>
+  <div class="bar">
+    <button class="acc"><i class="ti ti-device-floppy"></i> Сохранить</button>
+    <button><i class="ti ti-checks"></i> Проверить</button>
+    <button><i class="ti ti-external-link"></i> Открыть</button>
+    <span class="sep"></span>
+    <button>Отмена</button><span class="n">5</span>
+  </div>
+  <div class="tabs"><span class="on">Основное</span><span>Запрос</span><span>Параметры</span><span>Вид</span><span class="fut"><i class="ti ti-clock"></i> Команды · FQ-7</span></div>
+  <div class="form">
+    <span class="l">Название</span>
+    <span class="v"><span class="inp" style="min-width:240px">Приёмки по складам с суммой</span></span>
+    <span class="l">Ключ</span>
+    <span class="v"><span class="inp ro"><i class="ti ti-lock"></i> receiving.by-warehouse</span><span class="hint">задаётся при создании; другой ключ — через «Копировать»</span><span class="n">6</span></span>
+    <span class="l">Включён</span>
+    <span class="v"><i class="ti ti-square-check"></i><span class="hint">выключенный список по ссылке не открывается</span></span>
+    <span class="l">Режим загрузки</span>
+    <span class="v">
+      <span class="radio"><i class="ti ti-circle-dot" style="color:var(--text-accent)"></i> Постранично</span>
+      <span class="radio"><i class="ti ti-circle mut"></i> Первые <span class="inp ro" style="width:44px">5 000</span> строк</span>
+      <span class="radio"><i class="ti ti-circle mut"></i> Целиком в памяти <span class="hint">до 30 000 строк</span></span>
+    </span>
+    <span class="l">Ссылка</span>
+    <span class="v"><span class="inp ro">query-list/receiving.by-warehouse</span><button><i class="ti ti-copy"></i></button></span>
+    <span class="l">Кому виден</span>
+    <span class="v"><span class="info"><i class="ti ti-shield-check"></i><span>Список увидят пользователи с правом чтения: <b>Накладная на приёмку</b>, <b>Строка накладной</b>, <b>Склад</b>. Строки отбираются по их правам (RLS).</span></span><span class="n">7</span></span>
+    <span class="l">Изменён</span>
+    <span class="v">Петров А., 14.11.2026 16:20</span>
+    <span class="l mut">Где используется</span>
+    <span class="v"><span class="tag later"><i class="ti ti-clock"></i> FQ-8: пункты меню со ссылкой на список</span></span>
+  </div>
+</div>
+<ol start="5">
+  <li>«Сохранить» сначала проверяет определение: непроверенное не сохраняется (так устроен реестр). «Проверить» делает то же без сохранения. «Открыть» доступно после первого сохранения. «Отмена» и уход с вкладки при несохранённых изменениях спрашивают подтверждение, как во вкладке «Меню».</li>
+  <li>Ключ — строчные латинские буквы, цифры, точки и дефисы, до 100 символов. После первого сохранения не меняется: на него ссылаются меню, «Виды» сотрудников и ссылки.</li>
+  <li>«Кому виден» — сущности, которые читает запрос, по данным проверки. Своего права на список нет (Д-Q3): кто может читать эти данные, тот видит список.</li>
+</ol>
+
+<p class="cap" style="margin-top:28px">Вкладка «Запрос» <span class="tag done">готово: редактор и конструктор с /queries</span></p>
+<div class="fr">
+  <div class="tabs"><span>Основное</span><span class="on">Запрос</span><span>Параметры</span><span>Вид</span><span class="fut"><i class="ti ti-clock"></i> Команды · FQ-7</span></div>
+  <div class="bar">
+    <span class="tag done">Текст</span><span class="tag">Конструктор</span>
+    <div style="flex:1"></div>
+    <span class="mut" style="font-size:11.5px">редактор <code>ReportQueryEditor</code>, как на /queries</span>
+  </div>
+<pre>select d.id as document, w.id as warehouse, d.date as date,
+       sum(i.amount) as amount
+from ReceivingDocumentItem i
+  join i.document d
+  join d.warehouse w
+where d.date between :periodFrom and :periodTo
+  and (:warehouse is null or w.id = :warehouse)
+  and d.organization.id = :organization
+  and d.status = :status
+group by d.id, w.id, d.date</pre>
+  <div class="status" style="border-top:0.5px solid var(--border)">
+    <i class="ti ti-circle-check ok"></i><span>Запрос проверен: 4 колонки, ключ строки — Накладная.</span><span class="n">8</span>
+  </div>
+</div>
+<ol start="8">
+  <li>Под редактором — одна строка результата проверки, без отдельной таблицы возможностей колонок: что можно отбирать и сортировать, видно на вкладке «Вид». При ошибке здесь же причина: «Колонка результата должна иметь алиас», «Нет права чтения: Склад» и т. п. Параметры запроса объявляются в редакторе, как на /queries; как сотрудник получает их значения, задаёт вкладка «Параметры».</li>
+</ol>
+
+<p class="cap" style="margin-top:28px">Вкладка «Параметры»</p>
+<div class="fr">
+  <div class="tabs"><span>Основное</span><span>Запрос</span><span class="on">Параметры</span><span>Вид</span><span class="fut"><i class="ti ti-clock"></i> Команды · FQ-7</span></div>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>Параметр</th><th>Подпись на панели</th><th>Вид</th><th>Источник значения</th><th>Значение</th><th>Обязателен</th></tr></thead>
+      <tbody>
+        <tr><td class="mut">period</td><td><span class="inp">Период</span></td><td>диапазон дат</td><td><span class="inp">Вводит пользователь <i class="ti ti-chevron-down mut"></i></span></td><td class="mut">нет по умолчанию</td><td><i class="ti ti-square-check"></i></td></tr>
+        <tr><td class="mut">warehouse</td><td><span class="inp">Склад</span></td><td>ссылка «Склад»</td><td><span class="inp">Вводит пользователь <i class="ti ti-chevron-down mut"></i></span></td><td class="mut">все склады</td><td><i class="ti ti-square"></i></td></tr>
+        <tr><td class="mut">organization</td><td class="mut">не показывается</td><td>число — id организации</td><td><span class="inp on">Вычисляется <i class="ti ti-chevron-down"></i></span></td><td>организация пользователя</td><td class="mut">—</td></tr>
+        <tr><td class="mut">status</td><td class="mut">не показывается</td><td>перечисление</td><td><span class="inp on">Постоянное значение <i class="ti ti-chevron-down"></i></span></td><td><span class="inp">Проведён <i class="ti ti-chevron-down mut"></i></span></td><td class="mut">—</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div style="display:flex;gap:12px;flex-wrap:wrap;padding:10px 14px;align-items:flex-start">
+    <div class="drop">
+      <div class="h">Источник значения</div>
+      <div class="s"><i class="ti ti-forms"></i> Вводит пользователь</div>
+      <div><i class="ti ti-lock"></i> Постоянное значение</div>
+      <div><i class="ti ti-calculator"></i> Вычисляется</div>
+    </div>
+    <div class="drop">
+      <div class="h">Вычисляется</div>
+      <div><i class="ti ti-clock"></i> текущие дата и время</div>
+      <div><i class="ti ti-user"></i> текущий пользователь</div>
+      <div class="s"><i class="ti ti-building"></i> организация пользователя</div>
+    </div>
+    <ol start="9" style="flex:1;min-width:240px;margin-top:0">
+      <li>Список параметров берётся из запроса. Источник значения: «Вводит пользователь» — поле на панели над списком, с необязательным значением по умолчанию. «Постоянное значение» — обязательное условие администратора: сотрудник его не видит и не меняет. «Вычисляется» — при каждом запуске, только для чисел, строк и дат: ссылку на организацию пользователя запрос сравнивает по id (<code>d.organization.id = :organization</code>). Значения вводятся теми же полями, что на панели списка (<code>QueryParameterFields</code>). Привязки к карточке нет — она только у встраивания из кода (FQ-9).</li>
+    </ol>
+  </div>
+</div>
+
+<p class="cap" style="margin-top:28px">Вкладка «Вид» — стандартный вид на живой сетке <span class="tag done">готово: ядро FQ-3</span></p>
+<div class="fr">
+  <div class="tabs"><span>Основное</span><span>Запрос</span><span>Параметры</span><span class="on">Вид</span><span class="fut"><i class="ti ti-clock"></i> Команды · FQ-7</span></div>
+  <div class="panel">
+    <span class="mut">Период с</span><span class="inp">01.11.2026<i class="ti ti-calendar mut"></i></span>
+    <span class="mut">по</span><span class="inp">14.11.2026<i class="ti ti-calendar mut"></i></span>
+    <span class="mut">Склад</span><span class="inp mut">все<i class="ti ti-dots mut"></i></span>
+    <button class="acc"><i class="ti ti-player-play"></i> Выполнить</button><span class="n">10</span>
+    <span class="mut" style="font-size:11px">тестовые значения не сохраняются · данные — с вашими правами</span>
+  </div>
+  <div class="bar">
+    <button><i class="ti ti-columns"></i> Колонки…</button>
+    <button><i class="ti ti-sitemap"></i> Группировка</button>
+    <button><i class="ti ti-sum"></i> Итоги…</button>
+    <div style="flex:1"></div>
+    <button><i class="ti ti-arrow-back-up"></i> Сбросить вид</button>
+  </div>
+  <div style="display:flex;min-height:180px">
+    <div class="tree">
+      <div class="r" style="font-weight:500"><span class="t">Группировка: Склад</span></div>
+      <div class="r"><i class="ti ti-chevron-right mut"></i><span class="t">Все</span><span class="mut">48</span></div>
+      <div class="r tsel"><i class="ti ti-chevron-right"></i><span class="t">Основной склад</span><span>31</span></div>
+      <div class="r"><i class="ti ti-chevron-right mut"></i><span class="t">Склад материалов</span><span class="mut">17</span></div>
+    </div>
+    <div style="flex:1;min-width:0" class="scroll">
+      <table>
+        <thead>
+          <tr><th>Накладная <i class="ti ti-link mut"></i></th><th>Склад <i class="ti ti-link mut"></i></th><th>Дата <i class="ti ti-arrow-down"></i></th><th class="num">Сумма</th></tr>
+          <tr class="hf"><td><span class="inp"><i class="ti ti-filter"></i> выбрать…</span></td><td><span class="inp"><i class="ti ti-filter"></i> выбрать…</span></td><td><span class="inp">с — по</span></td><td><span class="inp">от — до</span></td></tr>
+        </thead>
+        <tbody>
+          <tr><td class="ref">ПН-00412</td><td class="ref">Основной склад</td><td>14.11.2026</td><td class="num">184 200,00</td></tr>
+          <tr><td class="ref">ПН-00409</td><td class="ref">Основной склад</td><td>12.11.2026</td><td class="num">52 760,00</td></tr>
+          <tr><td class="ref">ПН-00398</td><td class="ref">Основной склад</td><td>06.11.2026</td><td class="num">9 940,00</td></tr>
+          <tr class="f"><td>Итого по отбору</td><td></td><td></td><td class="num">1 214 380,00</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="status" style="border-top:0.5px solid var(--border)">
+    <span>Строк: 31</span>
+  </div>
+</div>
+<ol start="10">
+  <li>Администратор настраивает сетку так, как сотрудник увидит её при открытии: колонки, заголовки, порядок и ширины, сортировку, группировку, итоги, начальный отбор. «Сохранить» запоминает это как стандартный вид; сотрудник начинает с него и сохраняет свои «Виды». Диалоги — те же, что в ядре FQ-3. Тестовые значения параметров нужны только для настройки. Если после правки запроса колонки больше нет, она убирается из вида с предупреждением, как в UTR. «Сбросить вид» возвращает колонки и порядок из запроса.</li>
+</ol>
+
+<p class="cap" style="margin-top:28px">Состояния и подтверждения</p>
+<div style="display:flex;gap:12px;flex-wrap:wrap">
+  <div class="fr state">
+    <div class="bad"><i class="ti ti-circle-x"></i> Не сохранено: определение не прошло проверку <span class="n">11</span></div>
+    <div class="body">
+      <span class="mut">Поле «Склад» удалено из «Накладной». Исправьте запрос и сохраните снова.</span>
+      <button>Перейти к запросу</button>
+    </div>
+  </div>
+  <div class="fr state">
+    <div class="warn"><i class="ti ti-git-merge"></i> Список изменил другой администратор</div>
+    <div class="body">
+      <span class="mut">Иванова Е. сохранила его в 16:05. Ваши изменения не записаны: перечитайте список и повторите правку.</span>
+      <button>Перечитать</button>
+    </div>
+  </div>
+  <div class="fr state">
+    <div class="bad"><i class="ti ti-key"></i> Ключ уже занят</div>
+    <div class="body">
+      <span class="mut">receiving.receipts объявлен в коде. Выберите другой ключ.</span>
+    </div>
+  </div>
+</div>
+<div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:12px">
+  <div class="fr dlg" style="flex:1;min-width:260px">
+    <div class="dh">Удалить список?</div>
+    <div class="db">«Брак за неделю» будет удалён. Ссылка <code>query-list/quality.defects-week</code> перестанет открываться, пункты меню на него станут устаревшими. Сохранённые «Виды» сотрудников останутся и вернутся, если список с этим ключом создадут снова.</div>
+    <div class="df"><button>Отмена</button><button class="acc" style="background:var(--text-danger);border-color:var(--text-danger)">Удалить</button></div>
+  </div>
+  <div class="fr dlg" style="flex:1;min-width:260px">
+    <div class="dh">Есть несохранённые изменения</div>
+    <div class="db">Изменения списка «Приёмки по складам с суммой» не сохранены. Уйти без сохранения?</div>
+    <div class="df"><button>Остаться</button><button>Уйти без сохранения</button></div>
+  </div>
+  <div class="fr state" style="min-width:260px">
+    <div class="body">
+      <span style="font-weight:500"><i class="ti ti-list-search mut"></i> Списков по запросу пока нет</span>
+      <span class="mut">Список по запросу — это реестр для сотрудников по вашему запросу. Создайте первый.</span>
+      <button class="acc"><i class="ti ti-plus"></i> Создать</button>
+    </div>
+  </div>
+</div>
+<ol start="11">
+  <li>Сообщения короткие и без текста запроса. Конфликт правки — без «Сохранить копией»: двое администраторов редко правят один список одновременно. Значок состояния в перечне обновляется после сохранения.</li>
+</ol>
+
+<p class="cap" style="margin-top:28px">Позже — показано пунктиром</p>
+<div style="display:flex;gap:12px;flex-wrap:wrap">
+  <div class="latercard">
+    <div class="t"><i class="ti ti-clock"></i> Вкладка «Команды» — FQ-7</div>
+    Основная сущность и колонка объекта команды (выбор из проверенных колонок идентичности), галочки «Создать», «Открыть», «Изменить», «Удалить». Поля уже есть в определении и проверяются; вкладка появится вместе с выполнением команд, чтобы результат настройки был сразу виден.
+  </div>
+  <div class="latercard">
+    <div class="t"><i class="ti ti-clock"></i> «Где используется» — FQ-8</div>
+    Пункты основного и именованных меню со ссылкой на список. Список попадает в меню через редактор меню (СМ-3), в разделе «Все функции».
+  </div>
+  <div class="latercard">
+    <div class="t"><i class="ti ti-clock"></i> Входы с других экранов — отложено</div>
+    «Создать список по запросу» на /queries и из табличного отчёта UTR. Пока администратор пишет или вставляет запрос прямо в редакторе.
+  </div>
+</div>
+
+<p class="cap" style="margin-top:28px">Чего на экране нет и почему</p>
+<div class="fr scroll">
+  <table class="cmp">
+    <thead><tr><th>Не делаем</th><th>Причина</th></tr></thead>
+    <tbody>
+      <tr><td>Предпросмотр «Как увидит пользователь» в диалоге</td><td>Повторяет вкладку «Вид» и показывает данные с правами администратора. Вместо него — «Открыть» настоящую ссылку.</td></tr>
+      <tr><td>Таблица возможностей колонок под редактором</td><td>Возможности видны в сетке вкладки «Вид»; под редактором — только результат проверки.</td></tr>
+      <tr><td>«Сохранить копией» при конфликте правки</td><td>Редкий случай; достаточно «Перечитать».</td></tr>
+      <tr><td>Панель диагностики справа в перечне</td><td>Хватает значка с подсказкой и проверки в редакторе.</td></tr>
+      <tr><td>Удаление «Видов» вместе со списком</td><td>Виды хранит приложение, реестр — модуль запросов; каскад потребовал бы нового порта. Осиротевшие виды безвредны.</td></tr>
+      <tr><td>Черновик с ошибками</td><td>Реестр сохраняет только проверенное определение; от потери правок защищает подтверждение ухода.</td></tr>
+      <tr><td>Экспорт и импорт между базами, история изменений</td><td>Вне v1 (Д-Q12); «кто и когда изменил» есть.</td></tr>
+    </tbody>
+  </table>
+</div>
+</div>
+</body>
+</html>

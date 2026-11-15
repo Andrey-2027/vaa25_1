@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Табличный отчёт UTR</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+:root{--surface-0:#f5f4ef;--surface-1:#faf9f5;--surface-2:#ffffff;--text-primary:#1f1e1d;--text-secondary:#5e5d59;--text-muted:#8f8d87;--text-accent:#185FA5;--bg-accent:#E6F1FB;--border-accent:#378ADD;--bg-warning:#FAEEDA;--text-warning:#854F0B;--bg-danger:#FCEBEB;--text-danger:#A32D2D;--border:rgba(31,30,29,.15);--border-strong:rgba(31,30,29,.3);--radius:8px}
+@media (prefers-color-scheme: dark){:root{--surface-0:#1f1e1d;--surface-1:#262624;--surface-2:#30302e;--text-primary:#f5f4ef;--text-secondary:#c2c0b6;--text-muted:#8f8d87;--text-accent:#85B7EB;--bg-accent:#0C447C;--border-accent:#85B7EB;--bg-warning:#633806;--text-warning:#FAC775;--bg-danger:#501313;--text-danger:#F7C1C1;--border:rgba(245,244,239,.15);--border-strong:rgba(245,244,239,.3)}}
+body{margin:0;padding:24px 16px;background:var(--surface-0);color:var(--text-primary);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+.wrap{max-width:900px;margin:0 auto}
+h1{font-size:20px;font-weight:500;margin:0 0 4px}
+.sub{color:var(--text-secondary);font-size:14px;margin:0 0 20px}
+a{color:var(--text-accent)}
+.fr{border:0.5px solid var(--border-strong);border-radius:12px;overflow:hidden;background:var(--surface-2);font-size:12.5px;line-height:1.45}
+.cap{font-size:13px;color:var(--text-secondary);margin:0 0 6px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.n{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:var(--bg-accent);color:var(--text-accent);font-size:11px;font-weight:500;margin-left:6px;vertical-align:1px;flex-shrink:0}
+.mut{color:var(--text-muted)}
+.inp{border:0.5px solid var(--border-strong);border-radius:var(--radius);padding:2px 8px;display:inline-flex;gap:6px;align-items:center;background:var(--surface-2)}
+.inp.on{border-color:var(--border-accent);color:var(--text-accent)}
+.head{display:flex;align-items:center;gap:8px;padding:10px 12px 6px;flex-wrap:wrap}
+.head .t{font-weight:500;font-size:15px}
+.bar{display:flex;align-items:center;gap:6px;padding:6px 12px;border-bottom:0.5px solid var(--border);flex-wrap:wrap}
+.sep{width:0.5px;align-self:stretch;background:var(--border-strong);margin:2px 4px}
+.panel{display:flex;align-items:center;gap:12px;padding:8px 12px;background:var(--surface-1);border-bottom:0.5px solid var(--border);flex-wrap:wrap}
+.tabs{display:flex;gap:16px;padding:0 12px;border-bottom:0.5px solid var(--border)}
+.tabs span{padding:6px 0;color:var(--text-secondary)}
+.tabs .on{color:var(--text-primary);font-weight:500;border-bottom:2px solid var(--text-accent)}
+button{font:inherit;font-size:12px;padding:3px 10px;border-radius:var(--radius);border:0.5px solid var(--border-strong);background:transparent;color:var(--text-primary);display:inline-flex;gap:4px;align-items:center}
+button.acc{background:var(--text-accent);color:var(--surface-2);border-color:var(--text-accent)}
+table{border-collapse:collapse;width:100%}
+th,td{padding:4px 8px;border-bottom:0.5px solid var(--border);text-align:left;white-space:nowrap}
+th{font-weight:500;background:var(--surface-1)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+td.ref{color:var(--text-accent);text-decoration:underline dotted;text-underline-offset:3px}
+tr.f td{border-bottom:0;font-weight:500;background:var(--surface-1)}
+tr.off td{color:var(--text-muted)}
+.hf td{padding:2px 6px;background:var(--surface-1)}
+.hf .inp{width:100%;box-sizing:border-box;font-size:11px;color:var(--text-muted)}
+.hf .inp.on{color:var(--text-accent)}
+.status{display:flex;align-items:center;gap:8px;padding:6px 12px;font-size:12px;color:var(--text-secondary);flex-wrap:wrap}
+.tree{width:200px;border-right:0.5px solid var(--border);padding:6px 0;flex-shrink:0;font-size:12px}
+.tree .r{display:flex;gap:4px;align-items:center;padding:2px 8px}
+.tree .r .t{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tree .agg{color:var(--text-muted);font-size:11px;padding:0 8px 2px 26px}
+.sel{background:var(--bg-accent);color:var(--text-accent)}
+.state{flex:1;min-width:220px}
+.state .body{padding:18px 14px;display:flex;flex-direction:column;gap:8px;align-items:flex-start;min-height:100px}
+.warn{background:var(--bg-warning);color:var(--text-warning);padding:6px 12px;display:flex;gap:6px;align-items:center;font-size:12px;flex-wrap:wrap}
+.err{color:var(--text-danger)}
+ol{font-size:13px;color:var(--text-secondary);padding-left:20px;margin:10px 0 0}
+ol li{margin:4px 0}
+.drop{border:0.5px solid var(--border-strong);border-radius:var(--radius);background:var(--surface-2);font-size:12px;min-width:230px;padding:4px 0}
+.drop div{padding:4px 10px;display:flex;gap:6px;align-items:center}
+.drop .h{color:var(--text-muted);font-size:11px;padding-top:6px}
+.drop .dis{color:var(--text-muted)}
+.scroll{overflow-x:auto}
+.tag{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:400;padding:1px 8px;border-radius:999px;border:0.5px solid var(--border-strong);color:var(--text-secondary);white-space:nowrap}
+.tag.core{background:var(--bg-accent);color:var(--text-accent);border-color:transparent}
+.legend{display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--text-secondary);margin:-8px 0 20px}
+.dirty{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--text-warning)}
+.dirty::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--text-warning)}
+pre{margin:0;padding:10px 12px;font:12px/1.5 ui-monospace,"Cascadia Mono",Consolas,monospace;background:var(--surface-1);overflow-x:auto;color:var(--text-primary)}
+.cards{display:flex;gap:12px;flex-wrap:wrap}
+.cards .fr{flex:1;min-width:240px;padding:10px 14px}
+.cards ul{margin:6px 0 0;padding-left:18px;color:var(--text-secondary);font-size:12.5px}
+.cards ul li{margin:3px 0}
+.dlg{flex:1;min-width:280px}
+.dlg .dh{padding:10px 14px;font-weight:500;border-bottom:0.5px solid var(--border);display:flex;align-items:center}
+.dlg .df{display:flex;gap:6px;justify-content:flex-end;padding:8px 14px;border-top:0.5px solid var(--border)}
+.dlg td .inp{width:100%;box-sizing:border-box}
+.sl{display:inline-flex;align-items:center;justify-content:space-between;gap:6px;min-width:96px}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:1px 8px;border-radius:999px;background:var(--bg-accent);color:var(--text-accent);font-size:11.5px}
+.drophint{border:1px dashed var(--border-strong);border-radius:var(--radius);padding:6px 8px;color:var(--text-muted);font-size:11.5px;margin:6px 8px}
+.cmp th,.cmp td{white-space:normal;vertical-align:top}
+.cmp th:first-child{width:22%}
+@media (max-width:600px){.tree{width:130px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Табличный отчёт UTR — макет FQ-5</h1>
+<p class="sub">Согласован владельцем 2026-11-14 (редакция 4 плана). UTR — <b>только просмотр</b>. Пользователь собирает отчёт по своему запросу, настраивает сетку (заголовки колонок, группировку, итоги) и сохраняет его. «Видов реестра» и команд над строками нет; по ссылке в ячейке открывается форма объекта. Общее со списком по запросу — ядро просмотра из <a href="fq-3-query-list.html">макета FQ-3</a>. Пример: «Поступление по номенклатуре за месяц».</p>
+<div class="legend">
+  <span class="tag core"><i class="ti ti-box"></i> ядро — как в макете FQ-3</span> параметры, сетка, отборы, группировка, итоги, настройка сетки, строка состояния, состояния данных
+  <span class="tag"><i class="ti ti-table"></i> только UTR</span> команды отчёта, вкладка «Запрос», сохранение, видимость
+</div>
+
+<p class="cap">Автор — свой отчёт</p>
+<div class="fr">
+  <div class="head">
+    <i class="ti ti-table mut"></i>
+    <span class="t">Поступление по номенклатуре за месяц</span>
+    <span class="tag"><i class="ti ti-lock"></i> Только я</span>
+    <span class="dirty">Не сохранено</span>
+  </div>
+  <div class="tabs"><span class="on">Результат</span><span>Запрос</span><span class="n" style="align-self:center">2</span></div>
+  <div class="bar">
+    <button><i class="ti ti-device-floppy"></i> Сохранить</button>
+    <button>Сохранить как…</button>
+    <span class="sep"></span>
+    <button aria-label="Обновить"><i class="ti ti-refresh"></i> Обновить</button>
+    <div style="flex:1"></div>
+    <button aria-label="Ещё"><i class="ti ti-dots"></i> Ещё</button><span class="n">1</span>
+  </div>
+  <div class="panel">
+    <span class="mut">Период с</span><span class="inp">01.11.2026<i class="ti ti-calendar mut"></i></span>
+    <span class="mut">по</span><span class="inp">30.11.2026<i class="ti ti-calendar mut"></i></span>
+    <span class="mut">Цех-получатель</span><span class="inp mut">все<i class="ti ti-dots mut"></i></span>
+    <button class="acc"><i class="ti ti-player-play"></i> Выполнить</button><span class="n">3</span>
+    <div style="flex:1"></div><span class="tag core">ядро</span>
+  </div>
+  <div style="display:flex;min-height:220px">
+    <div class="tree">
+      <div class="r" style="font-weight:500"><span class="t">Группировка: Цех-сдатчик</span><i class="ti ti-x mut"></i></div>
+      <div class="r"><i class="ti ti-chevron-right mut"></i><span class="t">Все</span><span class="mut">171</span></div>
+      <div class="r sel"><i class="ti ti-chevron-right"></i><span class="t">Цех №1 «Заготовка»</span><span>3</span></div>
+      <div class="agg">Количество: 2 612</div>
+      <div class="r"><i class="ti ti-chevron-right mut"></i><span class="t">Цех №2 «Механообработка»</span><span class="mut">52</span></div>
+      <div class="r"><i class="ti ti-chevron-right mut"></i><span class="t">Не задано</span><span class="mut">116</span></div>
+    </div>
+    <div style="flex:1;min-width:0" class="scroll">
+      <table>
+        <thead>
+          <tr><th title="Для сортировки по названию добавьте в запрос колонку с названием">Номенклатура <i class="ti ti-link mut"></i><span class="n">5</span></th><th title="Для сортировки по названию добавьте в запрос колонку с названием">Цех-сдатчик <i class="ti ti-link mut"></i></th><th class="num">Количество <i class="ti ti-arrow-down"></i><span class="n">4</span></th><th class="num">Накладных</th></tr>
+          <tr class="hf"><td><span class="inp"><i class="ti ti-filter"></i> выбрать…</span></td><td><span class="inp"><i class="ti ti-filter"></i> выбрать…</span></td><td><span class="inp on">≥ 100 <i class="ti ti-x"></i></span></td><td><span class="inp">от — до</span></td></tr>
+        </thead>
+        <tbody>
+          <tr><td class="ref">Корпус КП-12</td><td class="ref">Цех №1 «Заготовка»</td><td class="num">1 240</td><td class="num">18</td></tr>
+          <tr><td class="ref">Вал В-40</td><td class="ref">Цех №1 «Заготовка»</td><td class="num">860</td><td class="num">11</td></tr>
+          <tr><td class="ref">Втулка ВТ-8</td><td class="ref">Цех №1 «Заготовка»</td><td class="num">512</td><td class="num">9</td></tr>
+          <tr class="f"><td>Итого по отбору</td><td></td><td class="num">2 612</td><td class="num">38</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="status" style="border-top:0.5px solid var(--border)">
+    <span>Строк: 3</span>
+    <div style="flex:1"></div><span class="tag core">ядро</span>
+  </div>
+</div>
+<ol>
+  <li>Строка команд — отдельный toolbar под заголовком, как у списка и у ListForm. Команды UTR: «Сохранить», «Сохранить как…», «Обновить», «Ещё». «Видов» и команд над строками нет. В шапке остаются название, видимость («Только я») и признак «Не сохранено» — макет менялся после последнего сохранения.</li>
+  <li>Две вкладки. «Результат» — ядро просмотра. «Запрос» — существующий редактор и конструктор, как на <code>/queries</code>.</li>
+  <li>Панель параметров — ядро (UX-2). Значения по умолчанию берутся из документа. Введённые значения не сохраняются, поэтому период запрашивается при каждом запуске. Когда выполнять, решает правило режима (UX-3).</li>
+  <li>Сетка служит редактором макета. Колонки и их заголовки, порядок, ширины, сортировка, отбор, группировка и итоги попадают в документ по «Сохранить» и применяются при открытии. Сохранённый отбор («Количество ≥ 100») зритель может снять. Ограничения данных автор задаёт в запросе и параметрах.</li>
+</ol>
+
+<p class="cap" style="margin-top:28px">«Ещё» и ссылка в ячейке <span class="tag">только UTR</span></p>
+<div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start">
+  <div class="drop">
+    <div class="h">Сетка — ядро</div>
+    <div><i class="ti ti-columns"></i> Колонки…</div>
+    <div><i class="ti ti-check"></i> Группировка</div>
+    <div><i class="ti ti-sum"></i> Итоги…</div>
+    <div class="h">Отчёт — автору</div>
+    <div><i class="ti ti-database"></i> Режим загрузки…</div>
+    <div><i class="ti ti-settings"></i> Свойства… <span class="mut">название, описание, видимость</span></div>
+    <div class="h">Передать</div>
+    <div><i class="ti ti-link"></i> Скопировать ссылку</div>
+    <div class="dis"><i class="ti ti-file-spreadsheet"></i> Выгрузить в XLSX / CSV <span>FQ-11</span></div>
+    <div class="h">Администратору</div>
+    <div><i class="ti ti-list-details"></i> Создать список по запросу… <span class="n">6</span></div>
+  </div>
+  <div class="drop" style="min-width:200px">
+    <div class="h">Вал В-40</div>
+    <div><i class="ti ti-external-link"></i> Открыть «Номенклатура»</div>
+  </div>
+  <ol start="5" style="flex:1;min-width:240px;margin-top:0">
+    <li>Колонка-ссылка: значение подчёркнуто. По щелчку или из контекстного меню ячейки «Открыть &lt;тип&gt;» перечитывает объект с RLS и открывает его форму через E1. Форма работает по своим правам, других команд над строкой в UTR нет. Сортировки по ссылке нет (UX-7).</li>
+    <li>Пункты «Сетка» — ядро, их диалоги ниже. Режим загрузки и свойства меняет только автор. Выгрузка появится в FQ-11. «Создать список по запросу…» видит только администратор: запрос и макет копируются в редактор «Списки по запросу» (FQ-6) без связи с отчётом.</li>
+  </ol>
+</div>
+
+<p class="cap" style="margin-top:28px">Настройка сетки — заголовки, итоги, группировка <span class="tag core">ядро</span></p>
+<div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start">
+  <div class="fr dlg">
+    <div class="dh">Колонки<span class="n">7</span></div>
+    <table>
+      <thead><tr><th></th><th>Поле запроса</th><th>Заголовок</th><th class="num">Ширина</th></tr></thead>
+      <tbody>
+        <tr><td><i class="ti ti-grip-vertical mut"></i> <i class="ti ti-square-check"></i></td><td class="mut">nomenclature</td><td><span class="inp">Номенклатура</span></td><td class="num">220</td></tr>
+        <tr><td><i class="ti ti-grip-vertical mut"></i> <i class="ti ti-square-check"></i></td><td class="mut">senderWorkshop</td><td><span class="inp on">Цех-сдатчик</span></td><td class="num">200</td></tr>
+        <tr><td><i class="ti ti-grip-vertical mut"></i> <i class="ti ti-square-check"></i></td><td class="mut">quantity</td><td><span class="inp">Количество</span></td><td class="num">авто</td></tr>
+        <tr><td><i class="ti ti-grip-vertical mut"></i> <i class="ti ti-square-check"></i></td><td class="mut">documents</td><td><span class="inp on">Накладных</span></td><td class="num">авто</td></tr>
+        <tr class="off"><td><i class="ti ti-grip-vertical"></i> <i class="ti ti-square"></i></td><td>unit</td><td><span class="inp">Ед. изм.</span></td><td class="num">—</td></tr>
+      </tbody>
+    </table>
+    <div class="df"><button>По запросу</button><div style="flex:1"></div><button class="acc">Применить</button><button>Отмена</button></div>
+  </div>
+  <div class="fr dlg">
+    <div class="dh">Итоги<span class="n">8</span></div>
+    <table>
+      <thead><tr><th>Колонка</th><th>Итог в подвале</th></tr></thead>
+      <tbody>
+        <tr><td>Номенклатура</td><td><span class="inp sl">нет <i class="ti ti-chevron-down mut"></i></span></td></tr>
+        <tr><td>Цех-сдатчик</td><td><span class="inp sl">нет <i class="ti ti-chevron-down mut"></i></span></td></tr>
+        <tr><td>Количество</td><td><span class="inp sl on">сумма <i class="ti ti-chevron-down"></i></span></td></tr>
+        <tr><td>Накладных</td><td><span class="inp sl on">сумма <i class="ti ti-chevron-down"></i></span></td></tr>
+      </tbody>
+    </table>
+    <div class="drop" style="margin:0 14px 10px auto;width:150px;min-width:0">
+      <div class="h">Числовая колонка</div><div>нет</div><div class="sel">сумма</div><div>среднее</div><div>минимум</div><div>максимум</div><div>количество строк</div>
+    </div>
+    <div class="df"><button class="acc">Применить</button><button>Отмена</button></div>
+  </div>
+</div>
+<div class="fr" style="margin-top:12px;max-width:420px">
+  <div class="dh" style="padding:10px 14px;font-weight:500;border-bottom:0.5px solid var(--border)">Панель группировки<span class="n">9</span></div>
+  <div style="padding:6px 8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+    <span class="mut">Уровни:</span>
+    <span class="chip">1 · Цех-сдатчик <i class="ti ti-x"></i></span>
+    <span class="chip">2 · Номенклатура <i class="ti ti-x"></i></span>
+    <button><i class="ti ti-plus"></i> поле</button>
+  </div>
+  <div style="padding:0 8px 6px;display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+    <span class="mut">Итог узла:</span><span class="inp sl">Количество — сумма <i class="ti ti-chevron-down mut"></i></span>
+  </div>
+  <div class="drophint"><i class="ti ti-drag-drop"></i> Перетащите сюда заголовок колонки, чтобы добавить уровень</div>
+</div>
+<ol start="7">
+  <li>«Колонки…»: видимость, порядок перетаскиванием, заголовок и ширина. Рядом с заголовком видно поле запроса, из которого берётся колонка. «По запросу» возвращает заголовки и порядок из запроса. Ширину можно менять и прямо в сетке.</li>
+  <li>«Итоги…»: функция подвала для каждой колонки. Для чисел — сумма, среднее, минимум, максимум; для любой колонки — количество строк; «нет» — без итога. Итоги считаются по всей отфильтрованной выборке (Д-Q5). FilterGrid это уже умеет (<code>FooterAggregateKind</code>).</li>
+  <li>Группировка задаётся в самой панели: поле выбирают кнопкой или перетаскивают заголовок колонки, до трёх уровней. В узле — число строк и выбранный итог по числовой колонке. Уровни и итог узла на момент «Сохранить» становятся группировкой по умолчанию: отчёт открывается сразу сгруппированным. Для этого FilterGrid нужен публичный API чтения и установки состояния панели (FQ-3а).</li>
+</ol>
+<p class="mut" style="font-size:13px;margin:8px 0 0">Эти же диалоги — у списка по запросу. Администратор задаёт ими стандартный вид в редакторе «Списки по запросу» (FQ-6), сотрудник меняет сетку на время работы и сохраняет как вид.</p>
+
+<p class="cap" style="margin-top:28px">Зритель — общий отчёт другого автора</p>
+<div class="fr">
+  <div class="head">
+    <i class="ti ti-table mut"></i>
+    <span class="t">Остатки по складам на дату</span>
+    <span class="tag"><i class="ti ti-users"></i> Общий · автор Смирнова Е.</span>
+  </div>
+  <div class="tabs"><span class="on">Результат</span><span>Запрос <span class="mut">· только просмотр</span></span></div>
+  <div class="bar">
+    <button>Сохранить как…</button>
+    <span class="sep"></span>
+    <button aria-label="Обновить"><i class="ti ti-refresh"></i> Обновить</button>
+    <div style="flex:1"></div>
+    <button aria-label="Ещё"><i class="ti ti-dots"></i> Ещё</button><span class="n">10</span>
+  </div>
+  <div class="panel">
+    <span class="mut">На дату</span><span class="inp">14.11.2026<i class="ti ti-calendar mut"></i></span>
+    <button class="acc"><i class="ti ti-player-play"></i> Выполнить</button>
+    <span class="mut" style="font-size:11px">сетка, отбор и группировка — из документа автора</span>
+  </div>
+</div>
+<ol start="10">
+  <li>У чужого общего отчёта нет «Сохранить», есть только «Сохранить как…». Копия становится личным отчётом с новым автором. Вкладка «Запрос» открывается только для просмотра. Сетку зритель может менять на время работы, а сохраняет только копией. Данные читаются с правами зрителя: тот же отчёт может показать ему меньше строк, чем автору.</li>
+</ol>
+
+<p class="cap" style="margin-top:28px">Вкладка «Запрос» <span class="tag">только UTR</span></p>
+<div class="fr">
+  <div class="bar">
+    <span class="tag core">Текст</span><span class="tag">Конструктор</span>
+    <div style="flex:1"></div>
+    <button><i class="ti ti-checks"></i> Проверить</button><span class="n">11</span>
+  </div>
+<pre>select n.id as nomenclature, w.id as senderWorkshop,
+       sum(i.quantity) as quantity, count(distinct d.id) as documents
+from ReceivingDocumentItem i
+  join i.document d
+  join i.nomenclature n
+  left join d.senderWorkshop w
+where d.date between :periodFrom and :periodTo
+  and (:workshop is null or d.receivingWorkshop.id = :workshop)
+group by n.id, w.id</pre>
+  <div class="scroll"><table>
+    <thead><tr><th>Параметр</th><th>Вид</th><th>Обязателен</th><th>По умолчанию</th></tr></thead>
+    <tbody>
+      <tr><td>Период</td><td>диапазон дат</td><td>да</td><td>текущий месяц</td></tr>
+      <tr><td>Цех-получатель</td><td>ссылка «Цех»</td><td>нет</td><td class="mut">все</td></tr>
+    </tbody>
+  </table></div>
+</div>
+<ol start="11">
+  <li>Запрос пишут в существующем редакторе или собирают в конструкторе, как на <code>/queries</code>. Параметры объявляются вместе с запросом, вид и тип определяют поле на панели. Отчёт с обязательным параметром можно сохранить до первого запуска. Новая колонка запроса появляется в сетке видимой с заголовком из запроса.</li>
+</ol>
+
+<p class="cap" style="margin-top:28px">Что сохраняет документ <span class="n">12</span></p>
+<div class="cards">
+  <div class="fr">
+    <span style="font-weight:500"><i class="ti ti-device-floppy"></i> В документе — по «Сохранить»</span>
+    <ul>
+      <li>запрос и объявления параметров со значениями по умолчанию</li>
+      <li>колонки: заголовки, видимость, порядок, ширины</li>
+      <li>сортировка и отбор сетки</li>
+      <li>группировка по умолчанию: уровни и итог узла</li>
+      <li>итоги подвала по колонкам</li>
+      <li>режим загрузки</li>
+      <li>название, описание, видимость «только я / все», автор</li>
+    </ul>
+  </div>
+  <div class="fr">
+    <span style="font-weight:500"><i class="ti ti-clock"></i> Только в сеансе</span>
+    <ul>
+      <li>введённые значения параметров</li>
+      <li>раскрытые узлы группировки и выбранный узел</li>
+      <li>загруженные строки</li>
+    </ul>
+  </div>
+</div>
+
+<p class="cap" style="margin-top:28px">Состояния, которых нет у списка</p>
+<div style="display:flex;gap:12px;flex-wrap:wrap">
+  <div class="fr state">
+    <div class="warn"><i class="ti ti-git-merge"></i> Отчёт изменён в другом окне <span class="n">13</span></div>
+    <div class="body">
+      <span class="mut">Ваши изменения не потеряны. Сохраните их копией или перечитайте отчёт.</span>
+      <div style="display:flex;gap:6px"><button>Сохранить как…</button><button>Перечитать</button></div>
+    </div>
+  </div>
+  <div class="fr state">
+    <div class="warn"><i class="ti ti-columns-off"></i> Колонки «Склад» больше нет <span class="n">14</span></div>
+    <div class="body">
+      <span class="mut">Отбор по «Склад» пропущен: запрос больше не возвращает эту колонку. Сохраните отчёт, чтобы убрать её из документа.</span>
+    </div>
+  </div>
+  <div class="fr state">
+    <div class="body">
+      <span style="font-weight:500" class="err"><i class="ti ti-tool"></i> Отчёт требует исправления</span>
+      <span class="mut">Запрос не прошёл проверку: поле «Склад» удалено из «Накладной».</span>
+      <button>Открыть запрос</button>
+    </div>
+  </div>
+</div>
+<ol start="12">
+  <li>Документ хранит то, что нужно для повторного открытия. Результат конкретного запуска в документ не попадает.</li>
+  <li>Конфликт ревизии: тот же отчёт сохранили в другом окне. Черновик остаётся на экране.</li>
+  <li>Пропавшую колонку автор видит предупреждением и сохраняет исправленный документ. У зрителя колонка пропускается молча. Если запрос не проходит проверку, показывается «Отчёт требует исправления», подробности видит только автор.</li>
+</ol>
+<p class="mut" style="font-size:13px;margin:8px 0 0">Остальные состояния — «Не выполнялся», «Выполняется…», предел «Целиком в памяти» (30 000 строк), усечение «Первые N строк», «Нет доступа к данным», таймаут, квота — как в макете FQ-3: они принадлежат ядру.</p>
+
+<p class="cap" style="margin-top:28px">UTR и список по запросу</p>
+<div class="fr scroll">
+  <table class="cmp">
+    <thead><tr><th></th><th>Табличный отчёт UTR</th><th>Список по запросу</th></tr></thead>
+    <tbody>
+      <tr><td>Назначение</td><td>просмотр данных</td><td>работа с объектами</td></tr>
+      <tr><td>Кто создаёт</td><td>любой пользователь</td><td>администратор (БД) или разработчик (код)</td></tr>
+      <tr><td>Где хранится</td><td>документ UTR, JSON-файл</td><td>определение по ключу</td></tr>
+      <tr><td>Настройки сетки</td><td>макет в документе; «Сохранить» — автору</td><td>стандартный вид + «Виды» пользователей</td></tr>
+      <tr><td>Команды</td><td>«Выполнить»; «Открыть &lt;тип&gt;» по ссылке</td><td>«Создать», «Открыть», «Изменить», «Удалить», «Открыть &lt;тип&gt;»</td></tr>
+      <tr><td>Как открывают</td><td>каталог отчётов, <code>/utr?id=</code>, <code>/queries</code></td><td><code>query-list/&lt;ключ&gt;</code>, меню, вкладка формы</td></tr>
+      <tr><td>Видимость</td><td>«только я» / «все»</td><td>допуск запроса (Д-Q3)</td></tr>
+      <tr><td>Общее</td><td colspan="2">ядро просмотра: параметры, сетка, отборы, группировка, итоги, настройка колонок, режимы загрузки, строка состояния, состояния данных</td></tr>
+    </tbody>
+  </table>
+</div>
+</div>
+</body>
+</html>

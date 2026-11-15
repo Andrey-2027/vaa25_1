@@ -24,16 +24,25 @@ public final class NavigationCatalogFixtures {
     }
 
     static NavigationCatalog catalog(String root, String title, String child, List<NavigationFunction> functions) {
+        return NavigationCatalog.build(structure(root, title, child, functions), functions(functions));
+    }
+
+    static NavigationStructure structure(String root, String title, String child, List<NavigationFunction> functions) {
         var top = new NavigationStructure.Section(root, null, title, "BOOK", 0, root);
         var sections = child == null ? List.of(top) : List.of(top,
             new NavigationStructure.Section(child, root, "Child", "", 0, child));
         var entries = functions.stream().map(function -> new NavigationStructure.Entry(
-            function.key().substring("list:".length()), function.areaKey(), function.key(), null, 0)).toList();
-        return NavigationCatalog.build(new NavigationStructure(0, Instant.EPOCH, sections, entries), new NavigationFunctions() {
+            function.key().substring("list:".length()), function.areaKey(), function.key(), null, 0,
+            org.ipro.navigation.NavigationImportance.NORMAL)).toList();
+        return new NavigationStructure(1, 0, Instant.EPOCH, sections, entries);
+    }
+
+    static NavigationFunctions functions(List<NavigationFunction> functions) {
+        return new NavigationFunctions() {
             @Override public List<NavigationFunction> all() { return functions; }
             @Override public Optional<NavigationFunction> find(String key) {
                 return functions.stream().filter(function -> function.key().equals(key)).findFirst();
             }
-        });
+        };
     }
 }

@@ -3,9 +3,9 @@ package org.ipro.navigation;
 import java.util.List;
 import java.util.Objects;
 
-/** Complete metadata projection, including hidden and empty nodes, for the profile editor. */
+/** Complete metadata projection, including empty sections. */
 public record NavigationNode(String id, String areaKey, String title, String icon,
-                             int order, boolean defaultVisible,
+                             int order,
                              List<NavigationItem> items, List<NavigationNode> children) {
     public NavigationNode {
         NavigationIds.requireId(id);
@@ -15,5 +15,4 @@ public record NavigationNode(String id, String areaKey, String title, String ico
         children = List.copyOf(children);
     }
 
-    public String key() { return "section:" + id; }
 }

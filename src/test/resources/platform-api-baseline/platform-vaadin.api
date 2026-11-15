@@ -998,6 +998,14 @@ enum public static final org.ipro.form.builder.ListCommandLayout$RefKind
   method public static org.ipro.form.builder.ListCommandLayout$RefKind valueOf(java.lang.String)
   method public static org.ipro.form.builder.ListCommandLayout$RefKind[] values()
 
+enum public static final org.ipro.form.coordinator.FormOpenEvent$Kind
+  extends java.lang.Enum<org.ipro.form.coordinator.FormOpenEvent$Kind>
+  enum-constants [LIST, ITEM]
+  field public static final org.ipro.form.coordinator.FormOpenEvent$Kind ITEM = enum-constant
+  field public static final org.ipro.form.coordinator.FormOpenEvent$Kind LIST = enum-constant
+  method public static org.ipro.form.coordinator.FormOpenEvent$Kind valueOf(java.lang.String)
+  method public static org.ipro.form.coordinator.FormOpenEvent$Kind[] values()
+
 enum public static final org.ipro.form.registry.FormRegistry$RegistrationKind
   extends java.lang.Enum<org.ipro.form.registry.FormRegistry$RegistrationKind>
   enum-constants [FORM_FACTORY, LIST_VIEW_CLASS, LIST_VIEW_FACTORY, SELECTION_COLUMNS, LIST_COLUMNS]
@@ -1179,6 +1187,10 @@ interface public abstract interface org.ipro.form.coordinator.FormNavigator
   method public abstract org.ipro.form.link.OpenResult openRoutedRecord(java.lang.Class<?>, org.ipro.form.link.FormRoute)
   method public transient <T extends org.ipro.identity.IdentifiableEntity<java.lang.Long>, ID> org.ipro.form.builtin.ListForm<T, ID> createFilteredListForm(java.lang.Class<T>, java.lang.String, org.ipro.form.registry.Filter<?>[])
   method public transient <T extends org.ipro.identity.IdentifiableEntity<java.lang.Long>, ID> void openFilteredListForm(java.lang.Class<T>, java.lang.String, org.ipro.form.registry.Filter<?>[])
+
+interface public abstract interface org.ipro.form.coordinator.FormOpenObserver
+  annotation java.lang.FunctionalInterface
+  method public abstract void opened(org.ipro.form.coordinator.FormOpenEvent)
 
 interface public abstract interface org.ipro.form.link.EntityStructureNavigation
   method public abstract java.util.Optional<java.lang.String> link(java.lang.Class<?>)
@@ -1575,6 +1587,18 @@ record public final org.ipro.form.builder.layout.SectionNode
   method public final int hashCode()
   method public final java.lang.String toString()
   method public java.lang.Class<? extends org.ipro.identity.IdentifiableEntity<java.lang.Long>> rowClass()
+
+record public final org.ipro.form.coordinator.FormOpenEvent
+  extends java.lang.Record
+  ctor public(org.ipro.form.coordinator.FormOpenEvent$Kind, java.lang.Class<?>, java.lang.String, java.lang.Object, boolean)
+  method public boolean plain()
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.Class<?> type()
+  method public java.lang.Object id()
+  method public java.lang.String variant()
+  method public org.ipro.form.coordinator.FormOpenEvent$Kind kind()
 
 record public final org.ipro.form.link.FormRoute
   extends java.lang.Record

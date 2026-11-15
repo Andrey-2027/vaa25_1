@@ -160,6 +160,7 @@ class public final org.ipro.data.presentation.EntityPresentationService
   field public static final int CHUNK_SIZE = 200
   method public java.lang.String unavailable(java.lang.Class<?>)
   method public java.util.Map<org.ipro.data.presentation.EntityPresentationService$Reference, java.lang.String> resolve(java.util.Collection<org.ipro.data.presentation.EntityPresentationService$Reference>)
+  method public java.util.Map<org.ipro.data.presentation.EntityPresentationService$Reference, java.lang.String> resolveReadable(java.util.Collection<org.ipro.data.presentation.EntityPresentationService$Reference>)
 
 class public final org.ipro.fetch.ManagedEntityTypes
   ctor public(org.ipro.metadata.ManagedEntityCatalog)

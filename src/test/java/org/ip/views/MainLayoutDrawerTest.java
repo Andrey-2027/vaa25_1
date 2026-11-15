@@ -5,7 +5,15 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
 import org.ip.navigation.NavigationUiSnapshot;
+import org.ip.navigation.ApplicationNavigationCommands;
 import org.ip.views.admin.EntityExplorerAccess;
+import org.ip.views.home.HomeGroupResolver;
+import org.ip.views.home.HomeJson;
+import org.ip.views.home.HomeLayout;
+import org.ip.views.home.HomeResolver;
+import org.ip.views.home.HomeService;
+import org.ip.views.home.HomeView;
+import org.ipro.form.coordinator.FormNavigator;
 import org.ip.views.admin.EntityExplorerNavigation;
 import org.ip.views.admin.EntityExplorerWorkspace;
 import org.ip.views.preferences.UserPreferences;
@@ -48,7 +56,7 @@ class MainLayoutDrawerTest {
 
         var sections = navs(layout, "drawer-sections").getFirst();
         assertThat(sections.getItems()).extracting(SideNavItem::getLabel)
-            .containsExactly("Главная", "Справочники", "Производство");
+            .containsExactly("Главное", "Справочники", "Производство");
         assertThat(sections.getItems()).allSatisfy(item -> assertThat(item.getItems()).isEmpty());
 
         var service = navs(layout, "drawer-service").getFirst();
@@ -81,8 +89,14 @@ class MainLayoutDrawerTest {
         SecurityContextHolder.getContext().setAuthentication(UsernamePasswordAuthenticationToken.authenticated(
             "drawer-test", "", List.of(new SimpleGrantedAuthority(role))));
         var factory = mock(AutowireCapableBeanFactory.class);
-        var main = new MainView(mock(ObjectProvider.class));
-        when(factory.createBean(MainView.class)).thenReturn(main);
+        var homeService = mock(HomeService.class);
+        when(homeService.layout()).thenReturn(new HomeLayout());
+        when(homeService.ui()).thenReturn(HomeJson.UiState.DEFAULT);
+        var homeResolver = mock(HomeResolver.class);
+        when(homeResolver.resolve(any(HomeLayout.class))).thenReturn(new HomeResolver.Page(List.of(), List.of()));
+        var home = new HomeView(homeService, homeResolver, mock(HomeGroupResolver.class), mock(FormNavigator.class),
+            mock(ApplicationNavigationCommands.class), mock(ObjectProvider.class));
+        when(factory.createBean(HomeView.class)).thenReturn(home);
         var workspace = new Workspace(new WorkspaceManager(factory));
         var snapshot = mock(NavigationUiSnapshot.class);
         doAnswer(call -> {

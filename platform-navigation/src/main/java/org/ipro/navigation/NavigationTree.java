@@ -4,13 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 
 /** Per-user resolved projection. Every nested list contains only visible entries. */
-public record NavigationTree(List<Node> roots, Set<String> staleKeys) {
+public record NavigationTree(List<Node> roots) {
     public NavigationTree {
         roots = List.copyOf(roots);
-        staleKeys = Set.copyOf(staleKeys);
     }
 
     public Optional<Node> findSubsystem(String id) {

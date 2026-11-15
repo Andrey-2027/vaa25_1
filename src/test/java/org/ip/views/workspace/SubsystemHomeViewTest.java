@@ -10,6 +10,7 @@ import org.ipro.form.action.ActionDecision;
 import org.ipro.form.coordinator.FormNavigator;
 import org.ipro.navigation.NavigationFunction;
 import org.ipro.navigation.NavigationItem;
+import org.ipro.navigation.NavigationImportance;
 import org.ipro.navigation.NavigationTree;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
@@ -43,6 +44,38 @@ class SubsystemHomeViewTest {
         });
         assertThat(page.matching("Нормативы")).isEmpty();
         assertThat(page.matching("  ")).isEqualTo(page.groups());
+    }
+
+    @Test
+    void importantLinksComeFirstAndSeeAlsoLinksFormTheLastGroup() {
+        var child = node("standards", "Нормативы", List.of(
+            item("specs", "Спецификации", NavigationImportance.NORMAL),
+            item("operations", "Операции", NavigationImportance.IMPORTANT),
+            item("branches", "Филиалы", NavigationImportance.SEE_ALSO)));
+        var root = node("production", "Производство", List.of(
+            item("journals", "Журналы", NavigationImportance.NORMAL),
+            item("receiving", "Приёмка", NavigationImportance.IMPORTANT),
+            item("groups", "Группы", NavigationImportance.SEE_ALSO)), child);
+        var page = SubsystemPage.from(root);
+
+        assertThat(page.groups()).extracting(SubsystemPage.Group::title)
+            .containsExactly("", "Нормативы", SubsystemPage.SEE_ALSO_TITLE);
+        assertThat(page.groups().get(0).links()).extracting(SubsystemPage.Link::title)
+            .containsExactly("Приёмка", "Журналы");
+        assertThat(page.groups().get(1).links()).extracting(SubsystemPage.Link::title)
+            .containsExactly("Операции", "Спецификации");
+        assertThat(page.groups().get(2).links()).extracting(SubsystemPage.Link::title)
+            .containsExactly("Группы", "Филиалы");
+        assertThat(page.matching("фили")).singleElement()
+            .satisfies(group -> assertThat(group.key()).isEqualTo(SubsystemPage.SEE_ALSO_KEY));
+
+        var view = new SubsystemHomeView(null, null);
+        view.init(root);
+        var buttons = components(view).filter(Button.class::isInstance).map(Button.class::cast).toList();
+        assertThat(buttons.stream().filter(button -> button.hasClassName("subsystem-home-link-important"))
+            .map(Button::getText)).containsExactly("Приёмка", "Операции");
+        assertThat(buttons.stream().filter(button -> button.hasClassName("subsystem-home-link-secondary"))
+            .map(Button::getText)).containsExactly("Группы", "Филиалы");
     }
 
     @Test
@@ -89,7 +122,7 @@ class SubsystemHomeViewTest {
                 "Выполнить", "", 0, null, null, "test.run"));
         var items = functions.stream().map(function -> new NavigationItem(
             function.kind().name().toLowerCase(java.util.Locale.ROOT).replace('_', '-'),
-            function, function.title(), "", 0, !function.command())).toList();
+            function, function.title(), "", 0, NavigationImportance.NORMAL)).toList();
         view.init(node("root", "Раздел", items));
         var search = components(view).filter(TextField.class::isInstance).map(TextField.class::cast)
             .findFirst().orElseThrow();
@@ -108,8 +141,14 @@ class SubsystemHomeViewTest {
     }
 
     private static NavigationItem item(String id, String title) {
-        return new NavigationItem(id, Object.class, title, "", 0, true);
+        return item(id, title, NavigationImportance.NORMAL);
     }
+
+    private static NavigationItem item(String id, String title, NavigationImportance importance) {
+        var function = new NavigationFunction("list:" + id, Object.class, NavigationFunction.Kind.LIST, title, "", 0, null);
+        return new NavigationItem(id, function, title, "", 0, importance);
+    }
+
 
     private static List<String> labels(SubsystemHomeView view) {
         return components(view).filter(Button.class::isInstance).map(Button.class::cast)

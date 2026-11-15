@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Список по запросу</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+:root{--surface-0:#f5f4ef;--surface-1:#faf9f5;--surface-2:#ffffff;--text-primary:#1f1e1d;--text-secondary:#5e5d59;--text-muted:#8f8d87;--text-accent:#185FA5;--bg-accent:#E6F1FB;--border-accent:#378ADD;--bg-warning:#FAEEDA;--text-warning:#854F0B;--bg-danger:#FCEBEB;--text-danger:#A32D2D;--border:rgba(31,30,29,.15);--border-strong:rgba(31,30,29,.3);--radius:8px}
+@media (prefers-color-scheme: dark){:root{--surface-0:#1f1e1d;--surface-1:#262624;--surface-2:#30302e;--text-primary:#f5f4ef;--text-secondary:#c2c0b6;--text-muted:#8f8d87;--text-accent:#85B7EB;--bg-accent:#0C447C;--border-accent:#85B7EB;--bg-warning:#633806;--text-warning:#FAC775;--bg-danger:#501313;--text-danger:#F7C1C1;--border:rgba(245,244,239,.15);--border-strong:rgba(245,244,239,.3)}}
+body{margin:0;padding:24px 16px;background:var(--surface-0);color:var(--text-primary);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+.wrap{max-width:900px;margin:0 auto}
+h1{font-size:20px;font-weight:500;margin:0 0 4px}
+.sub{color:var(--text-secondary);font-size:14px;margin:0 0 20px}
+a{color:var(--text-accent)}
+.fr{border:0.5px solid var(--border-strong);border-radius:12px;overflow:hidden;background:var(--surface-2);font-size:12.5px;line-height:1.45}
+.cap{font-size:13px;color:var(--text-secondary);margin:0 0 6px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.n{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:var(--bg-accent);color:var(--text-accent);font-size:11px;font-weight:500;margin-left:6px;vertical-align:1px;flex-shrink:0}
+.mut{color:var(--text-muted)}
+.inp{border:0.5px solid var(--border-strong);border-radius:var(--radius);padding:2px 8px;display:inline-flex;gap:6px;align-items:center;background:var(--surface-2)}
+.head{display:flex;align-items:center;gap:8px;padding:10px 12px 6px;flex-wrap:wrap}
+.head .t{font-weight:500;font-size:15px}
+.bar{display:flex;align-items:center;gap:6px;padding:6px 12px;border-bottom:0.5px solid var(--border);flex-wrap:wrap}
+.sep{width:0.5px;align-self:stretch;background:var(--border-strong);margin:2px 4px}
+.panel{display:flex;align-items:center;gap:12px;padding:8px 12px;background:var(--surface-1);border-bottom:0.5px solid var(--border);flex-wrap:wrap}
+button{font:inherit;font-size:12px;padding:3px 10px;border-radius:var(--radius);border:0.5px solid var(--border-strong);background:transparent;color:var(--text-primary);display:inline-flex;gap:4px;align-items:center}
+button.acc{background:var(--text-accent);color:var(--surface-2);border-color:var(--text-accent)}
+button.fut{border-style:dashed;color:var(--text-muted)}
+table{border-collapse:collapse;width:100%}
+th,td{padding:4px 8px;border-bottom:0.5px solid var(--border);text-align:left;white-space:nowrap}
+th{font-weight:500;background:var(--surface-1)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+tr.f td{border-bottom:0;font-weight:500;background:var(--surface-1)}
+.hf td{padding:2px 6px;background:var(--surface-1)}
+.hf .inp{width:100%;box-sizing:border-box;font-size:11px;color:var(--text-muted)}
+.status{display:flex;align-items:center;gap:8px;padding:6px 12px;font-size:12px;color:var(--text-secondary);flex-wrap:wrap}
+.tree{width:200px;border-right:0.5px solid var(--border);padding:6px 0;flex-shrink:0;font-size:12px}
+.tree .r{display:flex;gap:4px;align-items:center;padding:2px 8px}
+.tree .r .t{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sel{background:var(--bg-accent);color:var(--text-accent)}
+.state{flex:1;min-width:200px}
+.state .body{padding:18px 14px;display:flex;flex-direction:column;gap:8px;align-items:flex-start;min-height:118px}
+.warn{background:var(--bg-warning);color:var(--text-warning);padding:6px 12px;display:flex;gap:6px;align-items:center;font-size:12px;flex-wrap:wrap}
+.err{color:var(--text-danger)}
+ol{font-size:13px;color:var(--text-secondary);padding-left:20px;margin:10px 0 0}
+ol li{margin:4px 0}
+.scroll{overflow-x:auto}
+.tag{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:400;padding:1px 8px;border-radius:999px;border:0.5px solid var(--border-strong);color:var(--text-secondary);white-space:nowrap}
+.tag.core{background:var(--bg-accent);color:var(--text-accent);border-color:transparent}
+.legend{display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--text-secondary);margin:-8px 0 20px}
+.key{font:11.5px ui-monospace,"Cascadia Mono",Consolas,monospace;color:var(--text-secondary);background:var(--surface-1);border-top:0.5px solid var(--border);padding:5px 12px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+pre{margin:0;padding:10px 12px;font:12px/1.5 ui-monospace,"Cascadia Mono",Consolas,monospace;background:var(--surface-1);overflow-x:auto;color:var(--text-primary)}
+.emb{flex:1;min-width:280px}
+.tabsrow{display:flex;gap:14px;padding:6px 12px;border-bottom:0.5px solid var(--border);flex-wrap:wrap}
+.tabsrow .on{font-weight:500;border-bottom:2px solid var(--text-accent)}
+@media (max-width:600px){.tree{width:130px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Список по запросу — макет FQ-3</h1>
+<p class="sub">Согласован 2026-11-14; уточнения редакции 4 плана (назначение, toolbar, варианты «Видов», предел 30 000) согласованы 2026-11-14. Это макет <b>списка по запросу</b>: список администратора открывают по ссылке или из меню, встроенный список — в форме. Сотрудник работает с ним как с ListForm: «Виды реестра», выбор строки, команды над объектом (FQ-7). Табличный отчёт UTR — только просмотр, у него свой макет: <a href="fq-5-utr.html">fq-5-utr.html</a>. Там же показана настройка колонок, итогов и группировки — она общая (UX-12). Пример: «Поступление по номенклатуре», режим «Целиком в памяти».</p>
+<div class="legend">
+  <span class="tag core"><i class="ti ti-box"></i> ядро — общее с UTR</span> параметры, сетка, отборы, группировка, итоги, строка состояния, состояния данных
+  <span class="tag"><i class="ti ti-list-details"></i> только список</span> toolbar с командами, «Виды», команды над объектом, встроенный вид
+</div>
+
+<p class="cap">Отдельное открытие — по ссылке или из меню</p>
+<div class="fr">
+  <div class="head">
+    <span class="t">Поступление по номенклатуре</span>
+  </div>
+  <div class="bar">
+    <button class="fut" title="Команды над объектом — FQ-7, в пределах набора из определения списка"><i class="ti ti-plus"></i> Создать</button>
+    <button class="fut"><i class="ti ti-pencil"></i> Изменить</button>
+    <button class="fut"><i class="ti ti-trash"></i> Удалить</button>
+    <span class="mut" style="font-size:11px">FQ-7</span>
+    <span class="sep"></span>
+    <button><i class="ti ti-refresh"></i> Обновить</button>
+    <button><i class="ti ti-layout-list"></i> Виды</button>
+    <div style="flex:1"></div>
+    <button aria-label="Ещё"><i class="ti ti-dots"></i> Ещё</button><span class="n">1</span>
+    <span class="tag">только список</span>
+  </div>
+  <div class="panel">
+    <span class="mut">Цех</span><span class="inp">Цех №3 «Сборка»<i class="ti ti-dots mut"></i></span>
+    <span class="mut">Период с</span><span class="inp">01.11.2026<i class="ti ti-calendar mut"></i></span>
+    <span class="mut">по</span><span class="inp">30.11.2026<i class="ti ti-calendar mut"></i></span>
+    <button class="acc"><i class="ti ti-player-play"></i> Выполнить</button><span class="n">2</span>
+    <span class="mut" style="font-size:11px">параметры меняют запрос; отборы в шапке — только результат</span>
+    <div style="flex:1"></div><span class="tag core">ядро</span>
+  </div>
+  <div style="display:flex;min-height:250px">
+    <div class="tree">
+      <div class="r" style="font-weight:500"><span class="t">Группировка: Цех-сдатчик</span><i class="ti ti-x mut"></i><span class="n">8</span></div>
+      <div class="r"><i class="ti ti-chevron-right mut"></i><span class="t">Все</span><span class="mut">212</span></div>
+      <div class="r sel"><i class="ti ti-chevron-right"></i><span class="t">Цех №1 «Заготовка»</span><span>134</span></div>
+      <div class="r"><i class="ti ti-chevron-right mut"></i><span class="t">Цех №2 «Механообработка»</span><span class="mut">61</span></div>
+      <div class="r"><i class="ti ti-chevron-right mut"></i><span class="t">Не задано</span><span class="mut">17</span></div>
+    </div>
+    <div style="flex:1;min-width:0" class="scroll">
+      <table>
+        <thead>
+          <tr><th title="Для сортировки по названию добавьте в запрос колонку с названием">Номенклатура <i class="ti ti-link mut"></i><span class="n">7</span></th><th title="Для сортировки по названию добавьте в запрос колонку с названием">Цех-сдатчик <i class="ti ti-link mut"></i></th><th class="num">Количество <i class="ti ti-arrow-down"></i></th><th class="num">Накладных</th></tr>
+          <tr class="hf"><td><span class="inp"><i class="ti ti-filter"></i> выбрать…</span></td><td><span class="inp"><i class="ti ti-filter"></i> выбрать…</span></td><td><span class="inp">от — до</span></td><td><span class="inp">от — до</span></td></tr>
+        </thead>
+        <tbody>
+          <tr><td>Корпус КП-12</td><td>Цех №1 «Заготовка»</td><td class="num">1 240</td><td class="num">18</td></tr>
+          <tr><td>Вал В-40</td><td>Цех №1 «Заготовка»</td><td class="num">860</td><td class="num">11</td></tr>
+          <tr><td>Втулка ВТ-8</td><td>Цех №1 «Заготовка»</td><td class="num">512</td><td class="num">9</td></tr>
+          <tr><td>Фланец Ф-100</td><td>Цех №1 «Заготовка»</td><td class="num">96</td><td class="num">4</td></tr>
+          <tr class="f"><td>Итого по отбору</td><td></td><td class="num">2 708</td><td class="num">42</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="status" style="border-top:0.5px solid var(--border)">
+    <i class="ti ti-database mut"></i><span>Целиком в памяти · 134 из 212 строк · данные на 14:02 (выполнено за 8,3 с)</span><a style="color:var(--text-accent)">Обновить</a><span class="n">5</span>
+    <div style="flex:1"></div><span class="tag core">ядро</span>
+  </div>
+  <div class="key"><i class="ti ti-key"></i> Виды: querylist.receiving.receipts</div>
+</div>
+<ol>
+  <li>Строка команд — <b>отдельный toolbar</b> под заголовком, а не в шапке. У ListForm так же: <code>commandBar</code> — отдельный ряд над сеткой. Сначала команды над объектом из FQ-7 (пунктир) в пределах набора из определения списка, затем «Обновить» и «Виды», справа «Ещё» → «Колонки…», «Группировка», «Итоги…», «Скопировать ссылку». Поиск и условия даёт сама сетка. Панель своя, простая: модуль запросов не зависит от форм платформы. У UTR такой же отдельный toolbar, но другой набор команд.</li>
+  <li>Панель параметров — над списком. Поля по виду параметра: строка, число, дата, логическое — обычные; диапазон — «с / по»; ссылка — выбор, как в редакторе запроса. Список ссылок в v1 вручную не вводится. Значения по умолчанию берутся из определения списка и между открытиями не запоминаются. Применяются кнопкой «Выполнить». Обязательные условия задаются в запросе и параметрах, а не в отборе.</li>
+  <li value="5">Строка состояния — единственное место, где видны режим и свежесть данных. В режиме «Постранично» режим не называется — только «Строк: N».</li>
+  <li value="7">Ссылка показывает представление, а отбирает выбором значения. Колонки-ссылки не сортируются ни в каком режиме; подсказка: «Для сортировки по названию добавьте в запрос колонку с названием». «Открыть &lt;тип&gt;» по ссылке добавит FQ-7, так же и в UTR.</li>
+  <li>Группировка — панель FilterGrid слева, включается «Ещё → Группировка». Щелчок по узлу отбирает строки; счётчики и итоги узлов честные; глубина не больше трёх уровней. Итоги в подвале — по колонкам, отмеченным в стандартном виде списка. Настройка колонок, итогов и группировки — общая с UTR (UX-12), её диалоги показаны в <a href="fq-5-utr.html">макете UTR</a>.</li>
+</ol>
+
+<p class="cap" style="margin-top:28px">Диалог «Виды» — как у ListForm <span class="tag">только список</span></p>
+<div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start">
+  <div class="fr" style="flex:1;min-width:300px;max-width:440px">
+    <div style="padding:10px 14px;font-weight:500;border-bottom:0.5px solid var(--border)">Виды: Поступление по номенклатуре<span class="n">9</span></div>
+    <table>
+      <thead><tr><th>Название</th><th>Общий</th><th>По умолчанию</th></tr></thead>
+      <tbody>
+        <tr><td>По цехам с итогами</td><td><i class="ti ti-check"></i></td><td><i class="ti ti-star" style="color:var(--text-accent)"></i></td></tr>
+        <tr class="sel"><td>Мой: только крупные</td><td></td><td><i class="ti ti-star mut"></i></td></tr>
+        <tr><td>Без группировки</td><td><i class="ti ti-check"></i></td><td><i class="ti ti-star mut"></i></td></tr>
+      </tbody>
+    </table>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;padding:8px 14px;border-top:0.5px solid var(--border)">
+      <button>Стандартный вид</button><button>Создать</button><button>Копировать</button><button>Изменить</button><button>Удалить</button>
+      <div style="flex:1"></div><button class="acc">Загрузить</button><button>Закрыть</button>
+    </div>
+  </div>
+  <ol start="9" style="flex:1;min-width:240px;margin-top:0">
+    <li>Виды — как у ListForm: то же хранилище (<code>grid_form_view</code>), тот же формат и те же правила. Ключ — <code>querylist.&lt;ключ списка&gt;[.&lt;вариант&gt;]</code>, по образцу ListForm (<code>ReceivingDocument.workshop-incoming</code>). Общий вид видят и правят все, личный — только автор. Звёздочка — вид по умолчанию для меня, переключается щелчком и применяется при открытии. «Стандартный вид» — стандартный вид из определения списка (или из варианта). Отличие от ListForm одно: «Создать» и «Изменить» берут текущее состояние сетки (колонки, ширины, сортировка, отборы, группировка), а в диалоге задаются название и «Общий». Несохранённые изменения между открытиями не запоминаются. Стандартный вид меняет только администратор в редакторе «Списки по запросу» (FQ-6). В UTR видов нет.</li>
+  </ol>
+</div>
+
+<p class="cap" style="margin-top:28px">Состояния области данных <span class="tag core">ядро</span></p>
+<div style="display:flex;gap:12px;flex-wrap:wrap">
+  <div class="fr state">
+    <div class="body">
+      <span style="font-weight:500">Не выполнялся <span class="n">3</span></span>
+      <span class="mut">Заполните параметры и нажмите «Выполнить». Последнее выполнение — 8,3 с.</span>
+      <button class="acc"><i class="ti ti-player-play"></i> Выполнить</button>
+    </div>
+  </div>
+  <div class="fr state">
+    <div class="body">
+      <span style="font-weight:500"><i class="ti ti-loader-2"></i> Выполняется… 00:12 <span class="n">4</span></span>
+      <span class="mut">Остальное приложение работает. Запрос остановится не позже чем через 30 с.</span>
+    </div>
+  </div>
+  <div class="fr state">
+    <div class="warn"><i class="ti ti-alert-triangle"></i> Результат больше 30 000 строк — целиком в память не помещается <span class="n">6</span></div>
+    <div class="body">
+      <span class="mut">Сузьте параметры или попросите администратора включить «Постранично».</span>
+    </div>
+  </div>
+  <div class="fr state">
+    <div class="warn"><i class="ti ti-info-circle"></i> Показаны первые 5 000 строк; итоги и группы — по всей выборке</div>
+    <div class="body">
+      <span class="mut">Режим «Первые N строк». Отборы по показанным строкам выполняются заново на сервере.</span>
+    </div>
+  </div>
+  <div class="fr state">
+    <div class="body">
+      <span style="font-weight:500" class="err"><i class="ti ti-lock"></i> Нет доступа к данным <span class="n">11</span></span>
+      <span class="mut">Нет права чтения: «Накладная на приёмку». Обратитесь к администратору.</span>
+    </div>
+  </div>
+  <div class="fr state">
+    <div class="body">
+      <span style="font-weight:500" class="err"><i class="ti ti-tool"></i> Список требует исправления</span>
+      <span class="mut">Поле «Склад» удалено из «Накладной». Администратору — «Подробнее».</span>
+      <button>Подробнее</button>
+    </div>
+  </div>
+</div>
+<ol start="3">
+  <li>Выполнять ли при открытии — правило по режиму, без настройки: «Постранично» — сразу; «Целиком в памяти» и «Первые N строк» — по кнопке, с подсказкой о времени прошлого выполнения.</li>
+  <li>Долгое выполнение — в фоне с опросом UI, как у JRXML и UniDR (Push не нужен): прошедшее время, остальное приложение не блокируется. Кнопки «Отменить» нет — запрос ограничен таймаутом. Страницы в режиме «Постранично» читаются как обычно.</li>
+  <li value="6">Отказ по пределу «Целиком в памяти» (по умолчанию 30 000 строк, настройка <code>app.query.in-memory.max-rows</code>) — сообщение, а не ошибка. Режим хранится в определении списка, меняет его только администратор (FQ-6). В UTR режим меняет автор отчёта.</li>
+  <li value="11">Тексты ошибок без текста запроса: нет доступа (тип данных), таймаут («выполнялся дольше 30 с и остановлен» + «Выполнить снова»), квота («сейчас выполняется много отчётов»), «Список требует исправления» с подробностями только администратору (в UTR — «Отчёт требует исправления», подробности автору). Нет строк — «Нет строк по текущим параметрам и отборам» + «Сбросить отборы». После изменения прав данные перечитываются при следующем обращении, без отдельного уведомления.</li>
+</ol>
+
+<p class="cap" style="margin-top:28px">Встроенный вид: один запрос в двух формах (FQ-9, FQ-10) <span class="tag">только список</span></p>
+<div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start">
+  <div class="fr emb">
+    <div class="tabsrow"><span class="mut">Основное</span><span class="mut">Входящие накладные</span><span class="on">Поступление по номенклатуре</span></div>
+    <div class="bar">
+      <button><i class="ti ti-refresh"></i> Обновить</button>
+      <div style="flex:1"></div>
+      <button aria-label="Ещё"><i class="ti ti-dots"></i> Ещё</button><span class="n">10</span>
+    </div>
+    <table>
+      <thead><tr><th>Номенклатура</th><th class="num">Количество</th><th class="num">Накладных</th></tr></thead>
+      <tbody>
+        <tr><td>Корпус КП-12</td><td class="num">1 240</td><td class="num">18</td></tr>
+        <tr><td>Вал В-40</td><td class="num">860</td><td class="num">11</td></tr>
+      </tbody>
+    </table>
+    <div class="status">Строк: 2 · карточка цеха, цех = текущий</div>
+    <div class="key"><i class="ti ti-key"></i> Виды: querylist.receiving.receipts.by-workshop</div>
+  </div>
+  <div class="fr emb">
+    <div class="tabsrow"><span class="mut">Основное</span><span class="mut">Цены</span><span class="on">Поступление по цехам</span></div>
+    <div class="bar">
+      <button><i class="ti ti-refresh"></i> Обновить</button>
+      <div style="flex:1"></div>
+      <button aria-label="Ещё"><i class="ti ti-dots"></i> Ещё</button><span class="n">12</span>
+    </div>
+    <table>
+      <thead><tr><th>Цех-получатель</th><th class="num">Количество</th><th class="num">Накладных</th></tr></thead>
+      <tbody>
+        <tr><td>Цех №3 «Сборка»</td><td class="num">1 240</td><td class="num">18</td></tr>
+        <tr><td>Цех №4 «Окраска»</td><td class="num">310</td><td class="num">5</td></tr>
+      </tbody>
+    </table>
+    <div class="status">Строк: 2 · карточка номенклатуры, номенклатура = текущая</div>
+    <div class="key"><i class="ti ti-key"></i> Виды: querylist.receiving.receipts.by-nomenclature</div>
+  </div>
+</div>
+<div class="fr" style="margin-top:12px">
+<pre>// объявление запроса (FQ-9): один ключ, два варианта стандартного вида
+QueryListDeclaration.of("receiving.receipts", "Поступление")
+    .variant("by-workshop", v -&gt; v.hide("receivingWorkshop"))
+    .variant("by-nomenclature", v -&gt; v.hide("nomenclature"));
+
+// карточка цеха
+l.queryList("receipts", "receiving.receipts")
+    .setParameter("workshop", l.self())
+    .setVariant("by-workshop");
+
+// карточка номенклатуры
+l.queryList("receipts", "receiving.receipts")
+    .setParameter("nomenclature", l.self())
+    .setVariant("by-nomenclature");</pre>
+</div>
+<ol start="10">
+  <li>Встроенный вид — тот же компонент без заголовка и без панели параметров: параметры привязаны к форме (цех или номенклатура = текущий объект). Toolbar сокращён до «Обновить» и «Ещё»; строка состояния, отборы, виды и состояния — те же.</li>
+  <li value="12">Один запрос в двух формах различается <b>вариантом</b>, как у ListForm. Вариант объявляется вместе с запросом и задаёт свой стандартный вид — здесь скрыта колонка, которую задаёт карточка. Ключ видов — <code>querylist.&lt;ключ&gt;.&lt;вариант&gt;</code>, поэтому виды карточки цеха не попадают в карточку номенклатуры. Встраивания с одним вариантом делят виды, без варианта — общие виды ключа списка. Нужен ли вариант, решает разработчик: если колонки или стандартный вид в двух местах разные, вариант нужен. Стартовая проверка ловит необъявленный вариант. API в коде — эскиз, точные имена определит FQ-9.</li>
+</ol>
+</div>
+</body>
+</html>

@@ -2,26 +2,22 @@ package org.ipro.navigation.config;
 
 import org.ipro.metadata.SubsystemRegistry;
 import org.ipro.navigation.NavigationAdministrationAccess;
-import org.ipro.navigation.NavigationAdministrationService;
-import org.ipro.navigation.NavigationCatalogProvider;
 import org.ipro.navigation.NavigationFunctions;
 import org.ipro.navigation.NavigationFunctionsProvider;
-import org.ipro.navigation.NavigationStructureReader;
-import org.ipro.navigation.internal.NavigationStructureBootstrap;
-import org.ipro.navigation.internal.DefaultNavigationStructureService;
-import org.ipro.navigation.store.NavigationStructureRepository;
-import org.ipro.navigation.store.NavigationSectionRepository;
-import org.ipro.navigation.store.NavigationEntryRepository;
-import org.ipro.navigation.store.NavigationKnownFunctionRepository;
-import org.ipro.navigation.NavigationProfileReader;
+import org.ipro.navigation.NavigationMenuReader;
+import org.ipro.navigation.NavigationMenuService;
 import org.ipro.navigation.NavigationResolver;
 import org.ipro.navigation.NavigationUserDirectory;
-import org.ipro.navigation.internal.DefaultNavigationAdministrationService;
-import org.ipro.navigation.internal.DefaultNavigationProfileReader;
+import org.ipro.navigation.internal.DefaultNavigationMenuReader;
+import org.ipro.navigation.internal.DefaultNavigationMenuService;
+import org.ipro.navigation.internal.NavigationStructureBootstrap;
+import org.ipro.navigation.internal.NavigationStructureReader;
 import org.ipro.navigation.store.NavigationAssignmentRepository;
-import org.ipro.navigation.store.NavigationOverrideRepository;
-import org.ipro.navigation.store.NavigationProfileEntity;
-import org.ipro.navigation.store.NavigationProfileRepository;
+import org.ipro.navigation.store.NavigationEntryRepository;
+import org.ipro.navigation.store.NavigationKnownFunctionRepository;
+import org.ipro.navigation.store.NavigationMenuEntity;
+import org.ipro.navigation.store.NavigationMenuRepository;
+import org.ipro.navigation.store.NavigationSectionRepository;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -31,54 +27,40 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.transaction.PlatformTransactionManager;
 
-/** Optional backend; enabled but missing collaborators is a startup error. */
 @AutoConfiguration(afterName = "org.ipro.metadata.config.MetadataAutoConfiguration")
 @ConditionalOnProperty(name = "platform.navigation.enabled", havingValue = "true")
-@EntityScan(basePackageClasses = NavigationProfileEntity.class)
-@EnableJpaRepositories(basePackageClasses = NavigationProfileRepository.class)
+@EntityScan(basePackageClasses = NavigationMenuEntity.class)
+@EnableJpaRepositories(basePackageClasses = NavigationMenuRepository.class)
 public class NavigationAutoConfiguration {
-    /** The application reads a new catalog for each menu snapshot. */
-    @Bean
-    NavigationCatalogProvider navigationCatalogProvider(NavigationStructureReader structure, NavigationFunctionsProvider functions) {
-        return NavigationCatalogProvider.stored(structure, functions);
-    }
-
     @Bean
     NavigationFunctionsProvider navigationFunctionsProvider(NavigationFunctions source) {
         return new NavigationFunctionsProvider(source);
     }
 
     @Bean
-    NavigationStructureReader navigationStructureReader(NavigationStructureRepository structures,
-            NavigationSectionRepository sections, NavigationEntryRepository entries,
-            PlatformTransactionManager transactions) {
-        return new NavigationStructureReader(structures, sections, entries, transactions);
+    NavigationStructureReader navigationStructureReader(NavigationSectionRepository sections,
+                                                         NavigationEntryRepository entries) {
+        return new NavigationStructureReader(sections, entries);
     }
 
     @Bean
-    DefaultNavigationStructureService navigationStructureService(NavigationAdministrationAccess access,
-            NavigationStructureReader reader, NavigationFunctionsProvider functions,
-            NavigationStructureRepository structures, NavigationSectionRepository sections,
-            NavigationEntryRepository entries, NavigationKnownFunctionRepository known,
-            NavigationOverrideRepository overrides, NavigationStructureBootstrap bootstrap,
-            PlatformTransactionManager transactions) {
-        return new DefaultNavigationStructureService(access, reader, functions, structures, sections, entries,
-            known, overrides, bootstrap, transactions);
+    NavigationMenuService navigationMenuService(NavigationAdministrationAccess access, NavigationUserDirectory users,
+            NavigationMenuRepository menus, NavigationAssignmentRepository assignments, NavigationSectionRepository sections,
+            NavigationEntryRepository entries, NavigationKnownFunctionRepository known, NavigationFunctionsProvider functions,
+            NavigationStructureReader reader, PlatformTransactionManager transactions) {
+        return new DefaultNavigationMenuService(access, users, menus, assignments, sections, entries, known, functions,
+            reader, transactions);
     }
 
     @Bean
     NavigationStructureBootstrap navigationStructureBootstrap(SubsystemRegistry areas, NavigationFunctionsProvider functions,
-            NavigationStructureRepository structures, NavigationSectionRepository sections, NavigationEntryRepository entries,
+            NavigationMenuRepository menus, NavigationSectionRepository sections, NavigationEntryRepository entries,
             NavigationKnownFunctionRepository known, PlatformTransactionManager transactions) {
-        return new NavigationStructureBootstrap(areas, functions, structures, sections, entries, known, transactions);
+        return new NavigationStructureBootstrap(areas, functions, menus, sections, entries, known, transactions);
     }
 
-    /**
-     * Startup check. {@code ApplicationReadyEvent}, as for the form routes: the registrars of forms are
-     * finished by then. A catalog error (repeated or malformed key) stops the application.
-     */
     @Bean
-    ApplicationListener<ApplicationReadyEvent> navigationCatalogStartupCheck(NavigationStructureBootstrap bootstrap) {
+    ApplicationListener<ApplicationReadyEvent> navigationStartup(NavigationStructureBootstrap bootstrap) {
         return event -> bootstrap.initialize();
     }
 
@@ -86,17 +68,8 @@ public class NavigationAutoConfiguration {
     NavigationResolver navigationResolver() { return new NavigationResolver(); }
 
     @Bean
-    NavigationAdministrationService navigationAdministrationService(NavigationAdministrationAccess access,
-            NavigationUserDirectory users, NavigationCatalogProvider catalogs, NavigationProfileRepository profiles,
-            NavigationOverrideRepository overrides, NavigationAssignmentRepository assignments,
-            PlatformTransactionManager transactions) {
-        return new DefaultNavigationAdministrationService(access, users, catalogs, profiles, overrides, assignments, transactions);
-    }
-
-    @Bean
-    NavigationProfileReader navigationProfileReader(NavigationUserDirectory users,
-            NavigationAssignmentRepository assignments, NavigationOverrideRepository overrides,
-            NavigationCatalogProvider catalogs, PlatformTransactionManager transactions) {
-        return new DefaultNavigationProfileReader(users, assignments, overrides, catalogs, transactions);
+    NavigationMenuReader navigationMenuReader(NavigationUserDirectory users, NavigationAssignmentRepository assignments,
+            NavigationMenuRepository menus, NavigationStructureReader reader, PlatformTransactionManager transactions) {
+        return new DefaultNavigationMenuReader(users, assignments, menus, reader, transactions);
     }
 }

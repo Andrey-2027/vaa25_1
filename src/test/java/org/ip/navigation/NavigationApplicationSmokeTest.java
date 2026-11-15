@@ -1,9 +1,15 @@
 package org.ip.navigation;
 
 import org.ip.Application;
-import org.ipro.navigation.NavigationAdministrationService;
-import org.ipro.navigation.NavigationProfileReader;
-import org.ipro.navigation.NavigationVisibility;
+import org.ipro.navigation.NavigationCatalog;
+import org.ipro.navigation.NavigationFunction;
+import org.ipro.navigation.NavigationFunctionsProvider;
+import org.ipro.navigation.NavigationImportance;
+import org.ipro.navigation.NavigationMenuReader;
+import org.ipro.navigation.NavigationMenuService;
+import org.ipro.navigation.NavigationResolver;
+import org.ipro.navigation.NavigationStructure;
+import org.ipro.navigation.NavigationUserDirectory;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,14 +33,15 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
     "vaadin.allowed-packages=org.ip.views.login,com.vaadin", "vaadin.productionMode=true"})
 @ContextConfiguration(initializers = NavigationSmokeIsolation.class)
 class NavigationApplicationSmokeTest {
-    @Autowired NavigationAdministrationService administration;
-    @Autowired NavigationProfileReader reader;
+    @Autowired NavigationMenuReader reader;
+    @Autowired NavigationFunctionsProvider functions;
     @Autowired org.springframework.context.ConfigurableApplicationContext context;
-    @Autowired org.ipro.navigation.NavigationCatalogProvider catalogs;
     @Autowired org.ipro.form.link.FormRouteCatalog routes;
     @Autowired ApplicationNavigationCommands commands;
     @Autowired CommandFixture commandFixture;
-    @Autowired org.ipro.navigation.NavigationStructureService structures;
+    @Autowired NavigationMenuService menus;
+    @org.springframework.test.context.bean.override.mockito.MockitoSpyBean
+    NavigationUserDirectory users;
     @org.springframework.test.context.bean.override.mockito.MockitoBean
     org.ipro.form.action.OperationPermissionSource operationPermissions;
     @org.springframework.test.context.bean.override.mockito.MockitoSpyBean
@@ -43,7 +50,7 @@ class NavigationApplicationSmokeTest {
 
     @Test
     void catalogIsDerivedFromRegistryAndItemKeysAreTheRouteKeys() {
-        var catalog = catalogs.get();
+        var catalog = catalog(mainStructure());
         assertThat(catalog.roots()).extracting(org.ipro.navigation.NavigationNode::id)
             .contains("directories", "production")
             .doesNotContain("documents");
@@ -66,7 +73,6 @@ class NavigationApplicationSmokeTest {
         assertThat(items).extracting(org.ipro.navigation.NavigationItem::entityClass)
             .contains(org.ip.model.ReceivingDocument.class);
         assertThat(items).isNotEmpty().allSatisfy(item -> {
-            assertThat(item.defaultVisible()).isTrue();
             assertThat(routes.find(item.entityClass())).hasValueSatisfying(route ->
                 assertThat(item.id()).isEqualTo(route.entityKey()));
         });
@@ -78,21 +84,21 @@ class NavigationApplicationSmokeTest {
     @org.springframework.transaction.annotation.Transactional
     void savedPlacementAppearsAtItsNewDestinationInTheNextMenuSnapshot() {
         authenticateAdmin();
-        var profiles = org.mockito.Mockito.mock(NavigationProfileReader.class);
+        org.mockito.Mockito.doReturn("101").when(users).currentUserKey();
         var availability = org.mockito.Mockito.mock(ApplicationNavigationCommands.class);
         org.mockito.Mockito.when(availability.decide(org.mockito.ArgumentMatchers.any(org.ipro.navigation.NavigationFunction.class)))
             .thenReturn(org.ipro.form.action.ActionDecision.allowed());
-        var oldUi = new NavigationUiSnapshot(catalogs, new org.ipro.navigation.NavigationResolver(), profiles, availability);
+        var oldUi = new NavigationUiSnapshot(reader, functions, new NavigationResolver(), availability);
         var before = menuNodes(oldUi);
-        var structure = structures.structure();
+        var structure = mainStructure();
         var target = structure.sections().stream().filter(section -> section.parentId() == null
             && !section.id().equals("directories")).findFirst().orElseThrow();
         var moved = structure.entries().stream().map(entry -> entry.id().equals("unit-of-measurement")
-            ? new org.ipro.navigation.NavigationStructure.Entry(entry.id(), target.id(), entry.functionKey(), null, 0)
+            ? new org.ipro.navigation.NavigationStructure.Entry(entry.id(), target.id(), entry.functionKey(), null, 0, entry.importance())
             : entry).toList();
-        structures.save(structure.version(), new org.ipro.navigation.NavigationStructure(
-            structure.version(), structure.seededAt(), structure.sections(), moved));
-        var newUi = new NavigationUiSnapshot(catalogs, new org.ipro.navigation.NavigationResolver(), profiles, availability);
+        menus.save(structure.menuId(), structure.version(), new NavigationStructure(
+            structure.menuId(), structure.version(), structure.seededAt(), structure.sections(), moved));
+        var newUi = new NavigationUiSnapshot(reader, functions, new NavigationResolver(), availability);
         assertThat(sectionWithUnits(before)).isEqualTo("directories");
         assertThat(sectionWithUnits(menuNodes(newUi))).isEqualTo(target.id());
         assertThat(sectionWithUnits(menuNodes(oldUi))).isEqualTo("directories");
@@ -138,28 +144,24 @@ class NavigationApplicationSmokeTest {
 
     @Test
     @org.springframework.transaction.annotation.Transactional
-    void profileShowStillRequiresCreatePermissionAndVisibleAncestor() {
+    void placedCommandRequiresCreatePermission() {
         authenticateAdmin();
         var function = function("create:nomenclature");
-        var snapshot = structures.structure();
+        var snapshot = mainStructure();
         var section = snapshot.sections().stream().filter(row -> "directories".equals(row.areaKey()))
             .findFirst().orElseThrow();
         var entries = new java.util.ArrayList<>(snapshot.entries());
         entries.add(new org.ipro.navigation.NavigationStructure.Entry("create-nomenclature",
-            section.id(), function.key(), null, 0));
-        var saved = structures.save(snapshot.version(), new org.ipro.navigation.NavigationStructure(
-            snapshot.version(), snapshot.seededAt(), snapshot.sections(), entries));
+            section.id(), function.key(), null, 0, NavigationImportance.NORMAL));
+        var saved = menus.save(snapshot.menuId(), snapshot.version(), new NavigationStructure(
+            snapshot.menuId(), snapshot.version(), snapshot.seededAt(), snapshot.sections(), entries));
         var placement = saved.entries().stream().filter(row -> function.key().equals(row.functionKey()))
             .findFirst().orElseThrow();
-        var catalog = catalogs.get();
+        var catalog = catalog(mainStructure());
         var item = catalog.findItem(placement.id()).orElseThrow();
         var resolver = new org.ipro.navigation.NavigationResolver();
         var gateway = org.mockito.Mockito.mock(org.ipro.form.spi.WorkspaceGateway.class);
         var navigator = coordinator(gateway);
-        var profile = administration.createProfile("Проверка СМ-2");
-        var enabled = administration.saveProfile(profile.id(), profile.version(),
-            Map.of(item.key(), NavigationVisibility.SHOW));
-        var show = enabled.overrides();
         java.util.function.Predicate<org.ipro.navigation.NavigationItem> available =
             entry -> !entry.function().command() || commands.decide(entry.function()).actionable();
 
@@ -167,21 +169,17 @@ class NavigationApplicationSmokeTest {
             .denialReason(org.ip.model.Nomenclature.class, org.ipro.data.DataOperation.CREATE);
         org.mockito.Mockito.doReturn(new org.ipro.rls.RlsUiGate.AccessDecision(true, null))
             .when(rlsUiGate).canCreate(org.ip.model.Nomenclature.class);
-        assertThat(resolver.resolve(catalog, Map.of(), available).findSubsystem(section.id()).orElseThrow().items())
-            .doesNotContain(item);
-        assertThat(resolver.resolve(catalog, show, available).findSubsystem(section.id()).orElseThrow().items())
+        assertThat(resolver.resolve(catalog, available).findSubsystem(section.id()).orElseThrow().items())
             .contains(item);
         assertThat(commands.execute(item.function(), navigator).actionable()).isTrue();
         org.mockito.Mockito.verify(gateway).open(
             org.mockito.ArgumentMatchers.eq(org.ipro.form.coordinator.ItemFormWrapperView.class),
             org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.startsWith("Создание: "),
             org.mockito.ArgumentMatchers.any());
-        assertThat(resolver.resolve(catalog, Map.of(item.key(), NavigationVisibility.SHOW,
-            "section:" + section.id(), NavigationVisibility.HIDE), available).findSubsystem(section.id())).isEmpty();
 
         org.mockito.Mockito.doReturn("Нет гранта").when(operationPermissions)
             .denialReason(org.ip.model.Nomenclature.class, org.ipro.data.DataOperation.CREATE);
-        assertThat(resolver.resolve(catalog, show, available).findSubsystem(section.id()).orElseThrow().items())
+        assertThat(resolver.resolve(catalog, available).findSubsystem(section.id()).orElseThrow().items())
             .doesNotContain(item);
         assertThat(commands.execute(item.function(), navigator).actionable()).isFalse();
         org.mockito.Mockito.verifyNoMoreInteractions(gateway);
@@ -211,7 +209,7 @@ class NavigationApplicationSmokeTest {
         authenticateAdmin();
         assertThatThrownBy(() -> new org.ipro.form.action.ActionHandlerRegistry(List.of(CommandFixture.navigationRowHandler())))
             .hasMessageContaining("Invalid NAVIGATION handler: test.row");
-        assertThat(structures.functions()).extracting(org.ipro.navigation.NavigationFunction::key)
+        assertThat(menus.functions()).extracting(row -> row.function().key())
             .contains("list:nomenclature", "create:nomenclature", "list:prd-spec", "list:receiving-document",
                 "list:nomenclature:context-test", "list:nomenclature:navigation-test",
                 "list:receiving-document:workshop-incoming", "action:nomenclature:test.inspect")
@@ -220,7 +218,7 @@ class NavigationApplicationSmokeTest {
     }
 
     private org.ipro.navigation.NavigationFunction function(String key) {
-        return structures.functions().stream().filter(function -> function.key().equals(key)).findFirst().orElseThrow();
+        return functions.find(key).orElseThrow();
     }
 
     private static void authenticateAdmin() {
@@ -303,20 +301,42 @@ class NavigationApplicationSmokeTest {
         }
     }
 
+    private NavigationStructure mainStructure() {
+        authenticateAdmin();
+        return menus.structure(menus.menus().stream().filter(org.ipro.navigation.NavigationMenu::main)
+            .findFirst().orElseThrow().id());
+    }
+
+    private NavigationCatalog catalog(NavigationStructure structure) {
+        return NavigationCatalog.build(structure, functions.indexed());
+    }
+
     @Test
-    void ownerOperationsWorkInsideActualApplicationAndSecurityDoesNotRequireAnAopProxy() {
-        assertThat(context.getBeanFactory().getBeanDefinition("navigationUiSnapshot").getScope()).isEqualTo("vaadin-ui");
-        SecurityContextHolder.getContext().setAuthentication(UsernamePasswordAuthenticationToken.authenticated(
-            "navigation-test-admin", "", List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
-        var created = administration.createProfile("KI-2 app smoke");
-        var saved = administration.saveProfile(created.id(), created.version(), Map.of(
-            "entry:unit-of-measurement", NavigationVisibility.HIDE));
-        assertThat(administration.profile(saved.id())).isEqualTo(saved);
-        assertThat(administration.resetProfile(saved.id(), saved.version()).overrides()).isEmpty();
-        // An authenticated name without a persisted User.id must not silently get a default profile.
-        assertThatThrownBy(reader::currentProfile).isInstanceOf(AccessDeniedException.class);
-        SecurityContextHolder.getContext().setAuthentication(UsernamePasswordAuthenticationToken.authenticated(
-            "navigation-test-user", "", List.of(new SimpleGrantedAuthority("ROLE_USER"))));
-        assertThatThrownBy(() -> administration.createProfile("Forbidden")).isInstanceOf(AccessDeniedException.class);
+    @org.springframework.transaction.annotation.Transactional
+    void assignedUserSeesTheCopyAndFallsBackToMainWhenItIsDeleted() {
+        var main = mainStructure();
+        var copy = menus.copy(main.menuId(), "Пользовательское меню");
+        var structure = menus.structure(copy.id());
+        var visible = structure.entries().stream().filter(entry -> !entry.id().equals("unit-of-measurement")).toList();
+        var saved = menus.save(copy.id(), structure.version(), new NavigationStructure(copy.id(), structure.version(),
+            structure.seededAt(), structure.sections(), visible));
+        org.mockito.Mockito.doReturn(true).when(users).exists("101");
+        menus.assign(copy.id(), java.util.Set.of("101"), java.util.Set.of());
+        var availability = org.mockito.Mockito.mock(ApplicationNavigationCommands.class);
+        org.mockito.Mockito.when(availability.decide(org.mockito.ArgumentMatchers.any(NavigationFunction.class)))
+            .thenReturn(org.ipro.form.action.ActionDecision.allowed());
+        org.mockito.Mockito.doReturn("101").when(users).currentUserKey();
+        assertThat(menuItems(availability)).doesNotContain("unit-of-measurement");
+        org.mockito.Mockito.doReturn("102").when(users).currentUserKey();
+        assertThat(menuItems(availability)).contains("unit-of-measurement");
+        menus.delete(copy.id(), saved.version());
+        org.mockito.Mockito.doReturn("101").when(users).currentUserKey();
+        assertThat(menuItems(availability)).contains("unit-of-measurement");
+    }
+
+    private List<String> menuItems(ApplicationNavigationCommands availability) {
+        var snapshot = new NavigationUiSnapshot(reader, functions, new NavigationResolver(), availability);
+        return menuNodes(snapshot).stream().flatMap(root -> root.groupsRecursive().stream())
+            .flatMap(group -> group.items().stream()).map(org.ipro.navigation.NavigationItem::id).toList();
     }
 }

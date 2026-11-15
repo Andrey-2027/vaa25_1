@@ -5,16 +5,15 @@ import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
 import com.vaadin.flow.spring.annotation.SpringComponent;
 import com.vaadin.flow.spring.annotation.UIScope;
-import org.ipro.navigation.NavigationCatalogProvider;
-import org.ipro.navigation.NavigationProfile;
-import org.ipro.navigation.NavigationProfileReader;
+import org.ipro.navigation.NavigationCatalog;
+import org.ipro.navigation.NavigationFunctionsProvider;
+import org.ipro.navigation.NavigationMenuReader;
 import org.ipro.navigation.NavigationResolver;
 import org.ipro.navigation.NavigationTree;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -29,14 +28,12 @@ public class NavigationUiSnapshot {
     private NavigationTree tree;
 
     @Autowired
-    public NavigationUiSnapshot(NavigationCatalogProvider catalogs,
+    public NavigationUiSnapshot(NavigationMenuReader menus, NavigationFunctionsProvider functions,
                                 NavigationResolver resolver,
-                                NavigationProfileReader profiles,
                                 ApplicationNavigationCommands commands) {
         this.loader = () -> {
-            var catalog = catalogs.get();
-            var profile = profiles.currentProfile(catalog);
-            return resolver.resolve(catalog, profile.map(NavigationProfile::overrides).orElseGet(Map::of),
+            var catalog = NavigationCatalog.build(menus.currentMenu(), functions.indexed());
+            return resolver.resolve(catalog,
                 item -> commands.decide(item.function()).actionable());
         };
     }

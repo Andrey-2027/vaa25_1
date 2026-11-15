@@ -12,8 +12,8 @@ import org.ipro.navigation.store.NavigationKnownFunctionEntity;
 import org.ipro.navigation.store.NavigationKnownFunctionRepository;
 import org.ipro.navigation.store.NavigationSectionEntity;
 import org.ipro.navigation.store.NavigationSectionRepository;
-import org.ipro.navigation.store.NavigationStructureEntity;
-import org.ipro.navigation.store.NavigationStructureRepository;
+import org.ipro.navigation.store.NavigationMenuEntity;
+import org.ipro.navigation.store.NavigationMenuRepository;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -29,19 +29,19 @@ import java.util.UUID;
 public final class NavigationStructureBootstrap {
     private final SubsystemRegistry areas;
     private final NavigationFunctionsProvider functions;
-    private final NavigationStructureRepository structures;
+    private final NavigationMenuRepository menus;
     private final NavigationSectionRepository sections;
     private final NavigationEntryRepository entries;
     private final NavigationKnownFunctionRepository known;
     private final TransactionTemplate transaction;
 
     public NavigationStructureBootstrap(SubsystemRegistry areas, NavigationFunctionsProvider functions,
-            NavigationStructureRepository structures, NavigationSectionRepository sections,
+            NavigationMenuRepository menus, NavigationSectionRepository sections,
             NavigationEntryRepository entries, NavigationKnownFunctionRepository known,
             PlatformTransactionManager manager) {
         this.areas = areas;
         this.functions = functions;
-        this.structures = structures;
+        this.menus = menus;
         this.sections = sections;
         this.entries = entries;
         this.known = known;
@@ -55,48 +55,47 @@ public final class NavigationStructureBootstrap {
         } catch (DataIntegrityViolationException failure) {
             // A concurrent first startup can win the singleton insert.
             transaction.executeWithoutResult(status -> {
-                var state = structures.lockSingleton().orElseThrow(() -> failure);
-                reconcile(state);
+                menus.lockMain().orElseThrow(() -> failure);
+                reconcile();
             });
         }
     }
 
     private void initializeLocked() {
-        var current = structures.lockSingleton();
+        var current = menus.lockMain();
         if (current.isPresent()) {
-            reconcile(current.orElseThrow());
+            reconcile();
             return;
         }
         Instant now = Instant.now();
-        structures.saveAndFlush(new NavigationStructureEntity(now));
-        var defaults = defaults(0, now);
+        var menu = menus.saveAndFlush(new NavigationMenuEntity("Основное меню", "основное меню", true, 0, now));
+        var defaults = defaults();
         Map<String, NavigationSectionEntity> destinations = new HashMap<>();
-        for (var section : defaults.sections()) {
-            var row = sections.save(new NavigationSectionEntity(section.id(), destinations.get(section.parentId()),
+        for (var section : defaults) {
+            var row = sections.save(new NavigationSectionEntity(menu, section.id(), destinations.get(section.parentId()),
                 section.title(), section.icon(), section.position(), section.areaKey()));
             if (destinations.putIfAbsent(section.id(), row) != null) {
                 throw new IllegalStateException("Повтор ключа предметной области: " + section.id());
             }
         }
-        addFunctions(functions.all(), destinations, now);
+        // Initial assembly places all currently available lists, including previously known functions.
+        appendNewLists(menu, functions.all().stream()
+            .sorted(Comparator.comparingInt(NavigationFunction::order).thenComparing(NavigationFunction::key)).toList());
+        recordInitialFunctions(now);
     }
 
-    public NavigationStructure defaults(long version, Instant seededAt) {
+    private void recordInitialFunctions(Instant now) {
+        var seen = new HashSet<>(known.findAll().stream().map(row -> row.getKey()).toList());
+        functions.all().stream().filter(function -> !seen.contains(function.key()))
+            .forEach(function -> known.save(new NavigationKnownFunctionEntity(function.key(), now)));
+    }
+
+    private List<NavigationStructure.Section> defaults() {
         var sectionRows = new java.util.ArrayList<NavigationStructure.Section>();
-        var entryRows = new java.util.ArrayList<NavigationStructure.Entry>();
         var occupied = new HashSet<String>();
         baseLists().map(NavigationFunction::areaKey).filter(key -> key != null).forEach(occupied::add);
         for (var root : areas.getRoots()) collectDefaults(root, null, occupied, sectionRows);
-        for (var section : sectionRows) {
-            var lists = baseLists().filter(function -> section.areaKey().equals(function.areaKey()))
-                .sorted(Comparator.comparingInt(NavigationFunction::order).thenComparing(NavigationFunction::key)).toList();
-            for (int i = 0; i < lists.size(); i++) {
-                var function = lists.get(i);
-                entryRows.add(new NavigationStructure.Entry(function.key().substring("list:".length()),
-                    section.id(), function.key(), null, i));
-            }
-        }
-        return new NavigationStructure(version, seededAt, sectionRows, entryRows);
+        return sectionRows;
     }
 
     private java.util.stream.Stream<NavigationFunction> baseLists() {
@@ -116,34 +115,45 @@ public final class NavigationStructureBootstrap {
             || node.getChildren().stream().anyMatch(child -> occupied(child, occupied));
     }
 
-    private void reconcile(NavigationStructureEntity state) {
+    private void reconcile() {
         var seen = new HashSet<>(known.findAll().stream().map(row -> row.getKey()).toList());
-        var fresh = functions.all().stream().filter(function -> !seen.contains(function.key())).toList();
+        var fresh = functions.all().stream().filter(function -> !seen.contains(function.key()))
+            .sorted(Comparator.comparingInt(NavigationFunction::order).thenComparing(NavigationFunction::key)).toList();
         if (fresh.isEmpty()) return;
-        Map<String, NavigationSectionEntity> destinations = new HashMap<>();
-        sections.findAll().stream().filter(section -> section.getAreaKey() != null)
-            .forEach(section -> destinations.put(section.getAreaKey(), section));
-        addFunctions(fresh, destinations, Instant.now());
-        state.touch();
+        Instant now = Instant.now();
+        fresh.forEach(function -> known.save(new NavigationKnownFunctionEntity(function.key(), now)));
+        for (var menu : menus.findAllByOrderByPositionAscIdAsc()) {
+            appendNewLists(menu, fresh);
+        }
     }
 
-    private void addFunctions(List<NavigationFunction> fresh, Map<String, NavigationSectionEntity> destinations, Instant now) {
+    private void appendNewLists(NavigationMenuEntity menu, List<NavigationFunction> fresh) {
+        Map<String, NavigationSectionEntity> destinations = new HashMap<>();
+        sections.findByMenu_Id(menu.getId()).stream().filter(section -> section.getAreaKey() != null)
+            .forEach(section -> destinations.put(section.getAreaKey(), section));
         Map<String, Integer> positions = new HashMap<>();
         var used = new HashSet<String>();
-        for (var entry : entries.findAll()) {
+        for (var entry : entries.findByMenu_Id(menu.getId())) {
             positions.merge(entry.getSection().getKey(), entry.getPosition(), Math::max);
             used.add(entry.getKey());
         }
-        for (var function : fresh.stream().sorted(Comparator.comparingInt(NavigationFunction::order)
-                .thenComparing(NavigationFunction::key)).toList()) {
-            known.save(new NavigationKnownFunctionEntity(function.key(), now));
+        boolean changed = false;
+        for (var function : fresh) {
             if (function.kind() != NavigationFunction.Kind.LIST) continue;
             var section = destinations.get(function.areaKey());
             if (section == null) continue;
-            int position = positions.compute(section.getKey(), (key, previous) -> previous == null ? 0 : Math.incrementExact(previous));
+            int position = positions.compute(section.getKey(),
+                (key, previous) -> previous == null ? 0 : Math.incrementExact(previous));
             String id = function.key().substring("list:".length());
-            while (!used.add(id)) id = "e-" + new java.math.BigInteger(UUID.randomUUID().toString().replace("-", ""), 16).toString(36);
-            entries.save(new NavigationEntryEntity(id, section, function.key(), null, position));
+            while (!used.add(id)) id = generatedId("e-");
+            entries.save(new NavigationEntryEntity(menu, id, section, function.key(), null, position,
+                org.ipro.navigation.NavigationImportance.NORMAL));
+            changed = true;
         }
+        if (changed) menu.touch();
+    }
+
+    static String generatedId(String prefix) {
+        return prefix + new java.math.BigInteger(UUID.randomUUID().toString().replace("-", ""), 16).toString(36);
     }
 }

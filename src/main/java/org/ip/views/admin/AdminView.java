@@ -31,8 +31,10 @@ import org.ipro.rls.AccessService.EffectiveGrant;
 import org.ipro.rls.RlsDimensionKind;
 import org.ipro.rls.c5.C5Operation;
 import org.ip.application.catalog.NamedOperationOwner;
+import org.ip.views.admin.menu.MenuEditorAdminTab;
 import org.ip.application.catalog.NamedOperationSource;
 import org.ip.service.AccessGrantAdminService;
+import org.ip.views.admin.menu.MenuEditorAdminTab;
 import org.ip.service.AccessGrantAdminService.GrantFlags;
 import org.ip.service.AccessGrantAdminService.UngrantedDefinition;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,9 +60,9 @@ public class AdminView extends VerticalLayout implements Dirtyable, Savable {
     private final AccessGrantAdminService accessGrantAdminService;
     private final SettingsAdminTab settingsTab;
     private final NumberingAdminTab numberingTab;
-    private final ObjectProvider<NavigationProfilesAdminTab> navigationTabs;
-    private NavigationProfilesAdminTab navigationTab;
+    private final MenuEditorAdminTab menuTab;
     private boolean uiBuilt;
+    private boolean leavingMenuTab;
     private final Map<String, String> entityLabels = new HashMap<>();
 
     private final Grid<DimensionValueAccessRow> accessGrid = new Grid<>();
@@ -92,13 +94,12 @@ public class AdminView extends VerticalLayout implements Dirtyable, Savable {
     public AdminView(@Autowired AccessGrantAdminService accessGrantAdminService,
                      @Autowired SettingsAdminTab settingsTab,
                      @Autowired NumberingAdminTab numberingTab,
+                     @Autowired MenuEditorAdminTab menuTab,
                      @Autowired EntityManagerFactory entityManagerFactory,
                      @Autowired MetadataResolver metadataResolver,
                      @Autowired java.util.List<NamedOperationOwner> namedOperationOwners,
-                     @Autowired java.util.List<NamedOperationSource> namedOperationSources,
-                     @Autowired ObjectProvider<NavigationProfilesAdminTab> navigationTabs) {
+                     @Autowired java.util.List<NamedOperationSource> namedOperationSources) {
         this.accessGrantAdminService = accessGrantAdminService;
-        this.navigationTabs = navigationTabs;
         // Одиночные владельцы и источники, объявляющие несколько операций (регистровые подписи
         // приходят из платформы), для экрана неразличимы: он показывает название по id.
         for (NamedOperationOwner owner : NamedOperationSource.merge(namedOperationOwners, namedOperationSources)) {
@@ -106,6 +107,7 @@ public class AdminView extends VerticalLayout implements Dirtyable, Savable {
         }
         this.settingsTab = settingsTab;
         this.numberingTab = numberingTab;
+        this.menuTab = menuTab;
         for (var entity : entityManagerFactory.getMetamodel().getEntities()) {
             Class<?> type = entity.getJavaType();
             String title = metadataResolver.find(type)
@@ -150,19 +152,25 @@ public class AdminView extends VerticalLayout implements Dirtyable, Savable {
         Tab workspaceItem = new Tab(new Span("Пользователи и права — новый экран"), new Icon(VaadinIcon.USERS));
         Tab settingsItem = new Tab(new Span("Настройки"), new Icon(VaadinIcon.COGS));
         Tab numberingItem = new Tab(new Span("Нумерация"), new Icon(VaadinIcon.HASH));
-        Tabs tabs = new Tabs(accessItem, workspaceItem, settingsItem, numberingItem);
-        Tab navigationItem = new Tab(new Span("Интерфейс"), new Icon(VaadinIcon.MENU));
-        navigationTab = navigationTabs.getObject();
-        tabs.add(navigationItem);
+        Tab menuItem = new Tab(new Span("Меню"), new Icon(VaadinIcon.MENU));
+        Tabs tabs = new Tabs(accessItem, workspaceItem, settingsItem, numberingItem, menuItem);
         add(tabs);
 
         buildAccessTab();
 
-        add(accessTab, settingsTab, numberingTab);
-        add(navigationTab);
+        add(accessTab, settingsTab, numberingTab, menuTab);
+        setFlexGrow(1, menuTab);
         show(accessTab);
 
         tabs.addSelectedChangeListener(e -> {
+            if (leavingMenuTab) { leavingMenuTab = false; return; }
+            if (e.getPreviousTab() == menuItem && e.getSelectedTab() != menuItem && menuTab.isDirty()) {
+                Tab wanted = e.getSelectedTab();
+                leavingMenuTab = true;
+                tabs.setSelectedTab(menuItem);
+                menuTab.guard(() -> tabs.setSelectedTab(wanted));
+                return;
+            }
             if (e.getSelectedTab() == workspaceItem) {
                 if (permissionWorkspace == null) {
                     try {
@@ -178,15 +186,15 @@ public class AdminView extends VerticalLayout implements Dirtyable, Savable {
                 }
                 show(permissionWorkspace);
                 permissionWorkspace.reloadActive();
-            } else if (e.getSelectedTab() == navigationItem) {
-                show(navigationTab);
-                navigationTab.refresh();
             } else if (e.getSelectedTab() == settingsItem) {
                 show(settingsTab);
                 settingsTab.refresh();
             } else if (e.getSelectedTab() == numberingItem) {
                 show(numberingTab);
                 numberingTab.refresh();
+            } else if (e.getSelectedTab() == menuItem) {
+                show(menuTab);
+                menuTab.refresh();
             } else {
                 show(accessTab);
             }
@@ -197,16 +205,22 @@ public class AdminView extends VerticalLayout implements Dirtyable, Savable {
         accessTab.setVisible(false);
         settingsTab.setVisible(false);
         numberingTab.setVisible(false);
-        navigationTab.setVisible(false);
+        menuTab.setVisible(false);
         if (permissionWorkspace != null) permissionWorkspace.setVisible(false);
         active.setVisible(true);
     }
 
-    @Override public boolean isDirty() { return permissionWorkspace != null && permissionWorkspace.isDirty(); }
+    @Override public boolean isDirty() {
+        return permissionWorkspace != null && permissionWorkspace.isDirty() || menuTab.isDirty();
+    }
     @Override public String getCloseConfirmMessage() {
+        if (menuTab.isDirty()) return menuTab.getCloseConfirmMessage();
         return permissionWorkspace == null ? "" : permissionWorkspace.getCloseConfirmMessage();
     }
-    @Override public boolean doSave() { return permissionWorkspace == null || permissionWorkspace.doSave(); }
+    @Override public boolean doSave() {
+        boolean rights = permissionWorkspace == null || !permissionWorkspace.isDirty() || permissionWorkspace.doSave();
+        return rights && menuTab.doSave();
+    }
 
     // ------------------------------------------------------ доступ (RLS)
 

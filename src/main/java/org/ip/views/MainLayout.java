@@ -34,6 +34,7 @@ import org.ipro.vaadin.search.GlobalSearchHeader;
 import org.ip.navigation.NavigationUiSnapshot;
 import org.ipro.navigation.NavigationTree;
 import org.ip.views.admin.AdminView;
+import org.ip.views.home.HomeView;
 import org.ip.views.admin.DiagnosticsView;
 import org.ip.views.admin.EntityExplorerAccess;
 import org.ip.views.admin.EntityExplorerNavigation;
@@ -160,7 +161,7 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver, Before
     }
 
     private void openHome() {
-        workspace.open(MainView.class, "home", "Главная", v -> {});
+        workspace.open(HomeView.class, HomeView.ENTRY_ID, "Главное", v -> {});
     }
 
     private void bindExplorerNavigation() {
@@ -468,14 +469,14 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver, Before
     }
 
     /**
-     * Ящик (КИ-7): колонка из двух меню. Верхнее — «Главная» и разделы верхнего уровня без вложенных
+     * Ящик (КИ-7): колонка из двух меню. Верхнее — «Главное» и разделы верхнего уровня без вложенных
      * пунктов (внутри раздела — его страница). Нижнее, отделённое чертой, — служебные пункты со своими
      * правилами доступа.
      */
     private void createDrawer() {
         SideNav sections = new SideNav();
         sections.addClassName("drawer-sections");
-        SideNavItem homeItem = new SideNavItem("Главная");
+        SideNavItem homeItem = new SideNavItem("Главное");
         homeItem.setPrefixComponent(new Icon(VaadinIcon.HOME));
         homeItem.getElement().addEventListener("click", e -> openHome());
         sections.addItem(homeItem);

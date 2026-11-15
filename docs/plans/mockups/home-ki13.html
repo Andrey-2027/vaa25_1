@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Главное — макет</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+:root{--surface-0:#f5f4ef;--surface-1:#faf9f5;--surface-2:#ffffff;--text-primary:#1f1e1d;--text-secondary:#5e5d59;--text-muted:#8f8d87;--text-accent:#185FA5;--bg-accent:#E6F1FB;--border-accent:#378ADD;--border:rgba(31,30,29,.15);--border-strong:rgba(31,30,29,.3);--radius:8px}
+@media (prefers-color-scheme: dark){:root{--surface-0:#1f1e1d;--surface-1:#262624;--surface-2:#30302e;--text-primary:#f5f4ef;--text-secondary:#c2c0b6;--text-muted:#8f8d87;--text-accent:#85B7EB;--bg-accent:#0C447C;--border-accent:#85B7EB;--border:rgba(245,244,239,.15);--border-strong:rgba(245,244,239,.3)}}
+body{margin:0;padding:24px 16px;background:var(--surface-0);color:var(--text-primary);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+.wrap{max-width:820px;margin:0 auto}
+h1{font-size:20px;font-weight:500;margin:0 0 4px}
+.sub{color:var(--text-secondary);font-size:14px;margin:0 0 20px}
+.fr{border:0.5px solid var(--border-strong);border-radius:12px;overflow:hidden;background:var(--surface-2);font-size:12.5px;line-height:1.45}
+.cap{font-size:13px;color:var(--text-secondary);margin:0 0 6px}
+.n{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:var(--bg-accent);color:var(--text-accent);font-size:11px;font-weight:500;margin-left:6px;vertical-align:1px;flex-shrink:0}
+.mut{color:var(--text-muted)}
+.side a{display:block;color:var(--text-primary);text-decoration:none;padding:3px 0}
+.grp{border:0.5px solid var(--border);border-radius:var(--radius);padding:6px 10px 8px}
+.gh{display:flex;align-items:center;gap:6px;color:var(--text-accent);font-size:13.5px;margin-bottom:2px}
+.it{display:flex;align-items:center;gap:6px;padding:3px 0;min-width:0}
+.it .t{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.g td,.g th{padding:3px 6px;border-top:0.5px solid var(--border);text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:400}
+.g th{color:var(--text-secondary);font-size:11.5px}
+.fi{border:0.5px solid var(--border-strong);border-radius:6px;height:16px}
+ol{font-size:13px;color:var(--text-secondary);padding-left:20px;margin:10px 0 0}
+ol li{margin:2px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>«Главное» — макет</h1>
+<p class="sub">Согласован 2026-11-15 для КИ-13 (home-ki13-ki14-work-plan.md, ревизия 2). Заменяет экран 3 в command-interface-v2.html.</p>
+
+<p class="cap">Экран 1 — «Главное», панель «Недавнее» свёрнута</p>
+<div class="fr">
+  <div style="display:flex;align-items:center;gap:12px;padding:8px 12px;border-bottom:0.5px solid var(--border);background:var(--surface-1)">
+    <i class="ti ti-menu-2"></i><span style="font-weight:500">Vaa25_1</span>
+    <div style="flex:1;border:0.5px solid var(--border-strong);border-radius:var(--radius);padding:3px 8px;color:var(--text-muted)"><i class="ti ti-search"></i> Поиск по приложению</div>
+    <span>Петров А.</span>
+  </div>
+  <div style="display:flex;min-height:330px">
+    <div class="side" style="width:140px;flex-shrink:0;background:var(--surface-1);border-right:0.5px solid var(--border);padding:10px 12px">
+      <a style="background:var(--surface-2);margin:0 -12px;padding:3px 12px;border-left:3px solid var(--border-accent);font-weight:500"><i class="ti ti-home"></i> Главное<span class="n">1</span></a>
+      <a><i class="ti ti-building-factory"></i> Производство</a>
+      <a><i class="ti ti-books"></i> НСИ</a>
+      <a><i class="ti ti-box"></i> Учёт объектов</a>
+    </div>
+    <div style="flex:1;min-width:0;padding:12px 14px">
+      <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px">
+        <div class="grp">
+          <div class="gh"><span style="flex:1">Каждый день</span><i class="ti ti-dots mut"></i><span class="n">2</span></div>
+          <div class="it"><i class="ti ti-file-text mut"></i><span class="t">Приёмка №123 от 10.11</span><span class="n">3</span></div>
+          <div class="it"><i class="ti ti-list mut"></i><span class="t">Спецификации</span></div>
+          <div style="height:2px;background:var(--border-accent);margin:2px 0;position:relative"><span style="position:absolute;right:0;top:-9px;font-size:11px;color:var(--text-accent);background:var(--surface-2);padding:0 4px">↦ Журналы</span></div>
+        </div>
+        <div class="grp">
+          <div class="gh"><span style="flex:1">Производство</span><i class="ti ti-dots mut"></i><span class="n">4</span></div>
+          <div class="it" style="background:var(--surface-1);border-radius:6px;padding:3px 4px;margin:0 -4px"><i class="ti ti-grip-vertical mut"></i><i class="ti ti-list mut"></i><span class="t">Журналы</span><i class="ti ti-dots mut"></i><span class="n">5</span></div>
+          <div class="it"><i class="ti ti-list mut"></i><span class="t">Приёмно-сдаточные накладные</span></div>
+        </div>
+        <div class="grp">
+          <div class="gh"><span style="flex:1">Нормативы</span><i class="ti ti-dots mut"></i></div>
+          <div class="it"><i class="ti ti-list mut"></i><span class="t">Операции и переходы</span></div>
+        </div>
+        <div class="grp">
+          <div class="gh"><span style="flex:1">НСИ</span><i class="ti ti-dots mut"></i></div>
+          <div class="it"><i class="ti ti-list mut"></i><span class="t">Номенклатура</span></div>
+          <div class="it"><i class="ti ti-bolt mut"></i><span class="t">Создать номенклатуру</span><span class="n">6</span></div>
+        </div>
+      </div>
+      <div class="mut" style="margin-top:12px;font-size:12px"><i class="ti ti-eye-off"></i> Скрыто (нет доступа): 1 — <a style="color:var(--text-accent)">убрать</a><span class="n">7</span></div>
+    </div>
+    <div style="width:30px;flex-shrink:0;border-left:0.5px solid var(--border);background:var(--surface-1);display:flex;flex-direction:column;align-items:center;padding-top:10px;gap:8px">
+      <i class="ti ti-history"></i>
+      <span style="writing-mode:vertical-rl;transform:rotate(180deg);font-size:12px;color:var(--text-secondary)">Недавнее</span>
+      <span class="n" style="margin-left:0">8</span>
+    </div>
+  </div>
+</div>
+<ol>
+  <li>«Главное» — первый пункт левой панели, вне меню; открывается при входе. Звёздочки в шапке нет.</li>
+  <li>Группы называются по разделам меню пользователя и создаются сами при закреплении; «Каждый день» — группа, которую пользователь создал или переименовал. «⋯» группы: переименовать, удалить.</li>
+  <li>Значок вида: список, команда (молния), конкретная запись.</li>
+  <li>Группы — колонками: две на широком экране, одна на узком.</li>
+  <li>Перетаскивание внутри группы и между группами, линия — место вставки. Ручка и «⋯» — при наведении; «⋯» пункта: переименовать, переместить в группу (без мыши), открепить.</li>
+  <li>Пункт открывается как обычно: список — во вкладке, карточка — во вкладке или диалогом по настройке.</li>
+  <li>«Скрыто (нет доступа)» — пункты без доступа; хранятся и вернутся с правами, «убрать» — удалить их.</li>
+  <li>«Недавнее» свёрнуто в узкую полосу справа — так при первом входе; положение запоминается за пользователем между сеансами.</li>
+</ol>
+
+<p class="cap" style="margin-top:28px">Экран 2 — панель «Недавнее» раскрыта (левая панель приложения не показана)</p>
+<div class="fr">
+  <div style="display:flex;min-height:260px">
+    <div style="flex:1;min-width:0;padding:12px 14px;display:flex;flex-direction:column;gap:10px">
+      <div class="grp"><div class="gh">Каждый день</div><div class="it"><i class="ti ti-file-text mut"></i><span class="t">Приёмка №123 от 10.11</span></div><div class="it"><i class="ti ti-list mut"></i><span class="t">Спецификации</span></div></div>
+      <div class="grp"><div class="gh">Производство</div><div class="it"><i class="ti ti-list mut"></i><span class="t">Журналы</span></div></div>
+      <div class="mut" style="font-size:12px">ещё 2 группы ниже</div>
+    </div>
+    <div style="width:400px;max-width:58%;flex-shrink:0;border-left:0.5px solid var(--border)">
+      <div style="display:flex;align-items:center;gap:6px;padding:7px 10px;background:var(--surface-1);border-bottom:0.5px solid var(--border);font-weight:500"><i class="ti ti-history"></i><span style="flex:1">Недавнее</span><span class="mut" style="font-weight:400;font-size:11px">50 последних</span><i class="ti ti-chevron-right mut"></i><span class="n">9</span></div>
+      <table class="g" style="width:100%;border-collapse:collapse;table-layout:fixed;font-size:12px">
+        <colgroup><col style="width:28%"><col style="width:42%"><col style="width:22%"><col style="width:8%"></colgroup>
+        <tr><th>Тип</th><th>Представление</th><th>Открыто <i class="ti ti-arrow-down"></i></th><th></th></tr>
+        <tr><th><div class="fi"></div></th><th><div class="fi" style="padding:0 4px;font-size:11px;line-height:16px;color:var(--text-primary)">№12</div></th><th><div class="fi"></div></th><th></th></tr>
+        <tr><td>Приёмка</td><td>Приёмка №124 от 15.11</td><td class="mut">5 мин назад</td><td><i class="ti ti-star" style="color:var(--text-accent)"></i></td></tr>
+        <tr><td>Номенклатура</td><td>Список</td><td class="mut">20 мин назад</td><td><i class="ti ti-star mut"></i></td></tr>
+        <tr><td>Приёмка</td><td>Приёмка №123 от 10.11</td><td class="mut">вчера, 16:40</td><td><i class="ti ti-star" style="color:var(--text-accent)"></i></td></tr>
+        <tr><td>Спецификация</td><td>СП-17 Корпус редуктора</td><td class="mut">вчера, 11:05</td><td><i class="ti ti-star mut"></i></td></tr>
+        <tr><td>Номенклатура</td><td>Лист стальной 2 мм</td><td class="mut">13.11, 09:12</td><td><i class="ti ti-star mut"></i></td></tr>
+      </table>
+      <div class="mut" style="padding:6px 10px;font-size:11px;border-top:0.5px solid var(--border)">Фильтр по колонкам — в памяти, без запросов. Свежие сверху.<span class="n">10</span></div>
+    </div>
+  </div>
+</div>
+<ol start="9">
+  <li>Раскрытая панель: группы сжимаются в одну колонку; «›» сворачивает панель.</li>
+  <li><code>InMemoryFilterGrid</code>: «Тип» (название сущности), «Представление» (подпись записи или заголовок списка), «Открыто» по убыванию; строка фильтров по колонкам; заполненная звёздочка — закреплено, контурная — закрепить. Тяжёлых колонок (дата документа, автор, статус) нет.</li>
+</ol>
+
+<p class="cap" style="margin-top:28px">Экран 3 — страница раздела «Производство»: звёздочка у ссылки</p>
+<div class="fr" style="padding:10px 14px;max-width:420px">
+  <div class="gh">Производство<span class="n">11</span></div>
+  <div class="it"><span class="t" style="font-weight:500">Приёмно-сдаточные накладные</span></div>
+  <div class="it" style="background:var(--surface-1);border-radius:6px;padding:3px 4px;margin:0 -4px"><span class="t">Журналы</span><i class="ti ti-star" style="color:var(--text-accent)"></i></div>
+  <div class="it"><span class="t">Номенклатура</span></div>
+  <div class="it"><span class="t">Создать номенклатуру</span></div>
+</div>
+<ol start="11">
+  <li>Звёздочка появляется при наведении и фокусе с клавиатуры; у закреплённого видна всегда. Нажатие — закрепить или открепить.</li>
+</ol>
+
+<p class="cap" style="margin-top:28px">Экран 4 — пустое «Главное» нового пользователя</p>
+<div class="fr" style="padding:16px 18px">
+  <div style="font-weight:500;font-size:14px">Здесь будет ваше избранное<span class="n">12</span></div>
+  <div style="color:var(--text-secondary);margin:4px 0 12px">Закрепляйте звёздочкой на странице раздела или из «Недавнего» — пункты сами разложатся по разделам вашего меню.</div>
+  <div class="gh" style="color:var(--text-secondary)">Важное из вашего меню</div>
+  <div class="it"><i class="ti ti-list mut"></i><span class="t">Приёмно-сдаточные накладные</span><a style="color:var(--text-accent);font-size:12px"><i class="ti ti-star"></i> закрепить</a></div>
+  <div class="it"><i class="ti ti-list mut"></i><span class="t">Спецификации</span><a style="color:var(--text-accent);font-size:12px"><i class="ti ti-star"></i> закрепить</a></div>
+</div>
+<ol start="12">
+  <li>Пустая страница: подсказка и «Важное из вашего меню» — не сохраняется, исчезает после первого закрепления.</li>
+</ol>
+</div>
+</body>
+</html>

@@ -223,7 +223,7 @@ INTERNAL org.ipro.form.CatalogOwnerForms
 # сегмент, а резерв первого сегмента — политика приложения (список `reserved` в baseline
 # маршрутов), не свойство URL. Baseline `.api` обновлён этим же срезом.
 
-# ---- APP_API (79)
+# ---- APP_API (80)
 APP_API org.ipro.vaadin.explorer.ui.EntityExplorerCardPanel
 APP_API org.ipro.vaadin.explorer.ui.EntityExplorerCardPlace
 APP_API org.ipro.vaadin.explorer.ui.EntityExplorerCardState
@@ -280,6 +280,7 @@ APP_API org.ipro.form.builtin.ItemTable
 APP_API org.ipro.form.builtin.ListForm
 APP_API org.ipro.form.action.CopyLinkButton
 APP_API org.ipro.form.coordinator.FormNavigator
+APP_API org.ipro.form.coordinator.FormOpenEvent
 APP_API org.ipro.form.host.FormRouteUrlBridge
 APP_API org.ipro.form.host.RouteStatePage
 APP_API org.ipro.form.link.EntityExplorerAddress
@@ -308,7 +309,8 @@ APP_API org.ipro.vaadin.explorer.ExplorerSnapshot
 APP_API org.ipro.vaadin.explorer.SubsystemSummaryAssembler
 APP_API org.ipro.vaadin.search.GlobalSearchHeader
 
-# ---- APP_SPI (16)
+# ---- APP_SPI (17)
+APP_SPI org.ipro.form.coordinator.FormOpenObserver
 APP_SPI org.ipro.vaadin.explorer.ui.ExplorerFormPreviewPort
 APP_SPI org.ipro.vaadin.explorer.ui.ExplorerSourcePort
 APP_SPI org.ipro.form.builder.FormTypeCustomization
