@@ -10,6 +10,7 @@ import org.ipro.metadata.annotation.Subsystem;
 import org.ipro.navigation.NavigationEntityKeys;
 import org.ipro.navigation.NavigationFunction;
 import org.ipro.navigation.NavigationFunctions;
+import org.ipro.query.list.QueryListRegistry;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -22,14 +23,16 @@ public class ApplicationNavigationFunctions implements NavigationFunctions {
     private final EntityDescriptorCatalog descriptors;
     private final MetadataResolver metadata;
     private final ApplicationNavigationCommands commands;
+    private final QueryListRegistry lists;
 
     public ApplicationNavigationFunctions(FormRouteCatalog routes, EntityDescriptorCatalog descriptors,
                                           MetadataResolver metadata,
-                                          ApplicationNavigationCommands commands) {
+                                          ApplicationNavigationCommands commands, QueryListRegistry lists) {
         this.routes = routes;
         this.descriptors = descriptors;
         this.metadata = metadata;
         this.commands = commands;
+        this.lists = lists;
     }
 
     @Override
@@ -42,7 +45,16 @@ public class ApplicationNavigationFunctions implements NavigationFunctions {
 
     @Override
     public Optional<NavigationFunction> find(String key) {
-        return all().stream().filter(function -> function.key().equals(key)).findFirst();
+        var functions = key != null && key.startsWith("query:") ? dynamicFunctions() : all();
+        return functions.stream().filter(function -> function.key().equals(key)).findFirst();
+    }
+
+    @Override
+    public List<NavigationFunction> dynamicFunctions() {
+        return lists.registeredMenuLists().stream()
+            .map(list -> new NavigationFunction("query:" + list.key(), null, NavigationFunction.Kind.QUERY_LIST,
+                list.title(), "LIST_SELECT", 0, null))
+            .toList();
     }
 
     private boolean canList(Class<?> type) {

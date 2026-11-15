@@ -177,12 +177,13 @@ public final class DefaultNavigationMenuService implements NavigationMenuService
     private Set<String> validateEntries(List<NavigationStructure.Entry> draft, Set<String> sections,
                                         Map<String, NavigationEntryEntity> old) {
         var ids = new HashSet<String>();
+        var catalog = functions.indexed();
         for (var entry : draft) {
             key(entry.id());
             if (entry.title() != null) text(entry.title(), 120);
             var previous = old.get(entry.id());
             if (!ids.add(entry.id()) || !sections.contains(entry.sectionId())
-                    || (functions.find(entry.functionKey()).isEmpty()
+                    || (catalog.find(entry.functionKey()).isEmpty()
                         && (previous == null || !Objects.equals(previous.getFunctionKey(), entry.functionKey())))) {
                 throw new IllegalArgumentException("Некорректный пункт " + entry.id());
             }
@@ -359,10 +360,11 @@ public final class DefaultNavigationMenuService implements NavigationMenuService
 
     private NavigationStructure snapshot(NavigationMenuEntity menu) {
         var structure = reader.read(menu);
+        var catalog = functions.indexed();
         return new NavigationStructure(structure.menuId(), structure.version(), structure.seededAt(), structure.sections(),
             structure.entries().stream().map(entry -> new NavigationStructure.Entry(entry.id(), entry.sectionId(),
                 entry.functionKey(), entry.title(), entry.position(), entry.importance(),
-                functions.find(entry.functionKey()).isEmpty())).toList());
+                catalog.find(entry.functionKey()).isEmpty())).toList());
     }
 
     private NavigationMenu summary(NavigationMenuEntity menu) {

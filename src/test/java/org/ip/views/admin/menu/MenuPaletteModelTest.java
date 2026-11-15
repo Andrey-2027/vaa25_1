@@ -59,6 +59,16 @@ class MenuPaletteModelTest {
     }
 
     @Test
+    void queryListsAppearAsStandaloneFunctionsInThePalette() {
+        var query = new NavigationFunction("query:8.journals", null, NavigationFunction.Kind.QUERY_LIST,
+            "Журналы по запросу", "LIST_SELECT", 0, null);
+        var group = (MenuPaletteModel.AreaNode) model(List.of(found(query, null))).roots().getFirst();
+
+        assertThat(group.title()).isEqualTo("Без области");
+        assertThat(group.listFunctions()).containsExactly(query);
+    }
+
+    @Test
     void areasFollowTheRegistryAndListsFollowTheirOrder() {
         var model = model(all());
         assertThat(model.roots()).extracting(MenuPaletteModel.Node::title).containsExactly("Root", "Без области");

@@ -7,6 +7,7 @@ import com.vaadin.flow.component.grid.dnd.GridDropLocation;
 import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.server.VaadinSessionState;
 import org.ip.views.admin.menu.MenuEditorAdminTab.MenuRow;
+import org.ip.navigation.ApplicationNavigationCommands;
 import org.ipro.metadata.MetadataResolver;
 import org.ipro.metadata.SubsystemRegistry;
 import org.ipro.navigation.NavigationConflictException;
@@ -49,7 +50,8 @@ class MenuEditorAdminTabTest {
         when(labels.label("1")).thenReturn("Петров");
         when(labels.label("2")).thenReturn("Сидорова");
         when(labels.label("3")).thenReturn("Иванов");
-        tab = new MenuEditorAdminTab(service, () -> service.administrator, registry, mock(RlsReadGate.class), labels);
+        tab = new MenuEditorAdminTab(service, () -> service.administrator, registry, mock(RlsReadGate.class), labels,
+            mock(ApplicationNavigationCommands.class));
         // Not attached to the UI: a context menu needs a running Vaadin service to attach.
         tab.refresh();
     }
@@ -109,7 +111,8 @@ class MenuEditorAdminTabTest {
         var denying = new FakeMenuService(MenuDraftTest.saved(), List.of());
         var registry = new SubsystemRegistry("org.navigationfixture", new MetadataResolver());
         registry.afterPropertiesSet();
-        var other = new MenuEditorAdminTab(denying, () -> true, registry, mock(RlsReadGate.class), mock(MenuUserLabels.class));
+        var other = new MenuEditorAdminTab(denying, () -> true, registry, mock(RlsReadGate.class), mock(MenuUserLabels.class),
+            mock(ApplicationNavigationCommands.class));
         denying.administrator = false;
         other.refresh();
         assertThat(other.locked()).isTrue();

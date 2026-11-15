@@ -35,11 +35,12 @@ enum public final org.ipro.navigation.NavigationImportance
 
 enum public static final org.ipro.navigation.NavigationFunction$Kind
   extends java.lang.Enum<org.ipro.navigation.NavigationFunction$Kind>
-  enum-constants [LIST, LIST_VARIANT, CREATE, ACTION]
+  enum-constants [LIST, LIST_VARIANT, CREATE, ACTION, QUERY_LIST]
   field public static final org.ipro.navigation.NavigationFunction$Kind ACTION = enum-constant
   field public static final org.ipro.navigation.NavigationFunction$Kind CREATE = enum-constant
   field public static final org.ipro.navigation.NavigationFunction$Kind LIST = enum-constant
   field public static final org.ipro.navigation.NavigationFunction$Kind LIST_VARIANT = enum-constant
+  field public static final org.ipro.navigation.NavigationFunction$Kind QUERY_LIST = enum-constant
   method public static org.ipro.navigation.NavigationFunction$Kind valueOf(java.lang.String)
   method public static org.ipro.navigation.NavigationFunction$Kind[] values()
 
@@ -50,6 +51,7 @@ interface public abstract interface org.ipro.navigation.NavigationAdministration
 interface public abstract interface org.ipro.navigation.NavigationFunctions
   method public abstract java.util.List<org.ipro.navigation.NavigationFunction> all()
   method public abstract java.util.Optional<org.ipro.navigation.NavigationFunction> find(java.lang.String)
+  method public java.util.List<org.ipro.navigation.NavigationFunction> dynamicFunctions()
 
 interface public abstract interface org.ipro.navigation.NavigationMenuReader
   method public abstract org.ipro.navigation.NavigationStructure currentMenu()

@@ -83,7 +83,7 @@ class NavigationUiSnapshotTest {
             context.registerBean(ApplicationNavigationCommands.class, () -> {
                 var availability = new org.ipro.form.action.NavigationCommandAvailability(null, null,
                     type -> gate.canRead(type, user.get()));
-                return new ApplicationNavigationCommands(null, availability, null);
+                return new ApplicationNavigationCommands(null, availability, null, null, null);
             });
             context.register(NavigationUiSnapshot.class);
             context.refresh();
@@ -139,7 +139,7 @@ class NavigationUiSnapshotTest {
             click(menu.getItems().get(index));
             assertThat(opened.getLast()).isSameAs(root);
             var view = new SubsystemHomeView(navigator, new ApplicationNavigationCommands(null,
-                new org.ipro.form.action.NavigationCommandAvailability(null, null, type -> true), null));
+                new org.ipro.form.action.NavigationCommandAvailability(null, null, type -> true), null, null, null));
             view.init(opened.getLast());
             var buttons = descendants(view).filter(Button.class::isInstance).map(Button.class::cast).toList();
             var items = root.groupsRecursive().stream().flatMap(group -> group.items().stream()).toList();

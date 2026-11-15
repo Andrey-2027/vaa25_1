@@ -1,5 +1,9 @@
 package org.ip.navigation;
 
+import com.vaadin.flow.component.UI;
+import com.vaadin.flow.router.RouteParameters;
+import org.ip.views.query.QueryListView;
+import org.ip.views.query.QueryWorkbenchAccess;
 import org.ipro.data.DataOperation;
 import org.ipro.data.EntityDescriptorCatalog;
 import org.ipro.form.action.ActionDecision;
@@ -12,6 +16,7 @@ import org.ipro.form.action.CrudAction;
 import org.ipro.form.action.NavigationCommandAvailability;
 import org.ipro.form.coordinator.FormNavigator;
 import org.ipro.navigation.NavigationFunction;
+import org.ipro.query.list.QueryListRegistry;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -22,12 +27,17 @@ public class ApplicationNavigationCommands {
     private final NavigationCommandAvailability availability;
     private final ActionResolvers actions;
     private final EntityDescriptorCatalog descriptors;
+    private final QueryListRegistry lists;
+    private final QueryWorkbenchAccess queryAccess;
 
     public ApplicationNavigationCommands(ActionResolvers actions, NavigationCommandAvailability availability,
-                                         EntityDescriptorCatalog descriptors) {
+                                         EntityDescriptorCatalog descriptors, QueryListRegistry lists,
+                                         QueryWorkbenchAccess queryAccess) {
         this.availability = availability;
         this.actions = actions;
         this.descriptors = descriptors;
+        this.lists = lists;
+        this.queryAccess = queryAccess;
     }
 
     boolean supportsCreate(Class<?> type) {
@@ -49,7 +59,16 @@ public class ApplicationNavigationCommands {
             case LIST, LIST_VARIANT -> availability.decide(function.entityClass(), "", function.variant());
             case CREATE -> availability.decide(function.entityClass(), CrudAction.CREATE.id().value(), null);
             case ACTION -> availability.decide(function.entityClass(), function.actionId(), null);
+            case QUERY_LIST -> queryAccess.allows() && lists.findOpenable(queryKey(function))
+                .filter(entry -> !entry.declared()).isPresent()
+                    ? ActionDecision.allowed()
+                    : ActionDecision.blocked(ActionDecision.Reason.ACCESS_DENIED, "Список недоступен.");
         };
+    }
+
+    public boolean canPreviewQueryList(NavigationFunction function, String username) {
+        return function.kind() == NavigationFunction.Kind.QUERY_LIST
+            && lists.canPreviewMenuList(queryKey(function), username);
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
@@ -64,7 +83,13 @@ public class ApplicationNavigationCommands {
             case ACTION -> actions.handlers()
                 .handlerOf(ActionSurface.NAVIGATION, type, null, ActionId.of(function.actionId()))
                 .orElseThrow().execute(new ActionInvocation(type, null, null, navigator, null, Map.of(), Map.of()));
+            case QUERY_LIST -> UI.getCurrent().navigate(QueryListView.class,
+                new RouteParameters("key", queryKey(function)));
         }
         return decision;
+    }
+
+    private static String queryKey(NavigationFunction function) {
+        return function.key().substring("query:".length());
     }
 }

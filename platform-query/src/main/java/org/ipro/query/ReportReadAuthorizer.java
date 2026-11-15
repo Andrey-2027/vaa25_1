@@ -101,7 +101,10 @@ public final class ReportReadAuthorizer {
     }
 
     List<String> violations(ReadShape shape, Map<String, Class<?>> parameterTypes) {
-        String username = currentUser.requireAuthenticatedUsername();
+        return violations(shape, parameterTypes, currentUser.requireAuthenticatedUsername());
+    }
+
+    List<String> violations(ReadShape shape, Map<String, Class<?>> parameterTypes, String username) {
         var types = new LinkedHashSet<>(shape.types());
         var errors = new ArrayList<>(shape.errors());
         if (parameterTypes != null) {

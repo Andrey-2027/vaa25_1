@@ -108,6 +108,14 @@ public class ReportQueryGuard {
         return check(jpql, templateParamNames, paramEntityClasses, maxColumns, analyzer.analyze(jpql), null, true);
     }
 
+    GuardResult guardForUser(String jpql, Set<String> parameterNames, Map<String, Class<?>> parameterTypes,
+                             String previewUser) {
+        if (previewUser == null) return guard(jpql, parameterNames, parameterTypes);
+        jpql = ServiceParams.expand(jpql);
+        return check(jpql, parameterNames, parameterTypes, MAX_COLUMNS, analyzer.analyze(jpql), null, true,
+                previewUser);
+    }
+
     GuardResult guardStructure(String jpql, Set<String> parameterNames, Map<String, Class<?>> parameterTypes) {
         jpql = ServiceParams.expand(jpql);
         var checked = check(jpql, parameterNames, parameterTypes, MAX_COLUMNS, analyzer.analyze(jpql), null, false);
@@ -144,6 +152,13 @@ public class ReportQueryGuard {
     private GuardResult check(String jpql, Set<String> templateParamNames,
                               Map<String, Class<?>> paramEntityClasses, int maxColumns,
                               Analysis analysis, ReportReadAuthorizer.ReadShape shape, boolean checkAccess) {
+        return check(jpql, templateParamNames, paramEntityClasses, maxColumns, analysis, shape, checkAccess, null);
+    }
+
+    private GuardResult check(String jpql, Set<String> templateParamNames,
+                              Map<String, Class<?>> paramEntityClasses, int maxColumns,
+                              Analysis analysis, ReportReadAuthorizer.ReadShape shape, boolean checkAccess,
+                              String previewUser) {
         List<String> errors = new ArrayList<>();
         List<String> warnings = new ArrayList<>();
 
@@ -174,21 +189,26 @@ public class ReportQueryGuard {
                 + " (лимит " + maxColumns + ") — сузьте запрос");
         }
 
-        if (checkAccess) errors.addAll(checkRls(analysis, declared, paramEntityClasses));
+        if (checkAccess) errors.addAll(checkRls(analysis, declared, paramEntityClasses, previewUser));
         if (checkAccess && readAuthorizer != null) {
-            errors.addAll(shape == null ? readAuthorizer.violations(jpql, paramEntityClasses)
-                    : readAuthorizer.violations(shape, paramEntityClasses));
+            if (previewUser == null) {
+                errors.addAll(shape == null ? readAuthorizer.violations(jpql, paramEntityClasses)
+                        : readAuthorizer.violations(shape, paramEntityClasses));
+            } else {
+                var readShape = shape == null ? readAuthorizer.inspect(jpql, analysis) : shape;
+                errors.addAll(readAuthorizer.violations(readShape, paramEntityClasses, previewUser));
+            }
         }
 
         return new GuardResult(errors.isEmpty(), errors, warnings, analysis);
     }
 
     private List<String> checkRls(Analysis analysis, Set<String> usedParams,
-                                  Map<String, Class<?>> paramEntityClasses) {
-        if (RlsContext.isBypassed()) {
+                                  Map<String, Class<?>> paramEntityClasses, String previewUser) {
+        if (previewUser == null && RlsContext.isBypassed()) {
             return List.of();
         }
-        String username = currentUser.requireAuthenticatedUsername();
+        String username = previewUser == null ? currentUser.requireAuthenticatedUsername() : previewUser;
         List<String> refused = new ArrayList<>();
         Set<String> alreadyRefused = new LinkedHashSet<>();
 

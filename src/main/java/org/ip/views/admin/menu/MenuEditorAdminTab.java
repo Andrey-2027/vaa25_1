@@ -32,6 +32,7 @@ import org.ipro.metadata.SubsystemRegistry;
 import org.ipro.navigation.NavigationAdministrationAccess;
 import org.ipro.navigation.NavigationConflictException;
 import org.ipro.navigation.NavigationFunction;
+import org.ip.navigation.ApplicationNavigationCommands;
 import org.ipro.navigation.NavigationImportance;
 import org.ipro.navigation.NavigationMenu;
 import org.ipro.navigation.NavigationMenuService;
@@ -74,6 +75,7 @@ public class MenuEditorAdminTab extends VerticalLayout implements Dirtyable, Sav
     private final NavigationAdministrationAccess access;
     private final SubsystemRegistry areas;
     private final RlsReadGate readGate;
+    private final ApplicationNavigationCommands commands;
     private final MenuUserLabels userLabels;
     private final Clock clock = Clock.systemUTC();
 
@@ -110,11 +112,13 @@ public class MenuEditorAdminTab extends VerticalLayout implements Dirtyable, Sav
     private LazyContextMenu moreMenu;
 
     public MenuEditorAdminTab(NavigationMenuService service, NavigationAdministrationAccess access,
-                              SubsystemRegistry areas, RlsReadGate readGate, MenuUserLabels userLabels) {
+                              SubsystemRegistry areas, RlsReadGate readGate, MenuUserLabels userLabels,
+                              ApplicationNavigationCommands commands) {
         this.service = service;
         this.access = access;
         this.areas = areas;
         this.readGate = readGate;
+        this.commands = commands;
         this.userLabels = userLabels;
 
         addClassName("menu-editor");
@@ -726,7 +730,7 @@ public class MenuEditorAdminTab extends VerticalLayout implements Dirtyable, Sav
 
     private void openPreview() {
         if (current == null) return;
-        new MenuPreviewDialog(service, readGate, isDirty()).open();
+        new MenuPreviewDialog(service, readGate, commands, isDirty()).open();
     }
 
     // ------------------------------------------------------------------ palette

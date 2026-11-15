@@ -127,12 +127,17 @@ public final class QueryProjectionCompiler {
 
     /** Проверяет допуск текущего пользователя до ввода значений параметров. */
     public void requireReadAccess(QueryDefinition query) {
+        requireReadAccess(query, null);
+    }
+
+    /** Applies query admission to the subject of an administrative preview. */
+    public void requireReadAccess(QueryDefinition query, String previewUser) {
         var prepared = assembly.describeProjection(query, this::lowerEntitySelection);
         String hql = prepared.jpql();
         var parameterTypes = assembly.visualParameterEntityClasses(query);
-        requireAllowed(guard.guard(hql, prepared.bindings().keySet(), parameterTypes));
+        requireAllowed(guard.guardForUser(hql, prepared.bindings().keySet(), parameterTypes, previewUser));
         var shape = projectionShape(hql, select(hql), prepared.presentations());
-        requireAllowed(guard.guard(shape.wrapped(), prepared.bindings().keySet(), parameterTypes));
+        requireAllowed(guard.guardForUser(shape.wrapped(), prepared.bindings().keySet(), parameterTypes, previewUser));
     }
 
     public boolean isCommandEntity(String className) {

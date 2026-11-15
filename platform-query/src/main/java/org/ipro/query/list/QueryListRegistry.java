@@ -22,6 +22,8 @@ import java.util.function.Supplier;
 
 /** Объявленные списки и проверенный снимок определений из БД. */
 public final class QueryListRegistry {
+    /** Metadata used by menu editors. Actual opening always checks the user's query access. */
+    public record MenuList(String key, String title) { }
     /**
      * @param entities сущности, которые читает запрос списка: по ним определяется, кто его увидит; пусто,
      *                 если определение не прошло проверку
@@ -146,6 +148,15 @@ public final class QueryListRegistry {
         return current.stream().sorted(Comparator.comparing(Entry::key)).toList();
     }
 
+    /** Enabled registered lists with a valid definition, from the registry's current cache. */
+    public List<MenuList> registeredMenuLists() {
+        ensureLoaded();
+        return stored.values().stream()
+                .filter(entry -> entry.enabled() && entry.diagnostic() == null)
+                .sorted(Comparator.comparing(Entry::key))
+                .map(entry -> new MenuList(entry.key(), entry.title())).toList();
+    }
+
     /**
      * Проверяет определение так же, как перед сохранением, но ничего не записывает. Ключ при этом не
      * сверяется с занятыми: об этом скажет сохранение.
@@ -157,11 +168,23 @@ public final class QueryListRegistry {
 
     /** Допуск проверяется под текущим пользователем при каждом открытии. */
     public Optional<Entry> findOpenable(String key) {
+        return findOpenable(key, null);
+    }
+
+    /** Checks the same admission rules for the selected user in an administrator's menu preview. */
+    public boolean canPreviewMenuList(String key, String username) {
+        requireAdmin();
+        return username != null && !username.isBlank()
+                && findOpenable(key, username).filter(entry -> !entry.declared()).isPresent();
+    }
+
+    private Optional<Entry> findOpenable(String key, String previewUser) {
         if (key == null) return Optional.empty();
         Entry entry = openingEntry(key);
         if (entry == null || !entry.enabled() || entry.diagnostic() != null) return Optional.empty();
         try {
-            compiler.requireReadAccess(entry.definition().query());
+            if (previewUser == null) compiler.requireReadAccess(entry.definition().query());
+            else compiler.requireReadAccess(entry.definition().query(), previewUser);
             return Optional.of(entry);
         } catch (IllegalArgumentException | org.hibernate.HibernateException | RlsAccessDeniedException denied) {
             return Optional.empty();

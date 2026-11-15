@@ -7,6 +7,7 @@ import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.server.VaadinSessionState;
+import org.ip.navigation.ApplicationNavigationCommands;
 import org.ipro.navigation.NavigationMenu;
 import org.ipro.navigation.NavigationUserDirectory.UserOption;
 import org.ipro.rls.RlsReadGate;
@@ -146,7 +147,7 @@ class MenuDialogsTest {
     @Test
     void previewShowsTheAssignedMenuAndWhy() {
         service.assign(technologist.id(), Set.of("1"), Set.of());
-        var dialog = new MenuPreviewDialog(service, allowAll(), false);
+        var dialog = new MenuPreviewDialog(service, allowAll(), mock(ApplicationNavigationCommands.class), false);
 
         dialog.show(new UserOption("1", "Петров"));
         assertThat(dialog.reasonText()).contains("Меню технолога").contains("назначено лично");
@@ -168,7 +169,7 @@ class MenuDialogsTest {
         service.save(service.mainId(), main.version(), new org.ipro.navigation.NavigationStructure(main.menuId(),
             main.version(), main.seededAt(), main.sections(), withCommand));
 
-        var dialog = new MenuPreviewDialog(service, gate, false);
+        var dialog = new MenuPreviewDialog(service, gate, mock(ApplicationNavigationCommands.class), false);
         dialog.show(new UserOption("1", "Петров"));
         assertThat(dialog.sectionTitles()).as("only the command survives for a user who reads nothing")
             .containsExactly("Справочники");
@@ -181,7 +182,7 @@ class MenuDialogsTest {
 
     @Test
     void previewWithoutAUserShowsNothingAndAWarningCoversUnsavedEdits() {
-        var dialog = new MenuPreviewDialog(service, allowAll(), true);
+        var dialog = new MenuPreviewDialog(service, allowAll(), mock(ApplicationNavigationCommands.class), true);
         assertThat(dialog.sectionTitles()).isEmpty();
         assertThat(components(dialog).filter(Span.class::isInstance).map(Span.class::cast).map(Span::getText))
             .anyMatch(text -> text.contains("несохранённые правки"));

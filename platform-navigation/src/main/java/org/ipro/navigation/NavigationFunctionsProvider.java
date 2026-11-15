@@ -1,6 +1,7 @@
 package org.ipro.navigation;
 
 import java.util.LinkedHashMap;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -33,16 +34,29 @@ public final class NavigationFunctionsProvider {
         }
     }
 
-    public List<NavigationFunction> all() { return index().functions(); }
+    public List<NavigationFunction> all() { return indexed().all(); }
 
     public Optional<NavigationFunction> find(String key) {
-        return index().find(key);
+        if (key == null) return Optional.empty();
+        return index().find(key).or(() -> source.dynamicFunctions().stream()
+            .filter(function -> function.key().equals(key)).findFirst());
     }
 
     public void validate() { index(); }
 
     public NavigationFunctions indexed() {
-        return index();
+        var fixed = index();
+        var dynamic = source.dynamicFunctions();
+        if (dynamic.isEmpty()) return fixed;
+        var functions = new ArrayList<>(fixed.functions());
+        var byKey = new LinkedHashMap<>(fixed.byKey());
+        for (var function : dynamic) {
+            if (byKey.putIfAbsent(function.key(), function) != null) {
+                throw new IllegalArgumentException("Duplicate navigation function: " + function.key());
+            }
+            functions.add(function);
+        }
+        return new Index(List.copyOf(functions), Map.copyOf(byKey));
     }
 
     private record Index(List<NavigationFunction> functions, Map<String, NavigationFunction> byKey)
