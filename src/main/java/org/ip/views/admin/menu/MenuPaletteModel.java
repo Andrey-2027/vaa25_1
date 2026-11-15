@@ -155,7 +155,8 @@ public final class MenuPaletteModel {
         var related = new LinkedHashMap<Class<?>, List<DiscoveredFunction>>();
         var bases = new ArrayList<DiscoveredFunction>();
         for (var item : discovered) {
-            if (item.function().kind() == NavigationFunction.Kind.LIST) bases.add(item);
+            if (item.function().kind() == NavigationFunction.Kind.LIST
+                    || item.function().kind() == NavigationFunction.Kind.QUERY_LIST) bases.add(item);
             else related.computeIfAbsent(item.function().entityClass(), type -> new ArrayList<>()).add(item);
         }
         var result = new ArrayList<FunctionNode>();
@@ -175,7 +176,7 @@ public final class MenuPaletteModel {
 
     private static int rank(NavigationFunction function) {
         return switch (function.kind()) {
-            case LIST, LIST_VARIANT -> 0;
+            case LIST, LIST_VARIANT, QUERY_LIST -> 0;
             case CREATE -> 1;
             case ACTION -> 2;
         };

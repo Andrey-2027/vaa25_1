@@ -44,6 +44,7 @@ class public final org.ipro.query.QueryProjectionCompiler
   method public org.ipro.query.QueryProjectionCompiler$Inspection inspect(org.ipro.query.model.QueryDefinition)
   method public org.ipro.query.QueryProjectionCompiler$PreparedProjection compile(java.lang.String, org.ipro.query.model.QueryDefinition, org.ipro.query.ReportContext, java.util.Map<java.lang.String, java.lang.Object>, org.ipro.filtergrid.projection.ProjectionExecutionMode, int, java.lang.String)
   method public void requireReadAccess(org.ipro.query.model.QueryDefinition)
+  method public void requireReadAccess(org.ipro.query.model.QueryDefinition, java.lang.String)
 
 class public final org.ipro.query.QueryReadRefusedException
   extends java.lang.IllegalStateException
@@ -130,9 +131,11 @@ class public final org.ipro.query.WhereClauseApplier
 
 class public final org.ipro.query.list.QueryListRegistry
   ctor public(org.ipro.query.list.QueryListRepository, org.ipro.query.list.QueryListAdminAccess, org.ipro.rls.RlsCurrentUser, org.ipro.query.QueryProjectionCompiler, java.util.List<org.ipro.query.list.QueryListDeclaration>, org.springframework.transaction.PlatformTransactionManager)
+  method public boolean canPreviewMenuList(java.lang.String, java.lang.String)
   method public java.time.Instant checkedAt()
   method public java.util.List<org.ipro.query.list.QueryListRegistry$Entry> administrativeEntries()
   method public java.util.List<org.ipro.query.list.QueryListRegistry$Entry> recheck()
+  method public java.util.List<org.ipro.query.list.QueryListRegistry$MenuList> registeredMenuLists()
   method public java.util.Optional<java.lang.String> openingDiagnostic(java.lang.String)
   method public java.util.Optional<org.ipro.query.list.QueryListRegistry$Entry> findOpenable(java.lang.String)
   method public org.ipro.query.list.QueryListRegistry$Check check(org.ipro.query.list.QueryListDefinition)
@@ -1358,6 +1361,15 @@ record public static final org.ipro.query.list.QueryListRegistry$Entry
   method public java.time.Instant modifiedAt()
   method public java.util.List<java.lang.String> entities()
   method public org.ipro.query.list.QueryListDefinition definition()
+
+record public static final org.ipro.query.list.QueryListRegistry$MenuList
+  extends java.lang.Record
+  ctor public(java.lang.String, java.lang.String)
+  method public final boolean equals(java.lang.Object)
+  method public final int hashCode()
+  method public final java.lang.String toString()
+  method public java.lang.String key()
+  method public java.lang.String title()
 
 record public static final org.ipro.query.register.RegisterSliceCteGenerator$Column
   extends java.lang.Record

@@ -173,12 +173,14 @@ public class HomeResolver {
         var function = functions.find(pin.key());
         if (function.isEmpty() || !commands.decide(function.get()).actionable()) return Optional.empty();
         var found = function.get();
-        var info = metadata.resolve(found.entityClass());
         return Optional.of(switch (found.kind()) {
-            case LIST -> new Resolved(pin, found, found.entityClass(), null, info.getListFormTitle(), "Список", found.title());
-            case LIST_VARIANT -> new Resolved(pin, found, found.entityClass(), null, info.getListFormTitle(),
+            case LIST -> new Resolved(pin, found, found.entityClass(), null,
+                metadata.resolve(found.entityClass()).getListFormTitle(), "Список", found.title());
+            case LIST_VARIANT -> new Resolved(pin, found, found.entityClass(), null,
+                metadata.resolve(found.entityClass()).getListFormTitle(),
                 "Список — " + found.variant(), found.title());
             case CREATE, ACTION -> new Resolved(pin, found, found.entityClass(), null, found.title(), "Команда", found.title());
+            case QUERY_LIST -> new Resolved(pin, found, null, null, found.title(), "Список по запросу", found.title());
         });
     }
 

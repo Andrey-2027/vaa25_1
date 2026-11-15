@@ -12,6 +12,7 @@ import com.vaadin.flow.component.notification.Notification;
 import org.ip.views.workspace.SubsystemPage;
 import org.ipro.navigation.NavigationCatalog;
 import org.ipro.navigation.NavigationFunction;
+import org.ip.navigation.ApplicationNavigationCommands;
 import org.ipro.navigation.NavigationFunctions;
 import org.ipro.navigation.NavigationImportance;
 import org.ipro.navigation.NavigationMenu;
@@ -39,6 +40,7 @@ final class MenuPreviewDialog extends Dialog {
 
     private final NavigationMenuService service;
     private final RlsReadGate readGate;
+    private final ApplicationNavigationCommands commands;
     private final NavigationResolver resolver = new NavigationResolver();
     private final ComboBox<UserOption> user = new ComboBox<>();
     private final Span reason = new Span();
@@ -47,9 +49,11 @@ final class MenuPreviewDialog extends Dialog {
     private NavigationTree tree;
     private String openSection;
 
-    MenuPreviewDialog(NavigationMenuService service, RlsReadGate readGate, boolean unsavedEdits) {
+    MenuPreviewDialog(NavigationMenuService service, RlsReadGate readGate,
+                      ApplicationNavigationCommands commands, boolean unsavedEdits) {
         this.service = service;
         this.readGate = readGate;
+        this.commands = commands;
 
         addClassName("menu-preview-dialog");
         setHeaderTitle("Как увидит пользователь");
@@ -115,8 +119,11 @@ final class MenuPreviewDialog extends Dialog {
                 @Override public List<NavigationFunction> all() { return List.copyOf(functions.values()); }
                 @Override public Optional<NavigationFunction> find(String key) { return Optional.ofNullable(functions.get(key)); }
             });
-            tree = resolver.resolve(catalog, item -> item.function().command()
-                || readGate.canRead(item.entityClass(), option.title()));
+            tree = resolver.resolve(catalog, item -> switch (item.function().kind()) {
+                case QUERY_LIST -> commands.canPreviewQueryList(item.function(), option.title());
+                case CREATE, ACTION -> true;
+                case LIST, LIST_VARIANT -> readGate.canRead(item.entityClass(), option.title());
+            });
             openSection = tree.roots().isEmpty() ? null : tree.roots().getFirst().id();
             renderNavigation();
             renderPage();
