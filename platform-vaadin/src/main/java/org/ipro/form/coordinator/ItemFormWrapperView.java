@@ -7,7 +7,6 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import org.ipro.form.action.ActionContextProvider;
 import org.ipro.form.action.ActionHandlerRegistry;
-import org.ipro.form.action.CopyLinkButton;
 import org.ipro.form.link.FormLinkService;
 import org.ipro.form.link.EntityStructureNavigation;
 import org.ipro.form.action.ActionRegistry;
@@ -70,8 +69,8 @@ public class ItemFormWrapperView extends VerticalLayout implements Dirtyable, Sa
     private ItemForm<?> itemForm;
     private Consumer<IdentifiableEntity<Long>> savedCallback;
 
-    /** Кнопка «Скопировать ссылку» открытой карточки; перерисовывается после сохранения. */
-    private CopyLinkButton copyLinkButton;
+    /** Обновление команды «Скопировать ссылку» открытой карточки; вызывается после сохранения. */
+    private Runnable copyLinkRefresh;
 
     public ItemFormWrapperView(
             @Autowired ApplicationContext applicationContext,
@@ -200,12 +199,9 @@ public class ItemFormWrapperView extends VerticalLayout implements Dirtyable, Sa
             form.setReadOnly(ReadOnlyReason.requested());
         }
 
-        // Отмена → закрываем вкладку
-        form.setOnCancel(() -> {
-            if (closeCallback != null) closeCallback.run();
-        });
 
-        // Сохранение: исход решает host. Кнопка «Сохранить» закрывает вкладку при успехе;
+        form.setOnCancel(closeCallback);
+        // Сохранение: исход решает host. Команда «Записать и закрыть» закрывает вкладку при успехе;
         // ветка Workspace «Сохранить и закрыть» (doSave) закрытие не дублирует —
         // её закрывает сам Workspace по возвращённому результату.
         form.setOnSave(() -> {
@@ -214,12 +210,12 @@ public class ItemFormWrapperView extends VerticalLayout implements Dirtyable, Sa
             }
         });
 
-        form.withDefaultButtons();
+        form.withDefaultCommands();
         // Ссылка на запись (E2.1): тот же код, что у диалога, — адрес не должен зависеть от
-        // того, каким путём открыли карточку. Кнопка скрыта, пока решения нет.
-        this.copyLinkButton = ItemFormLinkAffordance.attach(form, formLinkService,
+        // того, каким путём открыли карточку. Команда скрыта, пока решения нет.
+        this.copyLinkRefresh = ItemFormLinkAffordance.attach(form, formLinkService,
             itemActionResolver(entityClass, variant), entityClass, variant);
-        FormStructureAffordance.attach(form.getFooter(), entityClass, structureNavigation, false);
+        FormStructureAffordance.attach(org.ipro.form.CommandBar.forForm(form), entityClass, structureNavigation, false);
         add(form);
         setFlexGrow(1, form);
         this.itemForm = form;
@@ -315,8 +311,8 @@ public class ItemFormWrapperView extends VerticalLayout implements Dirtyable, Sa
         if (result instanceof FormSaveResult.Success<?> success) {
             // У только что сохранённой записи появился id: ссылка стала построимой, и кнопка
             // обязана это увидеть, не дожидаясь переоткрытия вкладки (E2.1).
-            if (copyLinkButton != null) {
-                copyLinkButton.refresh();
+            if (copyLinkRefresh != null) {
+                copyLinkRefresh.run();
             }
             if (savedCallback != null) {
                 savedCallback.accept(success.saved());

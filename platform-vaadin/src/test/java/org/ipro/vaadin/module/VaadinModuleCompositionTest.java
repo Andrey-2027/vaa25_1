@@ -84,7 +84,10 @@ class VaadinModuleCompositionTest {
         "org.ipro.form.builtin.ListPageReader",
         "org.ipro.form.builtin.ListFormJpaFilterGrid",
         "org.ipro.form.link.ListViewStateToken",
+        "org.ipro.form.CommandPanel",
+        "org.ipro.form.FormKeyboard",
         "org.ipro.form.DialogForm",
+        "org.ipro.form.FormCommand",
         "org.ipro.form.Dirtyable",
         "org.ipro.form.EntityField",
         "org.ipro.form.FieldFactory",
@@ -109,6 +112,7 @@ class VaadinModuleCompositionTest {
         "org.ipro.form.SelectionFormAssembler",
         "org.ipro.form.SelectionFormFactory",
         "org.ipro.form.SelectionGridCustomizer",
+        "org.ipro.form.UnsavedChangesGuard",
         "org.ipro.form.TableSectionCustomization",
         "org.ipro.form.TableSectionFactory",
         "org.ipro.form.action.ActionContext",
@@ -372,8 +376,10 @@ class VaadinModuleCompositionTest {
                 + " Б1 добавила поиск автокомплита с отбором выбора (`FilterableSearchFunction`) — итого 141;"
                 + " КИ-9 добавила решатели действий (`ActionResolvers`) и правило доступности команд"
                 + " (`NavigationCommandAvailability`) — итого 193; ДФ-1 добавила оболочку диалоговой"
-                + " формы (`DialogForm`) — итого 194 (с учётом FormOpenEvent/FormOpenObserver: события открытия форм — итого 196)")
-            .hasSize(196); // R2: +22 explicitly reviewed Explorer UI types; ДФ-1: +1 DialogForm.
+                + " формы (`DialogForm`) — итого 194 (с учётом FormOpenEvent/FormOpenObserver: события открытия форм — итого 196);"
+                + " ДФ-5 добавила `UnsavedChangesGuard` (общий вопрос о несохранённых изменениях) — итого 197;"
+                + " ДФ-6 и исправления ревью довели список до 200.")
+            .hasSize(200);
     }
 
     @Test

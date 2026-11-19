@@ -18,8 +18,8 @@ import java.util.List;
  * удаление не предусмотрены ({@code save/create/update/delete} сервиса бросают исключение).
  *
  * <p>К generic-полям шапки (только чтение — {@code readOnly = true} в метаданных полей)
- * добавляется секция «Значения» — строки набора «тип → значение». Кнопки «Сохранить» нет:
- * {@link #withDefaultButtons()} переопределён и добавляет только «Отмена».</p>
+ * добавляется секция «Значения» — строки набора «тип → значение». Команды «Записать и закрыть» нет:
+ * {@link #withDefaultCommands()} переопределён и ничего не добавляет (окно закрывают ✕ и Esc).</p>
  */
 public class SklNomOpaForm extends ItemForm<SklNomOpa> {
 
@@ -59,10 +59,9 @@ public class SklNomOpaForm extends ItemForm<SklNomOpa> {
         }
     }
 
-    /** Набор неизменяем — сохранять нечего: только «Отмена» (закрытие). */
+    /** Набор неизменяем — сохранять нечего: стандартных команд нет, закрывают ✕ окна и Esc. */
     @Override
-    public ItemForm<SklNomOpa> withDefaultButtons() {
-        addCancelButton();
+    public ItemForm<SklNomOpa> withDefaultCommands() {
         return this;
     }
 }

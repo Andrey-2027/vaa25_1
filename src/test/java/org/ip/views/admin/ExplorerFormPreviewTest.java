@@ -133,7 +133,8 @@ class ExplorerFormPreviewTest {
     @Test @SuppressWarnings("unchecked") void dialogSwitchesFreshInstancesClosesAndReopensEmpty() {
         UI ui = new UI();
         UI.setCurrent(ui);
-        var session = mock(com.vaadin.flow.server.VaadinSession.class);
+        // Карточка несёт командную панель с MenuBar: при присоединении к UI ему нужен сервис сессии.
+        var session = mock(com.vaadin.flow.server.VaadinSession.class, org.mockito.Mockito.RETURNS_DEEP_STUBS);
         when(session.hasLock()).thenReturn(true);
         ui.getInternals().setSession(session);
         try {

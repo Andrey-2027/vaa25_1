@@ -10,6 +10,8 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import org.ipro.form.FieldFactory;
 import org.ipro.form.FormSaveHandler;
 import org.ipro.form.FormSaveResult;
+import org.ipro.form.DialogForm;
+import org.ipro.form.UnsavedChangesGuard;
 import org.ipro.form.builtin.ItemForm;
 import org.ipro.form.builtin.ListForm;
 import org.ipro.form.SelectionForm;
@@ -774,27 +776,31 @@ public class FormCoordinator implements FormNavigator {
             form.setReadOnly(ReadOnlyReason.requested());
         }
 
-        Dialog dialog = new Dialog();
         String variantSuffix = variant != null ? " (" + variant + ")" : "";
-        dialog.setHeaderTitle((isReadOnlyRequested(parameters) ? "Просмотр: "
+        DialogForm<T> dialog = new DialogForm<T>((isReadOnlyRequested(parameters) ? "Просмотр: "
             : id == null ? "Создание: " : "Редактирование: ")
-            + meta.getItemFormTitle() + variantSuffix);
+            + meta.getItemFormTitle() + variantSuffix).withoutFooter();
         dialog.setWidth("800px");
-        dialog.setHeight("600px");
-        dialog.setModal(true);
-        dialog.setDraggable(true);
-        dialog.setResizable(true);
-        if (form.isDescriptionForm()) dialog.setHeight("auto");
+        dialog.setHeight(form.isDescriptionForm() ? null : "600px");
+        // Поля формы отделены от рамки окна отступом самого окна, а не второго слоя padding.
+        form.setPadding(false);
         dialog.add(form);
+        // Закрытие (✕, Esc, «Отмена») идёт только через вопрос о несохранённых изменениях;
+        // щелчок мимо окна не закрывает вовсе — правки не теряются молча.
+        dialog.closeGuard(UnsavedChangesGuard.forForm(form));
+        form.setOnCancel(dialog::cancel);
+        dialog.onResult(saved -> {
+            if (onSaved != null) {
+                onSaved.accept(saved);
+            }
+            showSuccess("Сохранено");
+        });
 
         form.setOnSave(() -> {
             FormSaveResult<T> result = form.save();
             if (result.success()) {
-                dialog.close();
-                if (onSaved != null) {
-                    onSaved.accept(((FormSaveResult.Success<T>) result).saved());
-                }
-                showSuccess("Сохранено");
+                // Окно закрывается до onSaved/«Сохранено» (контракт DialogForm.closeWith).
+                dialog.closeWith(((FormSaveResult.Success<T>) result).saved());
             } else if (result instanceof FormSaveResult.Conflict<T> conflict) {
                 // Конфликт @Version: диалог остается открыт, изменения не потеряны —
                 // пользователь перечитывает данные и повторяет сохранение.
@@ -810,33 +816,14 @@ public class FormCoordinator implements FormNavigator {
             }
         });
 
-        form.setOnCancel(() -> {
-            if (form.isDirty()) {
-                ConfirmDialog confirm = new ConfirmDialog();
-                confirm.setHeader("Несохранённые изменения");
-                confirm.setText(form.getCloseConfirmMessage());
-                if (!form.isReadOnly()) {
-                    confirm.setConfirmButton("Сохранить и закрыть", e -> form.doSave());
-                    confirm.setCancelButton("Закрыть", e -> dialog.close());
-                    confirm.setRejectButton("Отмена", e -> {});
-                } else {
-                    // Карточка просмотра не предлагает сохранение (E1.5): сохранять нечего, а
-                    // «Сохранить и закрыть» вело бы к отклонённому сервером записи.
-                    confirm.setConfirmButton("Закрыть", e -> dialog.close());
-                    confirm.setCancelButton("Отмена", e -> {});
-                }
-                confirm.open();
-            } else {
-                dialog.close();
-            }
-        });
-        form.withDefaultButtons();
+
+        form.withDefaultCommands();
         // Ссылка на запись (E2.1). Перерисовывать после сохранения нечего: успешное сохранение
         // закрывает диалог, а неуспешное адреса не создаёт.
         ItemFormLinkAffordance.attach(form, formLinkService,
             itemActionResolver(entityClass, variant), entityClass, variant);
 
-        FormStructureAffordance.attach(form.getFooter(), entityClass, structureNavigation, true);
+        FormStructureAffordance.attach(org.ipro.form.CommandBar.forForm(form), entityClass, structureNavigation, true);
 
         dialog.open();
         if (id != null) {

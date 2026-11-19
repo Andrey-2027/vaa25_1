@@ -3,7 +3,6 @@ package org.ipro.form;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.menubar.MenuBar;
 import org.ipro.filtergrid.FilterGrid;
 import org.ipro.form.builder.ListUiCommand;
 import org.ipro.filtergrid.jpa.JpaFilterGrid;
@@ -91,8 +90,8 @@ class SelectionFormContextTest {
     void moreMenuUsesTheSharedCommandBarWithGridSettingsOnly() {
         CommandBar bar = form.getCommandBar();
 
-        assertThat(form.getChildren()).anyMatch(CommandBar.class::isInstance);
-        assertThat(form.getChildren()).noneMatch(MenuBar.class::isInstance);
+        assertThat(CommandBar.forForm(form)).isSameAs(bar);
+        assertThat(bar.isVisible()).isTrue();
         assertThat(bar.hasCommand(ListUiCommand.QUICK_SEARCH.id())).isTrue();
         assertThat(bar.hasCommand(ListUiCommand.FORMATTING.id())).isTrue();
         assertThat(bar.hasCommand(org.ipro.form.action.CrudAction.CREATE.id())).isFalse();
@@ -105,7 +104,7 @@ class SelectionFormContextTest {
 
         form.setHeaderRow(panel);
 
-        assertThat(form.getChildren().toList()).contains(panel);
+        assertThat(form.getBody().getChildren().toList()).contains(panel);
     }
 
     @Test
@@ -115,6 +114,50 @@ class SelectionFormContextTest {
 
         verify(filterGrid, never()).setAdditionalSpecification(any(Specification.class));
         verify(filterGrid, times(1)).refreshAll();
+    }
+
+    @Test
+    void shellDefaultsAndCaptionsOfSelectionWindow() {
+        assertThat(form.getHeaderTitle()).isEqualTo("Выбор");
+        assertThat(form.getOkButton().getText()).isEqualTo("Выбрать");
+        assertThat(form.getOkButton().isVisible()).isTrue();
+        assertThat(form.getCancelButton().getText()).isEqualTo("Отмена");
+        assertThat(form.getSelectButton()).isSameAs(form.getOkButton());
+        assertThat(form.isCloseOnOutsideClick()).isFalse();
+        assertThat(form.isDraggable()).isTrue();
+        assertThat(form.getWidth()).isEqualTo("720px");
+        assertThat(form.getHeight()).isEqualTo("520px");
+        assertThat(form.getOkButton().isEnabled()).isFalse();
+
+        form.setDialogSize("900px", "600px");
+
+        assertThat(form.getWidth()).isEqualTo("900px");
+        assertThat(form.getHeight()).isEqualTo("600px");
+    }
+
+    @Test
+    void okDeliversSelectedRowAndCancelDeliversNothing() {
+        var received = new java.util.ArrayList<Object>();
+        var selection = new SelectionForm<Object>("Выбор", filterGrid, received::add);
+        Object item = new Object();
+
+        when(grid.asSingleSelect().getValue()).thenReturn(null);
+        selection.ok();
+        assertThat(received).isEmpty();
+
+        when(grid.asSingleSelect().getValue()).thenReturn(item);
+        selection.cancel();
+        assertThat(received).isEmpty();
+
+        selection.ok();
+        assertThat(received).containsExactly(item);
+    }
+
+    @Test
+    void commandBarIsShownAndGridIsInBody() {
+        assertThat(form.getCommandBar().isVisible()).isTrue();
+        // Грид — мок, не привязанный к элементу, поэтому проверяем по элементу, а не по компоненту.
+        assertThat(form.getBody().getElement().indexOfChild(filterGrid.getElement())).isGreaterThanOrEqualTo(0);
     }
 
     private Button selectButton() {

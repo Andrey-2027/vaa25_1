@@ -1,6 +1,5 @@
 package org.ipro.form.builtin;
 
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import org.ipro.crud.BaseEntity;
 import org.ipro.form.FieldFactory;
@@ -43,14 +42,16 @@ class ItemFormReadOnlySaveButtonTest {
     }
 
     @Test
-    void withDefaultButtonsAfterReadOnlyLeavesOnlyCancelVisible() {
+    void withDefaultCommandsAfterReadOnlyKeepsSaveAndCloseHidden() {
         ItemForm<TestDocument> form = formWithMetadata();
 
         form.setReadOnly(true);
-        ItemForm<TestDocument> withButtons = form.withDefaultButtons();
+        form.withDefaultCommands();
 
-        assertThat(visibleFooterButtons(withButtons)).hasSize(1);
-        assertThat(visibleFooterButtons(withButtons).get(0).getText()).isEqualTo("Отмена");
+        var save = org.ipro.form.CommandBar.forForm(form).command(org.ipro.form.action.CrudAction.SAVE.id());
+        assertThat(save.isVisible()).isFalse();
+        // Закрывающих кнопок в подвале нет вовсе: «Отмены» в карточке больше нет.
+        assertThat(form.getFooter().getComponentCount()).isZero();
     }
 
     @Test
@@ -90,13 +91,6 @@ class ItemFormReadOnlySaveButtonTest {
         assertThat(saves.get()).isEqualTo(1);
     }
 
-    private static List<Button> visibleFooterButtons(ItemForm<TestDocument> form) {
-        return form.getFooter().getChildren()
-            .filter(component -> component instanceof Button)
-            .map(component -> (Button) component)
-            .filter(Component::isVisible)
-            .toList();
-    }
 
     private static ItemForm<TestDocument> formWithMetadata() {
         EntityMetadataInfo metadata = mock(EntityMetadataInfo.class);

@@ -1,6 +1,8 @@
 package org.ipro.form.builtin;
 
-import com.vaadin.flow.component.Component;
+import org.ipro.form.CommandPanel;
+import org.ipro.form.FormCommand;
+import org.ipro.form.action.ActionId;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -28,12 +30,12 @@ import java.util.function.Supplier;
  * История изменений записи (этап 10): кнопка «История», журнал entity_change_log,
  * drill-down «поле | было | стало». Вынесено из {@link ItemForm} без изменений поведения.
  *
- * Владеет кнопкой целиком (создаёт, кладёт в footer через колбэк, переключает видимость).
+ * Владеет командой целиком (регистрирует в «Ещё» командной панели, переключает видимость).
  * Обновляется вызовом {@link #update()} из путей установки сущности формы.
  */
 final class ItemHistory<T extends IdentifiableEntity<Long>> {
 
-    private final Button historyButton = new Button("История", VaadinIcon.CLOCK.create());
+    private final FormCommand historyCommand;
     private final Class<T> entityClass;
     private final Supplier<T> currentEntity;
     private final Supplier<T> peekEntity;
@@ -42,33 +44,21 @@ final class ItemHistory<T extends IdentifiableEntity<Long>> {
      * @param entityClass класс сущности формы (для имени в журнале; строкам — имя родителя)
      * @param currentEntity текущая сущность без побочных эффектов (может быть null)
      * @param peekEntity сущность с ленивым созданием (как {@code ItemForm.peekEntity()})
-     * @param addFooterFirst куда положить кнопку (начало footer формы)
+     * @param commands командная панель формы: команда «История» живёт в «Ещё»
      */
     ItemHistory(Class<T> entityClass, Supplier<T> currentEntity, Supplier<T> peekEntity,
-                Consumer<Component> addFooterFirst) {
+                CommandPanel commands) {
         this.entityClass = entityClass;
         this.currentEntity = currentEntity;
         this.peekEntity = peekEntity;
-        initHistoryButton();
-        addFooterFirst.accept(historyButton);
-    }
-
-    /**
-     * Кнопка «История» в footer: видна только ADMIN и только для существующей
-     * записи (entity с id). Открывает журнал entity_change_log, отфильтрованный
-     * по текущей записи; drill-down — диалог «поле | было | стало».
-     * Для форм строк табличных частей история агрегируется на родителе
-     * (@TableSectionMetadata.parentEntity/parentField).
-     */
-    private void initHistoryButton() {
-        historyButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
-        historyButton.setVisible(false);
-        historyButton.addClickListener(e -> openHistoryDialog());
+        this.historyCommand = commands.addMenu(ActionId.of("item.history"), "История", this::openHistoryDialog);
+        // Видна только ADMIN и только для существующей записи; пересчёт — update().
+        historyCommand.setVisible(false);
     }
 
     void update() {
         T entity = currentEntity.get();
-        historyButton.setVisible(isAdmin() && entity != null && entity.getId() != null);
+        historyCommand.setVisible(isAdmin() && entity != null && entity.getId() != null);
     }
 
     private static boolean isAdmin() {

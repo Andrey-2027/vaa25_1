@@ -4,6 +4,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import org.ipro.form.DialogForm;
+import org.ipro.form.FormCommand;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
@@ -52,9 +53,9 @@ public class ViewSelectorDialog extends DialogForm<GridView> {
 
     private final Grid<GridView> grid = new Grid<>(GridView.class, false);
     private String currentDefaultViewId;
-    private Command copyCommand;
-    private Command editCommand;
-    private Command deleteCommand;
+    private FormCommand copyCommand;
+    private FormCommand editCommand;
+    private FormCommand deleteCommand;
 
     public ViewSelectorDialog(org.ipro.metadata.GridMetadata metadata,
                               MetadataResolver metadataResolver,

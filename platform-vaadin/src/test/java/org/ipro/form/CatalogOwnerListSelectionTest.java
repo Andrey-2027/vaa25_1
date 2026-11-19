@@ -29,7 +29,7 @@ class CatalogOwnerListSelectionTest {
         when(service.findAllByScenario(any(),any(),any(),any())).thenReturn(org.springframework.data.domain.Page.empty());
         var form=new SelectionFormAssembler(new MetadataResolver(),locator).assemble(Contract.class,c->{},Map.of("counterparty",party(1)));
         form.setContextFilter("name","X");form.clearContextFilter("name");
-        assertThat(form.getChildren().filter(c->c instanceof Span).map(c->((Span)c).getText()).toList()).anyMatch(t->t.startsWith("Владелец:"));
+        assertThat(form.getBody().getChildren().filter(c->c instanceof Span).map(c->((Span)c).getText()).toList()).anyMatch(t->t.startsWith("Владелец:"));
         // The query boundary keeps the fixed owner even after the interactive panel is cleared.
         var root=mock(Root.class);var path=mock(Path.class);var cb=mock(CriteriaBuilder.class);var query=mock(CriteriaQuery.class);
         when(root.get("counterparty")).thenReturn(path);when(cb.equal(eq(path),any())).thenReturn(mock(Predicate.class));
@@ -37,6 +37,6 @@ class CatalogOwnerListSelectionTest {
         fixed.toPredicate(root,query,cb);verify(cb).equal(eq(path),argThat((Object p)->p instanceof Party party&&party.getId().equals(1L)));
         form.setFixedFilters(Map.of());
         assertThat(org.springframework.test.util.ReflectionTestUtils.getField(form.getFilterGrid(),"additionalSpecification")).isNull();
-        assertThat(form.getChildren().filter(c->c instanceof Span && c.isVisible()).map(c->((Span)c).getText()).toList()).noneMatch(t->t.startsWith("Владелец:"));
+        assertThat(form.getBody().getChildren().filter(c->c instanceof Span && c.isVisible()).map(c->((Span)c).getText()).toList()).noneMatch(t->t.startsWith("Владелец:"));
     }
 }

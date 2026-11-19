@@ -1,10 +1,13 @@
 package org.ipro.report.ui.print;
 
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.button.Button;
 import jakarta.persistence.Entity;
 import org.ipro.crud.BaseEntity;
 import org.ipro.crud.EntityLookup;
-import org.ipro.form.SelectionFormAssembler;
+import org.ipro.form.FieldFactory;
+import org.ipro.metadata.EntityMetadataInfo;
 import org.ipro.form.builtin.ItemForm;
 import org.ipro.form.registry.FormContext;
 import org.ipro.jr.run.JrxmlExecutionService;
@@ -12,29 +15,31 @@ import org.ipro.jr.service.JrxmlTemplateService;
 import org.ipro.report.ui.ReportContextFactory;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * Общая кастомизация форм: кнопка «Отчёты» появляется в карточке без ручного вызова
+ * Общая кастомизация форм: команда «Отчёты» появляется на панели карточки без ручного вызова
  * {@link ItemFormReportActions} и не дублируется там, где форма подключила её сама.
  */
 class ReportCardPrintCustomizationTest {
 
     @Test
-    void persistedEntityCardGetsExactlyOneReportsButton() {
+    void persistedEntityCardGetsExactlyOneReportsCommandOnThePanel() {
         ItemForm<?> form = form();
         customization().customizeItem(form, FormContext.builder(Printable.class).id(7L).build());
 
-        List<ContextualReportLauncher> launchers = footer(form).getChildren()
-            .filter(ContextualReportLauncher.class::isInstance)
-            .map(ContextualReportLauncher.class::cast)
-            .toList();
-        assertThat(launchers).singleElement()
-            .satisfies(launcher -> assertThat(launcher.getText()).isEqualTo("Отчёты"));
+        // Панель — потомок карточки: кнопка команды находится обходом дерева, как у любого компонента.
+        assertThat(reportsButtons(form)).singleElement()
+            .satisfies(button -> assertThat(button.getText()).isEqualTo("Отчёты"));
+        assertThat(ItemFormReportActions.isInstalled(form)).isTrue();
+        // В подвале карточки отчётной кнопки больше нет.
+        assertThat(form.getFooter().getComponentCount()).isZero();
     }
 
     @Test
@@ -42,23 +47,46 @@ class ReportCardPrintCustomizationTest {
         ItemForm<?> form = form();
         customization().customizeItem(form, FormContext.builder(Printable.class).build());
 
-        assertThat(footer(form).getChildren()).isEmpty();
+        assertThat(reportsButtons(form)).isEmpty();
+        assertThat(ItemFormReportActions.isInstalled(form)).isFalse();
         assertThat(customization().supports(Printable.class)).isTrue();
         assertThat(customization().supports(Plain.class)).isFalse();
         assertThat(customization().supports(NoIdentityEntity.class)).isFalse();
     }
 
     @Test
-    void explicitlyWiredLauncherIsNotDuplicated() {
+    void explicitlyWiredCommandIsNotDuplicated() {
         ItemForm<?> form = form();
-        ContextualReportLauncher explicit = new ContextualReportLauncher(
-            () -> null, null, null, null, null);
-        footer(form).add(explicit);
+        ItemFormReportActions.addContextualCommand(form, () -> null, null, null, null, null);
 
         customization().customizeItem(form, FormContext.builder(Printable.class).id(7L).build());
 
-        assertThat(footer(form).getChildren()
-            .filter(ContextualReportLauncher.class::isInstance)).hasSize(1);
+        assertThat(reportsButtons(form)).hasSize(1);
+    }
+
+    @Test
+    void legacyLauncherStillAddsItsButtonWithoutAnAutomaticDuplicate() {
+        ItemForm<?> form = form();
+        ContextualReportLauncher launcher =
+            ItemFormReportActions.addContextualLauncher(form, () -> null, null, null, null, null);
+
+        customization().customizeItem(form, FormContext.builder(Printable.class).id(7L).build());
+
+        assertThat(form.getFooter().getChildren()).containsExactly(launcher);
+        assertThat(reportsButtons(form)).containsExactly(launcher);
+    }
+
+    private static List<Button> reportsButtons(Component root) {
+        List<Button> found = new ArrayList<>();
+        collect(root, found);
+        return found.stream().filter(button -> "Отчёты".equals(button.getText())).toList();
+    }
+
+    private static void collect(Component component, List<Button> found) {
+        if (component instanceof Button button) {
+            found.add(button);
+        }
+        component.getChildren().forEach(child -> collect(child, found));
     }
 
     private static ReportCardPrintCustomization customization() {
@@ -67,15 +95,11 @@ class ReportCardPrintCustomizationTest {
             mock(ReportContextFactory.class));
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
     private static ItemForm<?> form() {
-        ItemForm form = mock(ItemForm.class);
-        when(form.getFooter()).thenReturn(new HorizontalLayout());
-        return form;
-    }
-
-    private static HorizontalLayout footer(ItemForm<?> form) {
-        return form.getFooter();
+        EntityMetadataInfo metadata = mock(EntityMetadataInfo.class);
+        doReturn(Printable.class).when(metadata).getEntityClass();
+        when(metadata.getFormFields()).thenReturn(List.of());
+        return new ItemForm<>(metadata, mock(FieldFactory.class));
     }
 
     /** JPA-сущность: только такие карточки получают кнопку. */

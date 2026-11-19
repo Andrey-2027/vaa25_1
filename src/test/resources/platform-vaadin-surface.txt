@@ -223,7 +223,7 @@ INTERNAL org.ipro.form.CatalogOwnerForms
 # сегмент, а резерв первого сегмента — политика приложения (список `reserved` в baseline
 # маршрутов), не свойство URL. Baseline `.api` обновлён этим же срезом.
 
-# ---- APP_API (81)
+# ---- APP_API (82)
 APP_API org.ipro.vaadin.explorer.ui.EntityExplorerCardPanel
 APP_API org.ipro.vaadin.explorer.ui.EntityExplorerCardPlace
 APP_API org.ipro.vaadin.explorer.ui.EntityExplorerCardState
@@ -252,6 +252,7 @@ APP_API org.ipro.form.BindingDescriptor
 APP_API org.ipro.form.EntityField
 APP_API org.ipro.form.FieldFactory
 APP_API org.ipro.form.DialogForm
+APP_API org.ipro.form.FormCommand
 APP_API org.ipro.form.FormSaveResult
 APP_API org.ipro.form.ItemFormSaveHandler
 APP_API org.ipro.form.ItemFormSaveHandlerRegistry
@@ -371,7 +372,7 @@ MODULE_API org.ipro.form.config.FormColumnDeclarationsCollector
 MODULE_API org.ipro.form.registry.FormResolver
 MODULE_API org.ipro.vaadin.search.GlobalSearchNavigationAdapter
 
-# ---- INTERNAL (68)
+# ---- INTERNAL (71)
 INTERNAL org.ipro.vaadin.explorer.ui.ExplorerCardAnchor
 INTERNAL org.ipro.vaadin.explorer.ui.ExplorerCardSection
 INTERNAL org.ipro.vaadin.explorer.ui.ExplorerCardTab
@@ -388,6 +389,8 @@ INTERNAL org.ipro.form.action.CopyLinkAction
 INTERNAL org.ipro.form.RelatedFields
 # CM1/CM2: общий рендерер команд — внутренний механизм; наружу остаётся getToolbar().
 INTERNAL org.ipro.form.CommandBar
+INTERNAL org.ipro.form.FormKeyboard
+INTERNAL org.ipro.form.CommandPanel
 INTERNAL org.ipro.form.builder.layout.ElementNode
 INTERNAL org.ipro.form.builder.ContextFilterConditions
 # UX pilot P1: internal resolved-structure projection; no new application-facing assembler.
@@ -402,6 +405,7 @@ INTERNAL org.ipro.form.FilterGridMoreMenu
 INTERNAL org.ipro.form.FilterLookupOptions
 INTERNAL org.ipro.form.SectionPresence
 INTERNAL org.ipro.form.TableSectionFactory
+INTERNAL org.ipro.form.UnsavedChangesGuard
 INTERNAL org.ipro.form.action.ActionContext
 INTERNAL org.ipro.form.action.OperationPermissionSource
 INTERNAL org.ipro.form.action.ActionPermission

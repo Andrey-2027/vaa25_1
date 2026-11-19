@@ -152,9 +152,9 @@ class PlatformVaadinModuleTest {
                 + " на операцию (`OperationPermissionSource`) — итого 138; ET2 добавила"
                 + " EntityStructureFactsAssembler — итого 139; E3.B добавила CatalogOwnerForms —"
                 + " итого 140; Б1 добавила FilterableSearchFunction — итого 141; последующие срезы"
-                + " (R2 Explorer UI, КИ-9, ET/AF) довели список до 193, FormOpenEvent/FormOpenObserver и ДФ-1 (`DialogForm`) — до 196; актуальный перечень ведёт"
+                + " ДФ-1–ДФ-6 и исправления ревью довели список до 200; актуальный перечень ведёт"
                 + " VaadinModuleCompositionTest")
-            .isEqualTo(196);
+            .isEqualTo(200);
         assertThat(copies)
             .as("тип есть и в модуле, и в дереве приложения — это split package: компилятор"
                 + " различает такие копии по порядку classpath, а не по замыслу, поэтому"

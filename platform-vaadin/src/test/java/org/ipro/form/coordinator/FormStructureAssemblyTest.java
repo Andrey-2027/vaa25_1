@@ -4,7 +4,6 @@ import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.contextmenu.MenuItem;
-import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.page.Page;
 import com.vaadin.flow.component.textfield.TextField;
@@ -30,6 +29,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
+import static org.mockito.Answers.RETURNS_DEEP_STUBS;
 
 class FormStructureAssemblyTest {
     public static class Entity extends BaseEntity { String title = ""; }
@@ -40,6 +40,9 @@ class FormStructureAssemblyTest {
     private final EntityStructureNavigation navigation = mock(EntityStructureNavigation.class);
     private final FormSaveHandler<?> saves = mock(FormSaveHandler.class);
     private final EntityMetadataInfo metadata = mock(EntityMetadataInfo.class);
+
+    /** UI.getCurrent() хранится слабой ссылкой: UI держим в поле на время теста. */
+    private UI ui;
 
     @AfterEach void clearUi() { UI.setCurrent(null); }
 
@@ -97,27 +100,41 @@ class FormStructureAssemblyTest {
             (entity, value) -> ((Entity) entity).title = (String) value, title::getValue,
             value -> title.setValue((String) value), value -> value == null, title::setReadOnly));
         doReturn(form).when(resolver).resolveItemForm(Entity.class, "custom", null, null);
-        UI ui = mock(UI.class);
+        // Окно карточки — настоящий DialogForm (не перехватываемый mockConstruction): UI реальный,
+        // подменена только страница, чтобы проверить адрес вкладки браузера.
+        ui = spy(new UI());
         Page page = mock(Page.class);
-        when(ui.getPage()).thenReturn(page);
+        doReturn(page).when(ui).getPage();
+        var session = mock(com.vaadin.flow.server.VaadinSession.class, RETURNS_DEEP_STUBS);
+        when(session.getErrorHandler()).thenReturn(null);
+        ui.getInternals().setSession(session);
         UI.setCurrent(ui);
-        try (var dialogs = mockConstruction(Dialog.class)) {
-            coordinator.openItemForm(Entity.class, "custom", (Long) null, saved -> {});
-            Entity draft = form.peekEntity();
-            title.setValue("Несохранённый черновик");
-            MenuBar menu = form.getFooter().getChildren().filter(MenuBar.class::isInstance)
-                .map(MenuBar.class::cast).findFirst().orElseThrow();
-            click(menu.getItems().get(0).getSubMenu().getItems().get(0));
+        coordinator.openItemForm(Entity.class, "custom", (Long) null, saved -> {});
+        DialogForm<?> dialog = dialogOf(form);
+        Entity draft = form.peekEntity();
+        title.setValue("Несохранённый черновик");
+        var development = org.ipro.form.CommandBar.forForm(form).serviceMenu().getItems().stream()
+            .filter(item -> item.getId().filter("entity-structure-menu"::equals).isPresent())
+            .findFirst().orElseThrow();
+        click(development.getSubMenu().getItems().get(0));
 
-            verify(page).executeJs("window.open($0, '_blank', 'noopener');", "/entity-explorer/entities");
-            verify(navigation, never()).open(any(), any());
-            verify(dialogs.constructed().get(0), never()).close();
-            assertThat(form.peekEntity()).isSameAs(draft);
-            assertThat(draft.getId()).isNull();
-            assertThat(title.getValue()).isEqualTo("Несохранённый черновик");
-            assertThat(form.isDirty()).isTrue();
-            verifyNoInteractions(saves);
+        verify(page).executeJs("window.open($0, '_blank', 'noopener');", "/entity-explorer/entities");
+        verify(navigation, never()).open(any(), any());
+        assertThat(dialog.isOpened()).isTrue();
+        assertThat(form.peekEntity()).isSameAs(draft);
+        assertThat(draft.getId()).isNull();
+        assertThat(title.getValue()).isEqualTo("Несохранённый черновик");
+        assertThat(form.isDirty()).isTrue();
+        verifyNoInteractions(saves);
+    }
+
+    private static DialogForm<?> dialogOf(com.vaadin.flow.component.Component form) {
+        var current = form;
+        while (current != null && !(current instanceof DialogForm<?>)) {
+            current = current.getParent().orElse(null);
         }
+        assertThat(current).as("карточка должна лежать в DialogForm").isNotNull();
+        return (DialogForm<?>) current;
     }
 
     private static void click(MenuItem item) {

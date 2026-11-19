@@ -2,8 +2,7 @@ package org.ipro.form;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentUtil;
-import com.vaadin.flow.component.Key;
-import com.vaadin.flow.component.ShortcutRegistration;
+import com.vaadin.flow.shared.Registration;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -14,7 +13,6 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import org.ipro.form.action.ActionId;
-import org.ipro.form.builder.ListCommandLayout;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -81,54 +79,11 @@ public class DialogForm<R> extends Dialog {
         void beforeClose(Runnable proceed);
     }
 
-    /**
-     * Дескриптор команды панели. Состояние меняется только здесь — тем самым кнопка панели
-     * и пункт меню «Ещё» остаются согласованными; внутренний рендерер наружу не выходит.
-     */
-    public static final class Command {
-
-        private final CommandBar.Command delegate;
-        private final Runnable onViewChanged;
-        private final ActionId id;
-        private final Set<ActionId> iconOnlyIds;
-
-        private Command(CommandBar.Command delegate, ActionId id, Set<ActionId> iconOnlyIds,
-                        Runnable onViewChanged) {
-            this.delegate = delegate;
-            this.id = id;
-            this.iconOnlyIds = iconOnlyIds;
-            this.onViewChanged = onViewChanged;
-        }
-
-        public Command setEnabled(boolean enabled) {
-            delegate.setEnabled(enabled);
-            return this;
-        }
-
-        public Command setVisible(boolean visible) {
-            delegate.setVisible(visible);
-            return this;
-        }
-
-        public Command setTooltip(String tooltip) {
-            delegate.setTooltip(tooltip);
-            return this;
-        }
-
-        /** На панели показывать только иконку (название остаётся в подсказке и в «Ещё»). */
-        public Command iconOnly() {
-            if (iconOnlyIds.add(id)) {
-                onViewChanged.run();
-            }
-            return this;
-        }
-    }
-
     private static final String ICON_MAXIMIZE = "Развернуть";
     private static final String ICON_RESTORE = "Восстановить";
 
     private final VerticalLayout root = new VerticalLayout();
-    private final CommandBar commandBar = new CommandBar();
+    private final CommandPanel commands = new CommandPanel();
     private final VerticalLayout body = new VerticalLayout();
     private final Span hint = new Span();
     private final FooterGroup footerStart = new FooterGroup();
@@ -137,15 +92,17 @@ public class DialogForm<R> extends Dialog {
     private final Button maximizeButton = new Button(new Icon(VaadinIcon.EXPAND_SQUARE));
     private final Button closeButton = new Button(new Icon(VaadinIcon.CLOSE_SMALL));
 
-    private final Set<ActionId> iconOnlyIds = new LinkedHashSet<>();
-    private int commandCounter;
     private boolean bodyReady;
+    private boolean footerless;
 
     private Supplier<R> okHandler;
     private Consumer<R> resultListener;
     private Runnable cancelListener;
     private CloseGuard closeGuard;
-    private ShortcutRegistration enterShortcut;
+    private boolean enterIsOk;
+    private Registration enterShortcut;
+    private Registration gridEnterShortcut;
+    private Registration ctrlEnterShortcut;
 
     private boolean maximized;
     private Frame savedFrame;
@@ -175,6 +132,30 @@ public class DialogForm<R> extends Dialog {
         // Пока слушатель задан, Vaadin сам окно не закрывает: Esc идёт тем же путём, что «Отмена».
         addDialogCloseActionListener(event -> cancel());
         setEnterIsOk(true);
+        addAttachListener(event -> getElement().executeJs("""
+            const overlay = this.$.overlay;
+            if (overlay.__iproCommitBeforeEscape) return;
+            overlay.__iproCommitBeforeEscape = true;
+            overlay.addEventListener('vaadin-overlay-close', event => {
+                const key = event.detail.sourceEvent;
+                if (!event.defaultPrevented && key?.key === 'Escape') {
+                    (%s)(key);
+                }
+            });
+            this.addEventListener('keydown', event => {
+                const cell = event.composedPath()[0];
+                if (this.hasAttribute('data-grid-enter-ok') && event.key === 'Enter'
+                    && !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey
+                    && !event.defaultPrevented && !event.isComposing && !event.repeat
+                    && cell?.matches?.('td[part~="body-cell"]')) {
+                    // The grid reserves Enter for entering its interactive cells.
+                    // Only the cell itself confirms here. Its buttons still handle their own keys.
+                    event.preventDefault();
+                    event.stopPropagation();
+                    this.dispatchEvent(new Event('ipro-grid-confirm'));
+                }
+            }, {capture: true});
+            """.formatted(FormKeyboard.COMMIT_INPUT)));
     }
 
     // ------------------------------------------------------------------ сборка
@@ -185,9 +166,7 @@ public class DialogForm<R> extends Dialog {
         root.setSpacing(true);
         root.getThemeList().add("spacing-s");
 
-        commandBar.setVisible(false);
-        commandBar.setLayout(ListCommandLayout.builder().allOnPanel().build());
-        ComponentUtil.setData(this, CommandBar.class, commandBar);
+        ComponentUtil.setData(this, CommandBar.class, commands.bar());
 
         body.setPadding(false);
         body.setSpacing(false);
@@ -198,7 +177,7 @@ public class DialogForm<R> extends Dialog {
         hint.getStyle().set("font-size", "var(--lumo-font-size-s)");
         hint.setVisible(false);
 
-        root.add(commandBar, body, hint);
+        root.add(commands.bar(), body, hint);
         root.setFlexGrow(1, body);
 
         super.add(root);
@@ -353,21 +332,18 @@ public class DialogForm<R> extends Dialog {
     // ------------------------------------------------------------------ командная панель
 
     /** Обычная команда панели; ключ — часть {@link ActionId} вида {@code dialog.<key>}. */
-    public Command addCommand(String key, String title, VaadinIcon icon, Runnable handler) {
-        ActionId id = commandId(key);
-        return wrap(id, commandBar.register(id, title, icon, handler));
+    public FormCommand addCommand(String key, String title, VaadinIcon icon, Runnable handler) {
+        return commands.add(commandId(key), title, icon, handler);
     }
 
     /** Разрушительная команда панели (красная). */
-    public Command addDangerCommand(String key, String title, VaadinIcon icon, Runnable handler) {
-        ActionId id = commandId(key);
-        return wrap(id, commandBar.registerDanger(id, title, icon, handler));
+    public FormCommand addDangerCommand(String key, String title, VaadinIcon icon, Runnable handler) {
+        return commands.addDanger(commandId(key), title, icon, handler);
     }
 
     /** Команда только для меню «Ещё»; кнопки на панели у неё нет. */
-    public Command addMenuCommand(String key, String title, Runnable handler) {
-        ActionId id = commandId(key);
-        return wrap(id, commandBar.addMenuCommand(id, title, handler));
+    public FormCommand addMenuCommand(String key, String title, Runnable handler) {
+        return commands.addMenu(commandId(key), title, handler);
     }
 
     private static ActionId commandId(String key) {
@@ -375,25 +351,9 @@ public class DialogForm<R> extends Dialog {
         return ActionId.of("dialog." + key);
     }
 
-    private Command wrap(ActionId id, CommandBar.Command registered) {
-        // Порядок кнопок на панели — порядок регистрации (иначе рендерер сортирует по ключу).
-        registered.setDefinitionOrder(commandCounter++);
-        commandBar.setVisible(true);
-        return new Command(registered, id, iconOnlyIds, this::rebuildCommandLayout);
-    }
-
-    private void rebuildCommandLayout() {
-        ListCommandLayout.Builder builder = ListCommandLayout.builder().allOnPanel();
-        List<ActionId> ids = new ArrayList<>(iconOnlyIds);
-        for (ActionId id : ids) {
-            builder.command(id).iconOnly();
-        }
-        commandBar.setLayout(builder.build());
-    }
-
     /** Внутренний рендерер команд; для {@code SelectionForm} (наполнение «Ещё») и тестов. */
     CommandBar commandBar() {
-        return commandBar;
+        return commands.bar();
     }
 
     // ------------------------------------------------------------------ футер
@@ -402,7 +362,8 @@ public class DialogForm<R> extends Dialog {
     public DialogForm<R> withOk(String caption, Supplier<R> handler) {
         okButton.setText(Objects.requireNonNull(caption, "caption"));
         okHandler = Objects.requireNonNull(handler, "handler");
-        okButton.setVisible(true);
+        okButton.setVisible(!footerless);
+        updateConfirmationShortcuts();
         return this;
     }
 
@@ -417,7 +378,27 @@ public class DialogForm<R> extends Dialog {
         okHandler = null;
         okButton.setVisible(false);
         cancelButton.setText("Закрыть");
+        updateConfirmationShortcuts();
         return this;
+    }
+
+    /**
+     * Окно без подвала (карточка элемента: команды живут на панели, а не внизу). ✕ и Esc по-прежнему
+     * ведут в {@link #cancel()}; Ctrl+Enter работает, если задан OK ({@link #withOk}).
+     */
+    public DialogForm<R> withoutFooter() {
+        footerless = true;
+        getFooter().removeAll();
+        okButton.setVisible(false);
+        updateConfirmationShortcuts();
+        return this;
+    }
+
+    /** Ctrl+Enter: то же, что нажатие доступной кнопки OK. */
+    void ctrlEnter() {
+        if (okHandler != null && okButton.isEnabled()) {
+            ok();
+        }
     }
 
     public Button getOkButton() {
@@ -435,16 +416,34 @@ public class DialogForm<R> extends Dialog {
 
     public void setOkEnabled(boolean enabled) {
         okButton.setEnabled(enabled);
+        updateConfirmationShortcuts();
     }
 
     /** Enter = OK (по умолчанию включено). Окнам с многострочными полями ярлык отключают. */
     public void setEnterIsOk(boolean enabled) {
-        if (enabled && enterShortcut == null) {
-            enterShortcut = okButton.addClickShortcut(Key.ENTER);
-            enterShortcut.listenOn(this);
-        } else if (!enabled && enterShortcut != null) {
+        enterIsOk = enabled;
+        updateConfirmationShortcuts();
+    }
+
+    private void updateConfirmationShortcuts() {
+        boolean canConfirm = okHandler != null && okButton.isEnabled();
+        boolean plainEnter = canConfirm && enterIsOk && !footerless;
+        if (plainEnter && enterShortcut == null) {
+            enterShortcut = FormKeyboard.confirm(this, false, this::ctrlEnter);
+            gridEnterShortcut = getElement().addEventListener("ipro-grid-confirm", event -> ctrlEnter());
+            getElement().setAttribute("data-grid-enter-ok", "");
+        } else if (!plainEnter && enterShortcut != null) {
             enterShortcut.remove();
             enterShortcut = null;
+            gridEnterShortcut.remove();
+            gridEnterShortcut = null;
+            getElement().removeAttribute("data-grid-enter-ok");
+        }
+        if (canConfirm && ctrlEnterShortcut == null) {
+            ctrlEnterShortcut = FormKeyboard.confirm(this, true, this::ctrlEnter);
+        } else if (!canConfirm && ctrlEnterShortcut != null) {
+            ctrlEnterShortcut.remove();
+            ctrlEnterShortcut = null;
         }
     }
 

@@ -1,5 +1,7 @@
 # platform-report-vaadin: публичная поверхность (policy: TEMPORARY_ALL_PUBLIC, перезапись: -Dplatform.api.baseline.write=true)
 class public final org.ipro.report.ui.print.ItemFormReportActions
+  method public static boolean isInstalled(org.ipro.form.builtin.ItemForm<?>)
+  method public static org.ipro.form.FormCommand addContextualCommand(org.ipro.form.builtin.ItemForm<?>, java.util.function.Supplier<org.ipro.query.ReportContext>, org.ipro.jr.service.JrxmlTemplateService, org.ipro.report.ui.print.JrxmlRunLauncher, org.ipro.report.ui.unidr.UniDrCatalogGateway, org.ipro.report.ui.unidr.UniDrRunLauncher)
   method public static org.ipro.report.ui.print.ContextualReportLauncher addContextualLauncher(org.ipro.form.builtin.ItemForm<?>, java.util.function.Supplier<org.ipro.query.ReportContext>, org.ipro.jr.service.JrxmlTemplateService, org.ipro.report.ui.print.JrxmlRunLauncher, org.ipro.report.ui.unidr.UniDrCatalogGateway, org.ipro.report.ui.unidr.UniDrRunLauncher)
 
 class public final org.ipro.unidr.ui.UniDrPreviewDialog
@@ -117,6 +119,7 @@ class public org.ipro.unidr.ui.UniDrView
 
 class public static final org.ipro.report.ui.print.ItemFormReportActions$CardLauncher
   ctor public(org.ipro.jr.service.JrxmlTemplateService, org.ipro.report.ui.print.JrxmlRunLauncher, org.springframework.beans.factory.ObjectProvider<org.ipro.report.ui.unidr.UniDrCatalogGateway>, org.springframework.beans.factory.ObjectProvider<org.ipro.report.ui.unidr.UniDrRunLauncher>)
+  method public org.ipro.form.FormCommand addCommandTo(org.ipro.form.builtin.ItemForm<?>, java.util.function.Supplier<org.ipro.query.ReportContext>)
   method public org.ipro.report.ui.print.ContextualReportLauncher addTo(org.ipro.form.builtin.ItemForm<?>, java.util.function.Supplier<org.ipro.query.ReportContext>)
 
 interface public abstract interface org.ipro.report.ui.ReportUiPreferences

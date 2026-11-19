@@ -1,6 +1,8 @@
 package org.ipro.form.builtin;
 
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.ComponentUtil;
+import com.vaadin.flow.shared.Registration;
 import com.vaadin.flow.component.HasLabel;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -15,6 +17,10 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
+import org.ipro.form.CommandBar;
+import org.ipro.form.CommandPanel;
+import org.ipro.form.FormCommand;
+import org.ipro.form.FormKeyboard;
 import org.ipro.form.FormSaveHandler;
 import org.ipro.form.FormSaveResult;
 import org.ipro.form.BindingDescriptor;
@@ -23,6 +29,8 @@ import org.ipro.form.FieldRenderer;
 import org.ipro.form.FormBinding;
 import org.ipro.form.FormBindingRegistry;
 import org.ipro.form.action.ReadOnlyReason;
+import org.ipro.form.action.ActionId;
+import org.ipro.form.action.CrudAction;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.ipro.form.builder.layout.CustomNode;
 import org.ipro.form.builder.layout.DisplayNode;
@@ -147,6 +155,11 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
     private final java.util.Set<String> explicitlyPlacedFields = new java.util.HashSet<>();
     private FormLayout formLayout;
     private HorizontalLayout footer;
+    /** Командная панель карточки (над бейджем режима); по ней же тесты и хосты: {@code CommandBar.forForm}. */
+    private final CommandPanel commands = new CommandPanel();
+    /** «Записать и закрыть» из {@link #withDefaultCommands()}; null, пока стандартные команды не подключены. */
+    private FormCommand saveAndCloseCommand;
+    private Registration saveShortcut;
     private boolean descriptionForm;
     private boolean initialized;
     private boolean initialFocusRequested;
@@ -448,7 +461,7 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
     /** Общая инициализация для всех входов построения дерева. */
     private void initCommon() {
         addAttachListener(event -> synchronizeEmbeddedLists());
-        footer = new HorizontalLayout();
+        footer = new AutoHideFooter();
         readOnlyNotice = new Span();
         sections = new ItemSectionHost<>(() -> entity);
         setSizeFull();
@@ -463,10 +476,12 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
         readOnlyNotice.getStyle().set("color", "var(--lumo-error-text-color)");
         readOnlyNotice.getStyle().set("font-size", "var(--lumo-font-size-s)");
         readOnlyNotice.setVisible(false);
+        ComponentUtil.setData(this, CommandBar.class, commands.bar());
+        add(commands.bar());
         add(readOnlyNotice);
 
         history = new ItemHistory<>(entityClass, () -> entity, this::peekEntity,
-            footer::addComponentAsFirst);
+            commands);
     }
 
     private static List<FieldMetadataInfo> filterFields(List<FieldMetadataInfo> allFields, List<String> fieldNames) {
@@ -1286,6 +1301,10 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
         registry.setReadOnly(readOnlyMode);
         refreshOwnerLock();
         saveButtons.forEach(button -> button.setVisible(!readOnlyMode));
+        if (saveAndCloseCommand != null) {
+            saveAndCloseCommand.setVisible(!readOnlyMode);
+            updateSaveShortcut();
+        }
         sections.setReadOnly(readOnlyMode);
         setReadOnlyNotice(reason == null ? "" : reason.noticeText());
     }
@@ -1503,12 +1522,123 @@ public class ItemForm<T extends IdentifiableEntity<Long>> extends VerticalLayout
     }
 
     /**
-     * Добавить обе кнопки по умолчанию (Сохранить + Отмена).
+     * Стандартные команды карточки на командной панели сверху (Д-ДФ10): «Записать и закрыть»
+     * (primary, Ctrl+Enter; в режиме просмотра скрыта — порядок вызовов {@code setReadOnly} и
+     * этого метода не важен). Закрывающей «Отмены» нет: закрывают ✕ окна или вкладки и Esc.
+     * Служебные команды («История», «Скопировать ссылку», «Разработка») регистрируют сама форма
+     * и её хосты в «Ещё».
      */
-    public ItemForm<T> withDefaultButtons() {
-        addCancelButton();
-        addSaveButton();
+    public ItemForm<T> withDefaultCommands() {
+        if (saveAndCloseCommand == null) {
+            saveAndCloseCommand = commands.addPrimary(CrudAction.SAVE.id(), "Записать и закрыть",
+                VaadinIcon.CHECK, this::runSaveAndClose, 0);
+            saveAndCloseCommand.setVisible(!readOnlyMode);
+            updateSaveShortcut();
+        }
         return this;
+    }
+
+    /** Команда панели карточки; ключ — часть {@link ActionId} вида {@code item.<key>}. */
+    public FormCommand addCommand(String key, String title, VaadinIcon icon, Runnable handler) {
+        return commands.add(itemCommandId(key), title, icon, handler);
+    }
+
+    /** Команда только для «Ещё»; кнопки на панели у неё нет. */
+    public FormCommand addMenuCommand(String key, String title, Runnable handler) {
+        return commands.addMenu(itemCommandId(key), title, handler);
+    }
+
+    private static ActionId itemCommandId(String key) {
+        java.util.Objects.requireNonNull(key, "key");
+        return ActionId.of("item." + key);
+    }
+
+    /** «Записать и закрыть»: исход и закрытие решает хост через {@link #setOnSave(Runnable)}. */
+    private void runSaveAndClose() {
+        if (readOnlyMode) {
+            return;
+        }
+        if (onSave != null) {
+            onSave.run();
+        }
+    }
+
+    /** Ctrl+Enter = «Записать и закрыть», если команда подключена и доступна. */
+    void ctrlEnter() {
+        if (saveAndCloseCommand != null) {
+            runSaveAndClose();
+        }
+    }
+
+    private void updateSaveShortcut() {
+        if (!readOnlyMode && saveShortcut == null) {
+            saveShortcut = FormKeyboard.confirm(this, true, this::ctrlEnter);
+        } else if (readOnlyMode && saveShortcut != null) {
+            saveShortcut.remove();
+            saveShortcut = null;
+        }
+    }
+
+    /**
+     * @deprecated Кнопки подвала заменены командной панелью (Д-ДФ10): метод делегирует
+     * {@link #withDefaultCommands()}; «Отмены» больше нет — закрывают ✕ и Esc.
+     */
+    @Deprecated
+    public ItemForm<T> withDefaultButtons() {
+        return withDefaultCommands();
+    }
+
+    /** Подвал формы для своих компонентов кастомайзеров: пока пуст — скрыт. Платформа туда ничего не кладёт. */
+    private static final class AutoHideFooter extends HorizontalLayout {
+        AutoHideFooter() {
+            setVisible(false);
+        }
+
+        private void sync() {
+            setVisible(getComponentCount() > 0);
+        }
+
+        @Override
+        public void add(Component... components) {
+            super.add(components);
+            sync();
+        }
+
+        @Override
+        public void add(Collection<Component> components) {
+            super.add(components);
+            sync();
+        }
+
+        @Override
+        public void addComponentAsFirst(Component component) {
+            super.addComponentAsFirst(component);
+            sync();
+        }
+
+        @Override
+        public void addComponentAtIndex(int index, Component component) {
+            super.addComponentAtIndex(index, component);
+            sync();
+        }
+
+        @Override
+        public void remove(Component... components) {
+            super.remove(components);
+            sync();
+        }
+
+        @Override
+        public void remove(Collection<Component> components) {
+            super.remove(components);
+            sync();
+        }
+
+        @Override
+        public void removeAll() {
+            super.removeAll();
+            sync();
+        }
     }
 
     // === Notification helpers ===

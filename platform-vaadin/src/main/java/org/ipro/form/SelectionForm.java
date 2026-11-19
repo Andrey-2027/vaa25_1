@@ -2,8 +2,6 @@ package org.ipro.form;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import org.ipro.filtergrid.FilterGrid;
@@ -14,7 +12,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 /**
- * Универсальная форма выбора — модальный диалог с FilterGrid.
+ * Универсальная форма выбора — диалоговая форма ({@link DialogForm}) с FilterGrid.
  *
  * Используется:
  *   - из EntityField при клике на кнопку "..." (выбор связанной сущности)
@@ -26,15 +24,15 @@ import java.util.function.Consumer;
  * Жизненный цикл:
  *   1. Конструктор + open() — диалог появляется
  *   2. Пользователь фильтрует/выбирает через встроенный UI FilterGrid
- *   3. Клик "Выбрать" (или двойной клик по строке) — вызывает onSelect, диалог закрывается
- *   4. Клик "Отмена" — закрывает диалог без вызова onSelect
+ *   3. «Выбрать» / Enter / двойной щелчок по строке — диалог закрывается, затем вызывается onSelect
+ *   4. «Отмена», ✕, Esc — закрывает диалог без вызова onSelect; щелчок мимо окна ничего не делает
+ *
+ * Окно можно перетаскивать, менять размер и разворачивать на весь экран (оболочка DialogForm).
  */
-public class SelectionForm<T> extends Dialog {
+public class SelectionForm<T> extends DialogForm<T> {
 
-    private final Consumer<T> onSelect;
-    private final Button selectButton;
     private final FilterGrid<T> filterGrid;
-    private final CommandBar commandBar = new CommandBar();
+
     private final Map<String, Object> fixedFilters = new LinkedHashMap<>();
     private java.util.function.Supplier<Map<String, Object>> fixedFilterProvider;
 
@@ -52,17 +50,12 @@ public class SelectionForm<T> extends Dialog {
     }
     void configureCatalogOwner(Class<?> type) { catalogEntityType = type; }
 
+
     @SuppressWarnings({"unchecked", "rawtypes"})
     public SelectionForm(String title, FilterGrid<T> filterGrid, Consumer<T> onSelect) {
-        this.onSelect = onSelect;
+        super(title);
         this.filterGrid = filterGrid;
-
-        setHeaderTitle(title);
-        setWidth("700px");
-        setHeight("500px");
-        setModal(true);
-        setDraggable(false);
-        setResizable(true);
+        size(Size.MEDIUM);
 
         Grid<T> grid = filterGrid.getGrid();
         grid.setSizeFull();
@@ -74,30 +67,27 @@ public class SelectionForm<T> extends Dialog {
             // уже built — игнорируем
         }
 
-        Button cancelButton = new Button("Отмена", e -> close());
-        selectButton = new Button("Выбрать", VaadinIcon.CHECK.create(), e -> {
-            T selected = grid.asSingleSelect().getValue();
-            if (selected != null) handleSelect(selected);
-        });
-        selectButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        selectButton.setEnabled(false);
+        // OK читает выделение: без него (Enter в пустом гриде) окно остаётся открытым.
+        withOk("Выбрать", () -> grid.asSingleSelect().getValue()).withCancel("Отмена").onResult(onSelect);
+        getOkButton().setIcon(VaadinIcon.CHECK.create());
+        setOkEnabled(false);
 
         grid.addItemDoubleClickListener(e -> {
             T item = e.getItem();
-            if (item != null) handleSelect(item);
+            if (item != null) closeWith(item);
         });
 
         grid.asSingleSelect().addValueChangeListener(e -> updateSelectButton());
 
-        // «Ещё» справа над гридом (как в 1С): общий поиск, условное форматирование.
-        // Рендерер menu-only: панель команд у выбора не создаётся, настройки грида
-        // наполняют то же «Ещё», что и в ListForm.
-        FilterGridMoreMenu.populate(commandBar, filterGrid);
+        // «Ещё» справа над гридом (как в 1С): общий поиск, условное форматирование. Это командная
+        // панель оболочки; рендерер menu-only, настройки грида наполняют то же «Ещё», что и в ListForm.
+        FilterGridMoreMenu.populate(commandBar(), filterGrid);
+        commandBar().setVisible(true);
 
-        add(commandBar);
-        catalogOwnerNotice.setVisible(false); add(catalogOwnerNotice);
+        catalogOwnerNotice.setVisible(false);
+        add(catalogOwnerNotice);
         add(filterGrid);
-        getFooter().add(cancelButton, selectButton);
+        getBody().setFlexGrow(1, filterGrid);
     }
 
     public FilterGrid<T> getFilterGrid() {
@@ -105,12 +95,12 @@ public class SelectionForm<T> extends Dialog {
     }
 
     public Button getSelectButton() {
-        return selectButton;
+        return getOkButton();
     }
 
-    /** Внутренний рендерер меню выбора; публичным контрактом остаются грид и кнопки. */
+    /** Внутренний рендерер «Ещё» — командная панель оболочки; публичным контрактом остаются грид и кнопки. */
     CommandBar getCommandBar() {
-        return commandBar;
+        return commandBar();
     }
 
     /**
@@ -129,7 +119,7 @@ public class SelectionForm<T> extends Dialog {
     }
 
     /**
-     * Поменять размер диалога (дефолт 700x500 задан в конструкторе).
+     * Поменять размер диалога (по умолчанию — размер MEDIUM оболочки: 720x520).
      * Для кастомайзеров/фабрик, которым default тесен без переписывания диалога.
      */
     public void setDialogSize(String width, String height) {
@@ -209,13 +199,6 @@ public class SelectionForm<T> extends Dialog {
 
     private void updateSelectButton() {
         T selected = filterGrid.getGrid().asSingleSelect().getValue();
-        selectButton.setEnabled(selected != null);
-    }
-
-    private void handleSelect(T selected) {
-        if (onSelect != null) {
-            onSelect.accept(selected);
-        }
-        close();
+        setOkEnabled(selected != null);
     }
 }

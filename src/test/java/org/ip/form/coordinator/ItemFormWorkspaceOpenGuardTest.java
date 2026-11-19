@@ -310,11 +310,34 @@ class ItemFormWorkspaceOpenGuardTest {
         }
 
         void openExplorer() {
-            MenuBar menu = form.getFooter().getChildren().filter(MenuBar.class::isInstance)
-                .map(MenuBar.class::cast).findFirst().orElseThrow();
-            MenuItem item = menu.getItems().get(0).getSubMenu().getItems().get(0);
+            // «Разработка» лежит в «Ещё» › «Сервис» командной панели карточки (первый потомок формы).
+            MenuBar more = form.getChildren().findFirst().orElseThrow().getChildren()
+                .filter(MenuBar.class::isInstance).map(MenuBar.class::cast).findFirst().orElseThrow();
+            MenuItem item = findItem(more.getItems(), "entity-structure-menu").getSubMenu().getItems().get(0);
             ComponentUtil.fireEvent(item, new ClickEvent<>(item, true, 0, 0, 0, 0, 1, 0,
                 false, false, false, false));
+        }
+
+        private static MenuItem findItem(List<MenuItem> items, String id) {
+            for (MenuItem candidate : items) {
+                if (candidate.getId().filter(id::equals).isPresent()) {
+                    return candidate;
+                }
+                MenuItem nested = candidate.isParentItem()
+                    ? findNested(candidate.getSubMenu().getItems(), id) : null;
+                if (nested != null) {
+                    return nested;
+                }
+            }
+            throw new AssertionError("Пункт не найден: " + id);
+        }
+
+        private static MenuItem findNested(List<MenuItem> items, String id) {
+            try {
+                return findItem(items, id);
+            } catch (AssertionError missing) {
+                return null;
+            }
         }
 
         Row edit() {

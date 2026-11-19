@@ -91,7 +91,7 @@
 #
 # ET4: Standard* bases are explicit external APP_API exports. TableSectionService and
 # EntityDescriptorCatalog are host application API; their previous MODULE_API role was stale.
-# ---- APP_API (47)
+# ---- APP_API (48)
 APP_API org.ipro.data.CatalogOwnerContext
 APP_API org.ipro.data.CatalogOwnerViolationException
 APP_API org.ipro.crud.InternedContract
@@ -174,7 +174,7 @@ APP_SPI org.ipro.search.GlobalSearchProvider
 # EntityReadAccess/RestGraphException — контракт с REST; Api*Read — запросы к
 # MODULE_API CanonicalReadExecutor; CanonicalEntityReadAccess создаёт autoconfigure.
 # Рост 95 -> 100, MODULE_API 43 -> 48; прикладной APP_API не расширяется.
-# ---- MODULE_API (59)
+# ---- MODULE_API (58)
 MODULE_API org.ipro.data.PresentationResolver
 MODULE_API org.ipro.metadata.CatalogOwnerDescriptor
 MODULE_API org.ipro.metadata.CatalogOwnerResolution

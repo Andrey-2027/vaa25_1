@@ -9,6 +9,7 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.QueryParameters;
 import org.ipro.form.DialogForm;
+import org.ipro.form.FormCommand;
 import org.ipro.query.ReportContext;
 import org.ipro.report.catalog.ReportCatalogItem;
 import org.ipro.report.catalog.ReportCatalogItemFactory;
@@ -96,7 +97,7 @@ public class ReportPrintDialog {
         dialog.setOkEnabled(false);
 
         addCreateCommands(dialog, context);
-        DialogForm.Command edit = dialog.addCommand("edit", "Изменить", VaadinIcon.EDIT, () -> {
+        FormCommand edit = dialog.addCommand("edit", "Изменить", VaadinIcon.EDIT, () -> {
             ReportCatalogItem selected = templates.asSingleSelect().getValue();
             if (selected == null) {
                 return;

@@ -8,6 +8,12 @@ annotation public abstract interface org.ipro.form.builder.FormFor
   method public abstract java.lang.Class<? extends org.ipro.identity.IdentifiableEntity<java.lang.Long>> value()
   method public abstract java.lang.String variant() default 
 
+class public final org.ipro.form.FormCommand
+  method public org.ipro.form.FormCommand iconOnly()
+  method public org.ipro.form.FormCommand setEnabled(boolean)
+  method public org.ipro.form.FormCommand setTooltip(java.lang.String)
+  method public org.ipro.form.FormCommand setVisible(boolean)
+
 class public final org.ipro.form.FormMessages
   method public static boolean showAccessDenied(java.lang.Throwable, java.lang.String, org.ipro.metadata.MetadataResolver)
   method public static void showError(java.lang.String)
@@ -337,16 +343,17 @@ class public org.ipro.form.DialogForm
   method public com.vaadin.flow.component.orderedlayout.VerticalLayout getBody()
   method public int getComponentCount()
   method public int indexOf(com.vaadin.flow.component.Component)
-  method public org.ipro.form.DialogForm$Command addCommand(java.lang.String, java.lang.String, com.vaadin.flow.component.icon.VaadinIcon, java.lang.Runnable)
-  method public org.ipro.form.DialogForm$Command addDangerCommand(java.lang.String, java.lang.String, com.vaadin.flow.component.icon.VaadinIcon, java.lang.Runnable)
-  method public org.ipro.form.DialogForm$Command addMenuCommand(java.lang.String, java.lang.String, java.lang.Runnable)
   method public org.ipro.form.DialogForm<R> closeGuard(org.ipro.form.DialogForm$CloseGuard)
   method public org.ipro.form.DialogForm<R> onCancel(java.lang.Runnable)
   method public org.ipro.form.DialogForm<R> onResult(java.util.function.Consumer<R>)
   method public org.ipro.form.DialogForm<R> size(org.ipro.form.DialogForm$Size)
   method public org.ipro.form.DialogForm<R> withCancel(java.lang.String)
   method public org.ipro.form.DialogForm<R> withOk(java.lang.String, java.util.function.Supplier<R>)
+  method public org.ipro.form.DialogForm<R> withoutFooter()
   method public org.ipro.form.DialogForm<R> withoutOk()
+  method public org.ipro.form.FormCommand addCommand(java.lang.String, java.lang.String, com.vaadin.flow.component.icon.VaadinIcon, java.lang.Runnable)
+  method public org.ipro.form.FormCommand addDangerCommand(java.lang.String, java.lang.String, com.vaadin.flow.component.icon.VaadinIcon, java.lang.Runnable)
+  method public org.ipro.form.FormCommand addMenuCommand(java.lang.String, java.lang.String, java.lang.Runnable)
   method public transient void add(com.vaadin.flow.component.Component[])
   method public transient void remove(com.vaadin.flow.component.Component[])
   method public void add(java.lang.String)
@@ -444,7 +451,7 @@ class public org.ipro.form.FormBindingRegistry
   method public void setReadOnly(boolean)
 
 class public org.ipro.form.SelectionForm
-  extends com.vaadin.flow.component.dialog.Dialog
+  extends org.ipro.form.DialogForm<T>
   type-parameter T
   ctor public(java.lang.String, org.ipro.filtergrid.FilterGrid<T>, java.util.function.Consumer<T>)
   method public com.vaadin.flow.component.button.Button getSelectButton()
@@ -547,9 +554,12 @@ class public org.ipro.form.builtin.ItemForm
   method public java.util.List<org.ipro.form.builtin.ItemTable<?, T>> getTableSections()
   method public java.util.Set<java.lang.Class<?>> attachedSectionClasses()
   method public org.ipro.form.FormBindingRegistry getBindingRegistry()
+  method public org.ipro.form.FormCommand addCommand(java.lang.String, java.lang.String, com.vaadin.flow.component.icon.VaadinIcon, java.lang.Runnable)
+  method public org.ipro.form.FormCommand addMenuCommand(java.lang.String, java.lang.String, java.lang.Runnable)
   method public org.ipro.form.FormSaveResult<T> save()
   method public org.ipro.form.action.ReadOnlyReason readOnlyReason()
   method public org.ipro.form.builtin.ItemForm<T> withDefaultButtons()
+  method public org.ipro.form.builtin.ItemForm<T> withDefaultCommands()
   method public org.ipro.metadata.EntityMetadataInfo getMetadata()
   method public void addEntityStateListener(java.util.function.Consumer<T>)
   method public void addTableSection(java.lang.String, org.ipro.form.builtin.ItemTable<?, T>)
@@ -819,12 +829,6 @@ class public org.ipro.vaadin.explorer.SubsystemSummaryAssembler
 class public org.ipro.vaadin.search.GlobalSearchHeader
   extends com.vaadin.flow.component.html.Div
   ctor public(org.ipro.search.GlobalSearchService, org.ipro.vaadin.search.GlobalSearchNavigationAdapter)
-
-class public static final org.ipro.form.DialogForm$Command
-  method public org.ipro.form.DialogForm$Command iconOnly()
-  method public org.ipro.form.DialogForm$Command setEnabled(boolean)
-  method public org.ipro.form.DialogForm$Command setTooltip(java.lang.String)
-  method public org.ipro.form.DialogForm$Command setVisible(boolean)
 
 class public static final org.ipro.form.builder.ListCommandLayout$Builder
   ctor public()

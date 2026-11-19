@@ -5,6 +5,7 @@ import com.vaadin.flow.component.tabs.TabSheet;
 import com.vaadin.flow.data.provider.Query;
 import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.server.VaadinSessionState;
+import com.vaadin.flow.server.VaadinService;
 import jakarta.persistence.EntityManager;
 import org.ip.Application;
 import org.ip.config.DataInitializer;
@@ -138,6 +139,7 @@ class EmbeddedListRuntimeIT {
         action.last=null; action.child=null;
         previousUi=UI.getCurrent(); previousSession=VaadinSession.getCurrent();
         var session=mock(VaadinSession.class);
+        when(session.getService()).thenReturn(mock(VaadinService.class, RETURNS_DEEP_STUBS));
         when(session.getState()).thenReturn(VaadinSessionState.OPEN);
         when(session.hasLock()).thenReturn(true); when(session.getLockInstance()).thenReturn(new ReentrantLock());
         Map<Class<?>,Object> attributes=new HashMap<>();

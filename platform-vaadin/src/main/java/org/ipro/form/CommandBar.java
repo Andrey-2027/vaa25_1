@@ -59,6 +59,7 @@ public final class CommandBar extends HorizontalLayout {
 
     private final Map<ActionId, Command> commands = new LinkedHashMap<>();
     private ListCommandLayout layout = ListCommandLayout.platformDefaults();
+    private boolean hideWhenNoVisibleCommands;
 
     /** Внутренний доступ координатора и адаптеров без расширения API формы. */
     public static CommandBar forForm(Component form) {
@@ -258,6 +259,15 @@ public final class CommandBar extends HorizontalLayout {
 
     public ListCommandLayout layout() {
         return layout;
+    }
+
+    /**
+     * Скрывать панель целиком, пока у неё нет ни одной видимой команды (карточка и диалог: пустая
+     * панель с одним «Ещё» без пунктов — шум). Списку не нужно: у него панель есть всегда.
+     */
+    public void setHideWhenNoVisibleCommands(boolean hide) {
+        this.hideWhenNoVisibleCommands = hide;
+        updateGroupVisibility();
     }
 
     /**
@@ -463,6 +473,9 @@ public final class CommandBar extends HorizontalLayout {
     private void updateGroupVisibility() {
         settingsItem.setVisible(settingsMenu.getItems().stream().anyMatch(Component::isVisible));
         serviceItem.setVisible(serviceMenu.getItems().stream().anyMatch(Component::isVisible));
+        if (hideWhenNoVisibleCommands) {
+            setVisible(commands.values().stream().anyMatch(command -> command.visible && command.included));
+        }
     }
 
     /**

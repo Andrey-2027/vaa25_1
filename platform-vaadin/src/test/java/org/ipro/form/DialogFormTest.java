@@ -430,6 +430,44 @@ class DialogFormTest {
         assertThat(hint.isVisible()).isFalse();
     }
 
+
+    // ДФ-5 ---------------------------------------------------------------------------------
+
+    @Test
+    void withoutFooterRemovesFooterAndKeepsOkHiddenEvenAfterWithOk() {
+        var dialog = new DialogForm<String>("Карточка").withoutFooter();
+        dialog.withOk("OK", () -> "x");
+
+        assertThat(footerComponents(dialog)).isEmpty();
+        assertThat(dialog.getOkButton().isVisible()).isFalse();
+    }
+
+    @Test
+    void ctrlEnterConfirmsWhenOkIsAvailableEvenWithoutEnterShortcut() {
+        var received = new ArrayList<String>();
+        var dialog = new DialogForm<String>("Строка").withOk("OK", () -> "готово").onResult(received::add);
+        dialog.setEnterIsOk(false);
+        dialog.open();
+
+        dialog.setOkEnabled(false);
+        dialog.ctrlEnter();
+        assertThat(received).isEmpty();
+
+        dialog.setOkEnabled(true);
+        dialog.ctrlEnter();
+        assertThat(received).containsExactly("готово");
+        assertThat(dialog.isOpened()).isFalse();
+    }
+
+    @Test
+    void ctrlEnterDoesNothingWithoutOk() {
+        var dialog = new DialogForm<String>("Просмотр").withoutOk();
+        dialog.open();
+
+        dialog.ctrlEnter();
+
+        assertThat(dialog.isOpened()).isTrue();
+    }
     @Test
     void enterShortcutCanBeSwitchedOff() {
         var dialog = new DialogForm<String>("Окно").withOk("OK", () -> "x");

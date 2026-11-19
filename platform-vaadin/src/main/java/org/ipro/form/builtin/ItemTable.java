@@ -11,7 +11,11 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.function.ValueProvider;
+import org.ipro.form.DialogForm;
+import org.ipro.form.CommandBar;
 import org.ipro.form.FieldFactory;
+import org.ipro.form.Savable;
+import org.ipro.form.UnsavedChangesGuard;
 import org.ipro.form.FieldRenderer;
 import org.ipro.form.registry.FormResolver;
 import org.ipro.metadata.ColumnPath;
@@ -559,47 +563,42 @@ public class ItemTable<T extends IdentifiableEntity<Long>, P extends Identifiabl
         ItemForm<T> rowForm = buildRowForm(row);
         RowDraft<T> rowDraft = RowDraft.capture(row, sectionMeta.getFormFields());
         rowForm.setEntity(row);
+        CommandBar rowCommands = CommandBar.forForm(rowForm);
+        rowCommands.setHideWhenNoVisibleCommands(false);
+        rowCommands.setVisible(false);
         rowForm.setHeightFull();
+        rowForm.setPadding(false);
 
-        Dialog dialog = new Dialog();
-        dialog.setHeaderTitle(title);
+        // Диалог ввода (Д-ДФ17): поля строки, внизу OK / Отмена. Enter в поле строку не подтверждает —
+        // подтверждают кнопка OK и Ctrl+Enter; щелчок мимо окна и Esc без вопроса не закрывают.
+        DialogForm<T> dialog = new DialogForm<>(title);
+        dialog.size(DialogForm.Size.SMALL);
         dialog.setWidth("600px");
-        dialog.setModal(true);
-        dialog.setDraggable(true);
-        dialog.setCloseOnEsc(false);
-        dialog.setCloseOnOutsideClick(false);
+        dialog.setEnterIsOk(false);
         dialog.add(rowForm);
-
-        rowForm.setOnSave(() -> {
+        dialog.withOk("OK", () -> {
             if (!rowForm.isValid()) {
                 Notification.show(
                     "Заполните обязательные поля:\n" + String.join("\n", rowForm.validate()),
                     5000, Notification.Position.MIDDLE)
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
-                return;
+                return null;
             }
             rowForm.getEntity();
-            dialog.close();
-            onConfirm.run();
-        });
-        rowForm.setOnCancel(() -> {
-            if (rowForm.isDirty()) {
-                ConfirmDialog confirm = new ConfirmDialog();
-                confirm.setHeader("Несохранённые изменения");
-                confirm.setText(rowForm.getCloseConfirmMessage());
-                confirm.setConfirmButton("Сохранить и закрыть", e -> rowForm.doSave());
-                confirm.setCancelButton("Закрыть", e -> {
-                    rowDraft.restore(row);
-                    grid.getDataProvider().refreshItem(row);
-                    dialog.close();
-                });
-                confirm.setRejectButton("Отмена", e -> {});
-                confirm.open();
-            } else {
-                dialog.close();
-            }
-        });
-        rowForm.withDefaultButtons();
+            return row;
+        }).withCancel("Отмена").onResult(confirmed -> onConfirm.run());
+        rowForm.setOnSave(dialog::ok);
+        rowForm.setOnCancel(dialog::cancel);
+
+        // «Сохранить и закрыть» в вопросе — то же, что OK; «Закрыть» откатывает строку.
+        Savable confirmRow = () -> {
+            dialog.ok();
+            return !dialog.isOpened();
+        };
+        dialog.closeGuard(UnsavedChangesGuard.forForm(rowForm, confirmRow, () -> {
+            rowDraft.restore(row);
+            grid.getDataProvider().refreshItem(row);
+        }));
 
         dialog.open();
     }

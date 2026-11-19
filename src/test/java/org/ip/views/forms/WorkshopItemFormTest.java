@@ -1,13 +1,13 @@
 package org.ip.views.forms;
 
 import com.vaadin.flow.component.UI;
-import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.server.VaadinSessionState;
 import org.ip.Application;
 import org.ip.config.DataInitializer;
 import org.ip.model.*;
 import org.ipro.data.EntityDataAccess;
+import org.ipro.form.DialogForm;
 import org.ipro.form.FormSaveResult;
 import org.ipro.form.FieldFactory;
 import org.ipro.form.builtin.ItemForm;
@@ -96,10 +96,10 @@ class WorkshopItemFormTest {
         UI.setCurrent(previousUi); VaadinSession.setCurrent(previousSession); SecurityContextHolder.clearContext(); lastBuilt.set(null);
     }
     private ItemForm<Workshop> open(String variant, Long id, Map<String,Object> parameters) {
-        try(var dialogs=mockConstruction(Dialog.class)) {
+        try(var dialogs=mockConstruction(DialogForm.class, withSettings().defaultAnswer(RETURNS_SELF))) {
             coordinators.getObject().openItemForm(Workshop.class,variant,id,saved -> {},parameters);
             assertThat(dialogs.constructed()).hasSize(1);
-            verify(dialogs.constructed().getFirst()).setHeight("auto");
+            verify(dialogs.constructed().getFirst()).setHeight(null);
             return Objects.requireNonNull(lastBuilt.get());
         }
     }

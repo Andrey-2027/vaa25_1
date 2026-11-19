@@ -57,10 +57,10 @@ public class ReportCardPrintCustomization implements FormTypeCustomization {
         if (entityClass == null || id == null) {
             return;
         }
-        if (form.getFooter().getChildren().anyMatch(ContextualReportLauncher.class::isInstance)) {
+        if (ItemFormReportActions.isInstalled(form)) {
             return;
         }
-        launchers.addTo(form, () -> contextFactory.forSelection(entityClass, id, List.of(id),
+        launchers.addCommandTo(form, () -> contextFactory.forSelection(entityClass, id, List.of(id),
             entityClass.getName() + "-form"));
     }
 }

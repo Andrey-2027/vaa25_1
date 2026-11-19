@@ -55,6 +55,7 @@ layer src/main/java/org/ip/views/query/FormEntitySelection.java
 # В приложении остался ровно один держатель — адаптер порта EntitySelection: только он
 # знает, что выбор собирается формой платформы.
 seam org.ipro.form.DialogForm org.ipro.report.ui.print.ReportPrintDialog
+seam org.ipro.form.FormCommand org.ipro.report.ui.print.ItemFormReportActions org.ipro.report.ui.print.ReportPrintDialog
 seam org.ipro.form.EntityField org.ipro.report.ui.params.ReportParamForm org.ipro.unidr.ui.UniDrReferencePicker org.ip.views.query.FormEntitySelection
 seam org.ipro.form.SelectionForm org.ipro.report.ui.params.ReportParamForm org.ipro.unidr.ui.UniDrReferencePicker org.ip.views.query.FormEntitySelection
 seam org.ipro.form.SelectionFormAssembler org.ipro.report.ui.params.ReportParamForm org.ipro.report.ui.config.ReportUiAutoConfiguration org.ipro.unidr.ui.UniDrQueryUiSupport org.ipro.unidr.ui.UniDrConditionsEditor org.ipro.unidr.ui.UniDrDefinitionEditor org.ipro.unidr.ui.UniDrNativeFilterEditor org.ipro.unidr.ui.UniDrReferencePicker org.ipro.unidr.ui.UniDrValueEditor org.ip.views.query.FormEntitySelection

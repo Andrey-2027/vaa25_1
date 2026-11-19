@@ -7,7 +7,7 @@
 ```text
 app-source-files=286
 platform-tree-files=0
-platform-artifact-files=920
+platform-artifact-files=924
 named-platform-types=393
 api-types=311
 spi-types=46
